@@ -17,7 +17,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: any;
+  errorInfo?: React.ErrorInfo;
 }
 
 export class CompanyErrorBoundary extends Component<Props, State> {
@@ -30,7 +30,7 @@ export class CompanyErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Erreur dans CompanyErrorBoundary:', error, errorInfo);
     this.setState({ error, errorInfo });
   }

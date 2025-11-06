@@ -10,7 +10,6 @@
 
 import logger from './logger';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface ApiResponse<T = unknown> {
@@ -801,14 +800,14 @@ class ApiClient {
     return this.request(endpoint);
   }
 
-  async createAdminCompany(companyData: any) {
+  async createAdminCompany(companyData: Record<string, unknown>) {
     return this.request('/admin/companies', {
       method: 'POST',
       body: JSON.stringify(companyData),
     });
   }
 
-  async updateAdminCompany(companyId: number, companyData: any) {
+  async updateAdminCompany(companyId: number, companyData: Record<string, unknown>) {
     return this.request(`/admin/companies/${companyId}`, {
       method: 'PUT',
       body: JSON.stringify(companyData),

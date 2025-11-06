@@ -30,7 +30,7 @@ interface Resource {
   author: string;
   publishedDate: string;
   format: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<Record<string, unknown>>;
   color: string;
   bgColor: string;
   tags: string[];

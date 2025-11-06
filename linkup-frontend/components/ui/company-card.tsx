@@ -39,7 +39,7 @@ export function CompanyCard({
   const getLogoComponent = (logoName: string, colorClass: string) => {
     const logoProps = { className: `w-6 h-6 ${colorClass}` };
     
-    const logoMap: { [key: string]: React.ComponentType<any> } = {
+    const logoMap: { [key: string]: React.ComponentType<Record<string, unknown>> } = {
       SiGoogle, SiApple, SiMeta, SiSap, SiOracle, SiSalesforce, SiAdobe,
       SiNike, SiAdidas, SiSpotify, SiPaypal, SiStripe, SiNvidia, SiOpenai, SiShell,
       FaMicrosoft, FaBuilding, FaIndustry, FaBolt, FaOilCan

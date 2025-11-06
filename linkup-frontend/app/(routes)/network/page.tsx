@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BackButton } from "@/components/ui/back-button";
+import { Toaster } from "@/components/ui/toaster";
 import { 
   Users, 
   Search, 
