@@ -237,7 +237,7 @@ export default function AdminApplicationsPage() {
               <div className="space-y-4">
                 {applications && Array.isArray(applications) && applications.map((application, index) => (
                   <motion.div
-                    key={application.id_user && application.id_job_offer ? `${application.id_user}-${application.id_job_offer}` : index}
+                    key={application.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -248,7 +248,7 @@ export default function AdminApplicationsPage() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <Typography variant="sm" className="font-medium truncate">
+                        <Typography variant="small" className="font-medium truncate">
                           {application.user_name}
                         </Typography>
                         {getStatusBadge(application.status)}
@@ -274,7 +274,7 @@ export default function AdminApplicationsPage() {
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        ID: {application.id_user && application.id_job_offer ? `${application.id_user}-${application.id_job_offer}` : 'N/A'}
+                        ID: {application.id || 'N/A'}
                       </div>
                     </div>
                     
@@ -365,7 +365,7 @@ function EditApplicationDialog({
         ...formData,
         match_percentage: formData.match_percentage ? parseInt(formData.match_percentage) : undefined
       };
-      onSubmit(application.id_user && application.id_job_offer ? `${application.id_user}-${application.id_job_offer}` : '', applicationData);
+      onSubmit(application.id || '', applicationData);
     }
   };
 
@@ -433,7 +433,7 @@ function DeleteApplicationDialog({
 }) {
   const handleConfirm = () => {
     if (application) {
-      onConfirm(application.id_user && application.id_job_offer ? `${application.id_user}-${application.id_job_offer}` : '');
+      onConfirm(application.id || '');
     }
   };
 
