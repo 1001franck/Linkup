@@ -227,7 +227,7 @@ export function CompanyLogoUpload({
             </div>
 
             <div className="flex-1 space-y-2">
-              <Typography variant="sm" className="text-muted-foreground">
+              <Typography variant="small" className="text-muted-foreground">
                 Formats acceptés : JPG, PNG, GIF (max 5MB)
               </Typography>
               

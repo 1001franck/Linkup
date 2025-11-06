@@ -206,10 +206,10 @@ export function AdminHeader() {
                     >
                       <Icon className="h-5 w-5" />
                       <div>
-                        <Typography variant="sm" className="font-medium">
+                        <Typography variant="small" className="font-medium">
                           {item.label}
                         </Typography>
-                        <Typography variant="xs" className="text-muted-foreground">
+                        <Typography variant="small" className="text-muted-foreground">
                           {item.description}
                         </Typography>
                       </div>

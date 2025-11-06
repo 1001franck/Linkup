@@ -101,7 +101,7 @@ export const CompanyCard = React.memo<CompanyCardProps>(({
                     {company.logo && !company.logo.startsWith('http') ? (
                       // Si c'est un nom d'icône (comme "SiGoogle"), on pourrait afficher une icône
                       // Mais pour l'instant, on affiche les initiales
-                      <Typography variant="sm" className="font-bold text-primary">
+                      <Typography variant="small" className="font-bold text-primary">
                         {company.name.charAt(0).toUpperCase()}
                       </Typography>
                     ) : (
