@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd linkup-frontend && npm install && npm run build",
-  "outputDirectory": "linkup-frontend/.next",
-  "installCommand": "cd linkup-frontend && npm install",
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
   "framework": "nextjs"
 }
 
