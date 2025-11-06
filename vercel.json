@@ -3,11 +3,6 @@
   "outputDirectory": "linkup-frontend/.next",
   "installCommand": "cd linkup-frontend && npm install",
   "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ]
+  "rootDirectory": "linkup-frontend"
 }
 
