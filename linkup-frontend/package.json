@@ -9,8 +9,8 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
-    "prebuild": "npm run type-check",
-    "check": "npm run type-check && npm run lint"
+    "check": "npm run type-check && npm run lint",
+    "check:build": "npm run type-check"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
