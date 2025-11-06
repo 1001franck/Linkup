@@ -267,7 +267,7 @@ export default function AdminJobsPage() {
               <div className="space-y-4">
                 {jobs && Array.isArray(jobs) && jobs.map((job, index) => (
                   <motion.div
-                    key={job.id_job_offer || job.id || index}
+                    key={job.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -278,7 +278,7 @@ export default function AdminJobsPage() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <Typography variant="sm" className="font-medium truncate">
+                        <Typography variant="small" className="font-medium truncate">
                           {job.title}
                         </Typography>
                         {getStatusBadge(job.status)}
@@ -524,7 +524,7 @@ function EditJobDialog({
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined
       };
-      onSubmit(job.id_job_offer || job.id, jobData);
+      onSubmit(job.id || job.id, jobData);
     }
   };
 
@@ -645,7 +645,7 @@ function DeleteJobDialog({
 }) {
   const handleConfirm = () => {
     if (job) {
-      onConfirm(job.id_job_offer || job.id);
+      onConfirm(job.id || job.id);
     }
   };
 

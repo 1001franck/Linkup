@@ -236,7 +236,7 @@ export default function AdminCompaniesPage() {
               <div className="space-y-4">
                 {companies && Array.isArray(companies) && companies.map((company, index) => (
                   <motion.div
-                    key={company.id_company || company.id || index}
+                    key={company.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -247,7 +247,7 @@ export default function AdminCompaniesPage() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <Typography variant="sm" className="font-medium truncate">
+                        <Typography variant="small" className="font-medium truncate">
                           {company.name}
                         </Typography>
                         <Badge className="bg-green-100 text-green-800">
@@ -271,7 +271,7 @@ export default function AdminCompaniesPage() {
                         </div>
                       </div>
                       {company.description && (
-                        <Typography variant="xs" className="text-muted-foreground mt-1 line-clamp-2">
+                        <Typography variant="small" className="text-muted-foreground mt-1 line-clamp-2">
                           {company.description}
                         </Typography>
                       )}
@@ -438,7 +438,7 @@ function EditCompanyDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (company) {
-      onSubmit(company.id_company || company.id, formData);
+      onSubmit(company.id, formData);
     }
   };
 
@@ -526,7 +526,7 @@ function DeleteCompanyDialog({
 }) {
   const handleConfirm = () => {
     if (company) {
-      onConfirm(company.id_company || company.id);
+      onConfirm(company.id);
     }
   };
 

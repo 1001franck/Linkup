@@ -59,6 +59,7 @@ export interface AdminJob {
   salary_max?: number;
   contract_type: string;
   created_at: string;
+  published_at?: string;
   status: string;
 }
 
