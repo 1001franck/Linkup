@@ -261,10 +261,10 @@ export default function AdminAnalyticsPage() {
                     <div className="flex items-center gap-3">
                       <Users className="h-5 w-5 text-green-600" />
                       <div>
-                        <Typography variant="sm" className="font-medium">
+                        <Typography variant="small" className="font-medium">
                           Nouveaux utilisateurs
                         </Typography>
-                        <Typography variant="xs" className="text-muted-foreground">
+                        <Typography variant="small" className="text-muted-foreground">
                           Dernières 24h
                         </Typography>
                       </div>
@@ -278,10 +278,10 @@ export default function AdminAnalyticsPage() {
                     <div className="flex items-center gap-3">
                       <Building2 className="h-5 w-5 text-blue-600" />
                       <div>
-                        <Typography variant="sm" className="font-medium">
+                        <Typography variant="small" className="font-medium">
                           Nouvelles entreprises
                         </Typography>
-                        <Typography variant="xs" className="text-muted-foreground">
+                        <Typography variant="small" className="text-muted-foreground">
                           Dernières 24h
                         </Typography>
                       </div>
@@ -295,10 +295,10 @@ export default function AdminAnalyticsPage() {
                     <div className="flex items-center gap-3">
                       <Briefcase className="h-5 w-5 text-purple-600" />
                       <div>
-                        <Typography variant="sm" className="font-medium">
+                        <Typography variant="small" className="font-medium">
                           Nouvelles offres
                         </Typography>
-                        <Typography variant="xs" className="text-muted-foreground">
+                        <Typography variant="small" className="text-muted-foreground">
                           Dernières 24h
                         </Typography>
                       </div>
@@ -312,10 +312,10 @@ export default function AdminAnalyticsPage() {
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-orange-600" />
                       <div>
-                        <Typography variant="sm" className="font-medium">
+                        <Typography variant="small" className="font-medium">
                           Nouvelles candidatures
                         </Typography>
-                        <Typography variant="xs" className="text-muted-foreground">
+                        <Typography variant="small" className="text-muted-foreground">
                           Dernières 24h
                         </Typography>
                       </div>
@@ -365,10 +365,10 @@ export default function AdminAnalyticsPage() {
                           <Activity className="h-4 w-4 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <Typography variant="sm" className="font-medium">
+                          <Typography variant="small" className="font-medium">
                             {item.description || 'Activité récente'}
                           </Typography>
-                          <Typography variant="xs" className="text-muted-foreground">
+                          <Typography variant="small" className="text-muted-foreground">
                             {item.timestamp || 'Récemment'}
                           </Typography>
                         </div>
