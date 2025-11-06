@@ -1,0 +1,9 @@
+declare module 'jsonwebtoken';
+declare module 'express';
+declare module 'cookie-parser';
+declare module 'cors';
+declare module 'dotenv';
+declare module 'supabase';
+declare module 'supabase-js';
+declare module 'bcryptjs';
+declare module 'multer';

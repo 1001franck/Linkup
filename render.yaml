@@ -1,0 +1,26 @@
+# Configuration Render pour le backend
+# Ce fichier permet de déployer automatiquement le backend sur Render
+# Documentation: https://render.com/docs/yaml-spec
+
+services:
+  - type: web
+    name: linkup-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # ⚠️ IMPORTANT: Ajoutez vos variables d'environnement dans le dashboard Render
+      # Les variables sensibles (SUPABASE_URL, JWT_SECRET, etc.) doivent être ajoutées manuellement
+      # pour des raisons de sécurité
+      - key: CREATE_DEFAULT_ADMIN
+        value: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
