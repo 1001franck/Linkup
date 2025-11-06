@@ -10,9 +10,10 @@
 
 import logger from './logger';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -449,14 +450,14 @@ class ApiClient {
 
   // getJobApplications supprimé car inutilisé
 
-  async updateApplicationStatus(jobId: number, status: string, additionalData?: any) {
+  async updateApplicationStatus(jobId: number, status: string, additionalData?: Record<string, unknown>) {
     return this.request(`/applications/${jobId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status, ...additionalData }),
     });
   }
 
-  async updateApplicationStatusByCompany(jobId: number, status: string, additionalData?: any) {
+  async updateApplicationStatusByCompany(jobId: number, status: string, additionalData?: Record<string, unknown>) {
     return this.request(`/applications/${jobId}/status/company`, {
       method: 'PUT',
       body: JSON.stringify({ status, ...additionalData }),
@@ -604,18 +605,6 @@ class ApiClient {
   // Admin
   async getAdminDashboard() {
     return this.request('/admin/dashboard');
-  }
-
-  async getAdminUsers() {
-    return this.request('/admin/users');
-  }
-
-  async getAdminCompanies() {
-    return this.request('/admin/companies');
-  }
-
-  async getAdminJobs() {
-    return this.request('/admin/jobs');
   }
 
   async banUser(userId: number, reason: string, duration: string) {
@@ -774,14 +763,14 @@ class ApiClient {
     return this.request(endpoint);
   }
 
-  async createAdminUser(userData: any) {
+  async createAdminUser(userData: Record<string, unknown>) {
     return this.request('/admin/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
-  async updateAdminUser(userId: number, userData: any) {
+  async updateAdminUser(userId: number, userData: Record<string, unknown>) {
     return this.request(`/admin/users/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -843,14 +832,14 @@ class ApiClient {
     return this.request(endpoint);
   }
 
-  async createAdminJob(jobData: any) {
+  async createAdminJob(jobData: Record<string, unknown>) {
     return this.request('/admin/jobs', {
       method: 'POST',
       body: JSON.stringify(jobData),
     });
   }
 
-  async updateAdminJob(jobId: number, jobData: any) {
+  async updateAdminJob(jobId: number, jobData: Record<string, unknown>) {
     return this.request(`/admin/jobs/${jobId}`, {
       method: 'PUT',
       body: JSON.stringify(jobData),
@@ -874,7 +863,7 @@ class ApiClient {
     return this.request(endpoint);
   }
 
-  async updateAdminApplication(applicationId: string, applicationData: any) {
+  async updateAdminApplication(applicationId: string, applicationData: Record<string, unknown>) {
     return this.request(`/admin/applications/${applicationId}`, {
       method: 'PUT',
       body: JSON.stringify(applicationData),

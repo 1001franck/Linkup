@@ -13,7 +13,7 @@ const logger = {
 	 * Log d'erreur (toujours affiché, même en production pour le debugging côté client)
 	 * Utilisé pour les erreurs critiques
 	 */
-	error: (...args: any[]) => {
+	error: (...args: unknown[]) => {
 		console.error(...args);
 	},
 
@@ -21,7 +21,7 @@ const logger = {
 	 * Log d'avertissement (affiché uniquement en développement)
 	 * Utilisé pour les warnings non critiques
 	 */
-	warn: (...args: any[]) => {
+	warn: (...args: unknown[]) => {
 		if (!isProduction) {
 			console.warn(...args);
 		}
@@ -31,7 +31,7 @@ const logger = {
 	 * Log d'information (affiché uniquement en développement)
 	 * Utilisé pour les informations générales
 	 */
-	info: (...args: any[]) => {
+	info: (...args: unknown[]) => {
 		if (!isProduction) {
 			console.log(...args);
 		}
@@ -41,7 +41,7 @@ const logger = {
 	 * Log de débogage (affiché uniquement en développement)
 	 * Utilisé pour le débogage détaillé
 	 */
-	debug: (...args: any[]) => {
+	debug: (...args: unknown[]) => {
 		if (!isProduction) {
 			console.debug(...args);
 		}
@@ -51,7 +51,7 @@ const logger = {
 	 * Log standard (affiché uniquement en développement)
 	 * Alias pour info()
 	 */
-	log: (...args: any[]) => {
+	log: (...args: unknown[]) => {
 		if (!isProduction) {
 			console.log(...args);
 		}

@@ -73,7 +73,7 @@ export function ProfessionAutocomplete({
     }
   };
 
-  const handleBlur = (e: React.FocusEvent) => {
+  const handleBlur = () => {
     // Délai pour permettre le clic sur une suggestion
     setTimeout(() => {
       if (!suggestionsRef.current?.contains(document.activeElement)) {

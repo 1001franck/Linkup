@@ -25,7 +25,7 @@ const DEFAULT_VALUES = {
  * Retourne null pour utiliser les initiales directement dans le composant
  * au lieu d'essayer de charger une image externe
  */
-const generateLogoUrl = (name: string): string | null => {
+const generateLogoUrl = (_name: string): string | null => {
   // Retourner null pour utiliser les initiales directement dans le composant
   // au lieu d'essayer de charger une image externe depuis via.placeholder.com
   return null;
@@ -83,7 +83,7 @@ const determineFoundedYear = (apiCompany: ApiCompany): string => {
 /**
  * Valide et nettoie les avantages
  */
-const sanitizeBenefits = (benefits: any): string[] => {
+const sanitizeBenefits = (benefits: unknown): string[] => {
   if (!benefits) return DEFAULT_VALUES.benefits;
   
   if (Array.isArray(benefits)) {
