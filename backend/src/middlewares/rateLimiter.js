@@ -22,6 +22,10 @@ export const generalLimiter = rateLimit({
 		// Ne pas appliquer le rate limiter aux requêtes OPTIONS (preflight CORS)
 		return req.method === 'OPTIONS';
 	},
+	// Désactiver la validation trust proxy car on l'a configuré manuellement de manière sécurisée
+	validate: {
+		trustProxy: false,
+	},
 });
 
 /**
@@ -40,6 +44,10 @@ export const authLimiter = rateLimit({
 	legacyHeaders: false,
 	skipSuccessfulRequests: true, // Ne pas compter les requêtes réussies (inscriptions réussies)
 	skipFailedRequests: false, // Compter les échecs pour protéger contre le spam
+	// Désactiver la validation trust proxy car on l'a configuré manuellement de manière sécurisée
+	validate: {
+		trustProxy: false,
+	},
 });
 
 /**

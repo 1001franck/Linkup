@@ -29,7 +29,8 @@ const app = express();
 
 // Activer trust proxy pour Render (nécessaire pour express-rate-limit derrière un proxy)
 // Render utilise un reverse proxy, donc on doit faire confiance aux headers X-Forwarded-*
-app.set('trust proxy', true);
+// Utiliser 1 au lieu de true pour faire confiance uniquement au premier proxy (plus sécurisé)
+app.set('trust proxy', 1);
 
 // Désactiver le header X-Powered-By pour la sécurité
 app.disable('x-powered-by');
