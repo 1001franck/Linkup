@@ -21,6 +21,7 @@ router.post("/signup", authLimiter, async (req, res) => {
 		const validation = validateUserSignup(req.body);
 		
 		if (!validation.valid) {
+			logger.warn(`[Signup] Validation échouée:`, validation.errors);
 			return res.status(400).json({ 
 				error: "Données invalides",
 				details: validation.errors
@@ -83,13 +84,21 @@ router.post("/login", authLimiter, async (req, res) => {
 		const user = await findByEmail(normalizedEmail);
 		if (!user) {
 			// Ne pas révéler si l'email existe ou non (sécurité)
+			logger.warn(`[Login] Utilisateur non trouvé: ${normalizedEmail}`);
 			return res.status(401).json({ error: "Identifiants invalides" });
+		}
+
+		// Vérifier que le champ password existe
+		if (!user.password) {
+			logger.error(`[Login] Champ password manquant pour l'utilisateur: ${normalizedEmail}`);
+			return res.status(500).json({ error: "Erreur serveur - configuration incorrecte" });
 		}
 
 		// Compare provided password with stored hash
 		const ok = await bcrypt.compare(String(password), user.password);
 		if (!ok) {
 			// Ne pas révéler si le mot de passe est incorrect (sécurité)
+			logger.warn(`[Login] Mot de passe incorrect pour: ${normalizedEmail}`);
 			return res.status(401).json({ error: "Identifiants invalides" });
 		}
 

@@ -6,14 +6,23 @@ async function findByEmail(email) {
 	const e = email.trim().toLowerCase();
 	logger.debug("[findByEmail] checking:", e);
 
-	const { data, error } = await supabase.from("user_").select("*").eq("email", e).single();
+	// IMPORTANT: Inclure explicitement le champ password pour l'authentification
+	const { data, error } = await supabase
+		.from("user_")
+		.select("*, password") // S'assurer que password est inclus
+		.eq("email", e)
+		.single();
 
 	if (error && error.code !== "PGRST116") {
 		logger.error("[findByEmail] error:", error);
 		return null;
 	}
 
-	logger.debug("[findByEmail] found:", data);
+	if (data && !data.password) {
+		logger.warn("[findByEmail] Champ password manquant dans la réponse Supabase pour:", e);
+	}
+
+	logger.debug("[findByEmail] found:", data ? { ...data, password: data.password ? "***" : "MISSING" } : null);
 	return data;
 }
 
