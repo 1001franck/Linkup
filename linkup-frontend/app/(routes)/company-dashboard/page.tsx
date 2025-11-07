@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
@@ -73,7 +73,7 @@ import {
   UserSearch
 } from "lucide-react";
 
-export default function CompanyDashboardPage() {
+function CompanyDashboardPageContent() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   // Vérifier que l'utilisateur est une entreprise
@@ -990,5 +990,31 @@ export default function CompanyDashboardPage() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function CompanyDashboardPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+          <CompanyHeader />
+          <div className="pt-20 pb-16">
+            <Container>
+              <div className="py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+                    <Typography variant="muted">Chargement...</Typography>
+                  </div>
+                </div>
+              </div>
+            </Container>
+          </div>
+        </div>
+      </ProtectedRoute>
+    }>
+      <CompanyDashboardPageContent />
+    </Suspense>
   );
 }

@@ -9,7 +9,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Container } from "@/components/layout/container";
@@ -834,5 +834,24 @@ function MyApplicationsContent() {
 }
 
 export default function MyApplicationsPage() {
-  return <MyApplicationsContent />;
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+          <Container>
+            <div className="py-8">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+                  <Typography variant="muted">Chargement...</Typography>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </div>
+      </ProtectedRoute>
+    }>
+      <MyApplicationsContent />
+    </Suspense>
+  );
 }

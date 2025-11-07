@@ -8,7 +8,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -320,7 +320,22 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <GuestRoute>
-      <LoginContent />
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+          <Container>
+            <div className="py-8">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+                  <Typography variant="muted">Chargement...</Typography>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </div>
+      }>
+        <LoginContent />
+      </Suspense>
     </GuestRoute>
   );
 }
