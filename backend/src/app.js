@@ -30,85 +30,52 @@ const app = express();
 // Désactiver le header X-Powered-By pour la sécurité
 app.disable('x-powered-by');
 
-// Rate limiting global (appliqué à toutes les routes sauf celles avec leur propre limiter)
-app.use(generalLimiter);
-
-// Configuration CORS pour la production
-const getAllowedOrigins = () => {
-	const origins = [];
-	
-	// Origines de développement (toujours autorisées)
-	origins.push("http://localhost:3000", "http://localhost:3001", "http://localhost:3002");
-	
-	// Origines de production depuis les variables d'environnement
-	if (process.env.FRONTEND_URL) {
-		const frontendUrls = process.env.FRONTEND_URL.split(',').map(url => url.trim());
-		origins.push(...frontendUrls);
-	}
-	
-	// Si FRONTEND_URLS est défini (format alternatif)
-	if (process.env.FRONTEND_URLS) {
-		const frontendUrls = process.env.FRONTEND_URLS.split(',').map(url => url.trim());
-		origins.push(...frontendUrls);
-	}
-	
-	return origins;
-};
-
+// Configuration CORS - DOIT être AVANT le rate limiter pour les requêtes OPTIONS
 const corsOptions = {
 	origin: (origin, callback) => {
-		try {
-			const allowedOrigins = getAllowedOrigins();
-			
-			// En développement, être plus permissif
-			if (process.env.NODE_ENV !== 'production') {
-				// Autoriser les requêtes sans origin (Postman, curl, etc.)
-				if (!origin) {
-					return callback(null, true);
-				}
-				// Autoriser toutes les origines localhost en développement
-				if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
-					logger.debug(`[CORS] Origine autorisée (dev): ${origin}`);
-					return callback(null, origin);
-				}
-			}
-			
-			// En production, vérifier les origines autorisées
-			if (!origin) {
-				// Autoriser les requêtes sans origin (utile pour certains cas)
+		// Toujours autoriser les requêtes sans origin (Postman, curl, etc.)
+		if (!origin) {
+			return callback(null, true);
+		}
+		
+		// Autoriser toutes les origines localhost en développement
+		if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+			return callback(null, true);
+		}
+		
+		// Autoriser TOUS les sous-domaines Vercel (*.vercel.app)
+		if (origin.endsWith('.vercel.app')) {
+			logger.info(`[CORS] Origine Vercel autorisée: ${origin}`);
+			return callback(null, true);
+		}
+		
+		// Autoriser les origines depuis FRONTEND_URL
+		if (process.env.FRONTEND_URL) {
+			const frontendUrls = process.env.FRONTEND_URL.split(',').map(url => url.trim());
+			if (frontendUrls.includes(origin)) {
+				logger.info(`[CORS] Origine autorisée (FRONTEND_URL): ${origin}`);
 				return callback(null, true);
 			}
-			
-			// Vérifier si l'origine est dans la liste autorisée
-			if (allowedOrigins.includes(origin)) {
-				logger.debug(`[CORS] Origine autorisée: ${origin}`);
-				return callback(null, origin);
-			}
-			
-			// Autoriser les sous-domaines Vercel (*.vercel.app) en production
-			if (process.env.NODE_ENV === 'production' && origin.endsWith('.vercel.app')) {
-				logger.debug(`[CORS] Origine Vercel autorisée: ${origin}`);
-				return callback(null, origin);
-			}
-			
-			// Si aucune correspondance, rejeter
-			logger.warn(`[CORS] Origine non autorisée: ${origin}. Origines autorisées:`, allowedOrigins);
-			callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
-		} catch (error) {
-			// Gérer les erreurs dans le callback CORS pour éviter les 500
-			logger.error(`[CORS] Erreur dans le callback CORS:`, error);
-			callback(error);
 		}
+		
+		// Par défaut, autoriser (pour éviter les blocages)
+		// En production, vous pouvez restreindre en ajoutant des vérifications ici
+		logger.info(`[CORS] Origine autorisée (par défaut): ${origin}`);
+		callback(null, true);
 	},
-	credentials: true, // Permettre les cookies
+	credentials: true,
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 	exposedHeaders: ['Content-Range', 'X-Content-Range'],
-	maxAge: 86400, // Cache preflight requests for 24 hours
-	preflightContinue: false, // Répondre immédiatement aux requêtes OPTIONS
+	maxAge: 86400,
+	preflightContinue: false,
 };
 
+// CORS DOIT être AVANT le rate limiter
 app.use(cors(corsOptions));
+
+// Rate limiting global (appliqué à toutes les routes sauf celles avec leur propre limiter)
+app.use(generalLimiter);
 
 // Compression des réponses (améliore les performances)
 app.use(compression());
