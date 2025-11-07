@@ -19,6 +19,7 @@ import { CompanyLogoUpload } from "@/components/companies/company-logo-upload";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
+import { Company } from "@/types/api";
 import { 
   Building2, 
   Save, 
@@ -33,10 +34,13 @@ import {
 } from "lucide-react";
 
 export default function CompanyProfilePage() {
-  const { user: company, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Vérifier que l'utilisateur est une entreprise
+  const company = user && ('id_company' in user || 'recruiter_mail' in user) ? user as Company : null;
 
   // État du formulaire
   const [formData, setFormData] = useState({
@@ -61,8 +65,10 @@ export default function CompanyProfilePage() {
         website: company.website || "",
         city: company.city || "",
         country: company.country || "",
-        recruiter_name: company.recruiter_name || "",
-        recruiter_email: company.recruiter_email || "",
+        recruiter_name: (company.recruiter_firstname && company.recruiter_lastname) 
+          ? `${company.recruiter_firstname} ${company.recruiter_lastname}` 
+          : company.recruiter_firstname || company.recruiter_lastname || "",
+        recruiter_email: company.recruiter_mail || "",
         recruiter_phone: company.recruiter_phone || "",
       });
     }

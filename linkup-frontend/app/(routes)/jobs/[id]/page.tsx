@@ -49,40 +49,41 @@ export default function JobDetailPage() {
   const { state: interactionsState, actions: interactionsActions } = useJobsInteractions();
   
   // Hook pour postuler à une offre
-  const { mutate: applyToJobMutation, isLoading: isApplying } = useApplyToJob();
+  const { mutate: applyToJobMutation, loading: isApplying } = useApplyToJob();
 
   // Récupérer le job depuis l'API
   const jobId = parseInt(params.id as string);
   const { data: jobResponse, loading, error } = useJob(isNaN(jobId) ? null : jobId);
   
   // Transformer les données API vers le format frontend
-  const job: Job | null = jobResponse?.data ? {
-    id: jobResponse.data.id_job_offer || jobResponse.data.id,
-    title: jobResponse.data.title || "Titre non disponible",
-    company: jobResponse.data.company || "Entreprise non disponible",
-    companyId: jobResponse.data.id_company || jobResponse.data.companyId || 1,
-    location: jobResponse.data.location || "Localisation non disponible",
-    type: jobResponse.data.contract_type || "Type non spécifié",
-    remote: jobResponse.data.remote === "true" || jobResponse.data.remote === true,
-    salary: (jobResponse.data.salary_min || jobResponse.data.salary_max) ? {
-      min: jobResponse.data.salary_min || 0,
-      max: jobResponse.data.salary_max || 0,
+  const jobDataTyped = (jobResponse as any)?.data;
+  const job: Job | null = jobDataTyped ? {
+    id: jobDataTyped.id_job_offer || jobDataTyped.id,
+    title: jobDataTyped.title || "Titre non disponible",
+    company: jobDataTyped.company || "Entreprise non disponible",
+    companyId: jobDataTyped.id_company || jobDataTyped.companyId || 1,
+    location: jobDataTyped.location || "Localisation non disponible",
+    type: jobDataTyped.contract_type || "Type non spécifié",
+    remote: jobDataTyped.remote === "true" || jobDataTyped.remote === true,
+    salary: (jobDataTyped.salary_min || jobDataTyped.salary_max) ? {
+      min: jobDataTyped.salary_min || 0,
+      max: jobDataTyped.salary_max || 0,
       currency: "EUR"
-    } : null,
-    postedAt: jobResponse.data.published_at ? 
-      new Date(jobResponse.data.published_at).toLocaleDateString('fr-FR') : 
+    } : undefined,
+    postedAt: jobDataTyped.published_at ? 
+      new Date(jobDataTyped.published_at).toLocaleDateString('fr-FR') : 
       "Date non disponible",
-    timeAgo: jobResponse.data.timeAgo || "Temps non disponible",
-    description: jobResponse.data.description || "Description non disponible",
-    requirements: jobResponse.data.requirements ? 
-      (Array.isArray(jobResponse.data.requirements) ? jobResponse.data.requirements : 
-       JSON.parse(jobResponse.data.requirements)) : [],
-    benefits: jobResponse.data.benefits ? 
-      (Array.isArray(jobResponse.data.benefits) ? jobResponse.data.benefits : 
-       JSON.parse(jobResponse.data.benefits)) : [],
-    companyLogo: jobResponse.data.company_logo || "/api/placeholder/60/60",
-    experience: jobResponse.data.experience || "Non spécifié",
-    education: jobResponse.data.education || "Non spécifié"
+    timeAgo: jobDataTyped.timeAgo || "Temps non disponible",
+    description: jobDataTyped.description || "Description non disponible",
+    requirements: jobDataTyped.requirements ? 
+      (Array.isArray(jobDataTyped.requirements) ? jobDataTyped.requirements : 
+       JSON.parse(jobDataTyped.requirements)) : [],
+    benefits: jobDataTyped.benefits ? 
+      (Array.isArray(jobDataTyped.benefits) ? jobDataTyped.benefits : 
+       JSON.parse(jobDataTyped.benefits)) : [],
+    companyLogo: jobDataTyped.company_logo || "/api/placeholder/60/60",
+    experience: jobDataTyped.experience || "Non spécifié",
+    education: jobDataTyped.education || "Non spécifié"
   } : (error ? {
     // Fallback avec données mock en cas d'erreur API
     id: jobId,
@@ -133,28 +134,26 @@ export default function JobDetailPage() {
     setShowApplicationModal(true);
   };
 
-  const submitApplication = () => {
+  const submitApplication = async () => {
     if (!job) return;
     
-    applyToJobMutation(job.id, {
-      onSuccess: () => {
-        toast({
-          title: "Candidature envoyée",
-          description: "Votre candidature a été envoyée avec succès",
-          variant: "default"
-        });
-        setShowApplicationModal(false);
-        // Mettre à jour l'état local
-        interactionsActions.applyToJob(job.id);
-      },
-      onError: (error) => {
-        toast({
-          title: "Erreur",
-          description: error.message || "Impossible d'envoyer la candidature",
-          variant: "destructive"
-        });
-      }
-    });
+    try {
+      await applyToJobMutation(job.id);
+      toast({
+        title: "Candidature envoyée",
+        description: "Votre candidature a été envoyée avec succès",
+        variant: "default"
+      });
+      setShowApplicationModal(false);
+      // Mettre à jour l'état local
+      interactionsActions.applyToJob(job.id);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error?.message || "Impossible d'envoyer la candidature",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!job) {
@@ -366,7 +365,7 @@ export default function JobDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {job.requirements.map((req: string, index: number) => (
+                    {(job.requirements || []).map((req: string, index: number) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-secondary text-secondary-foreground text-sm rounded-full"
@@ -385,7 +384,7 @@ export default function JobDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {job.benefits.map((benefit: string, index: number) => (
+                    {(job.benefits || []).map((benefit: string, index: number) => (
                       <div key={index} className="flex items-center space-x-2">
                         <Check className="h-4 w-4 text-green-500" />
                         <span className="text-sm">{benefit}</span>

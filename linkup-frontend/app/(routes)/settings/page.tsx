@@ -66,14 +66,15 @@ export default function SettingsPage() {
   const { user: authUser } = useAuth();
 
   // MODIFICATION FRONTEND: Remplacement des données statiques par les vraies données
+  const userData = authUser && 'firstname' in authUser ? authUser : null;
   const [profileData, setProfileData] = useState({
-    firstName: authUser?.firstname || "",
-    lastName: authUser?.lastname || "",
-    email: authUser?.email || "",
-    phone: authUser?.phone || "",
-    location: authUser?.city && authUser?.country ? `${authUser.city}, ${authUser.country}` : "",
-    bio: authUser?.bio_pro || "",
-    website: authUser?.website || "",
+    firstName: userData?.firstname || "",
+    lastName: userData?.lastname || "",
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    location: userData?.city && userData?.country ? `${userData.city}, ${userData.country}` : "",
+    bio: userData?.bio_pro || "",
+    website: userData?.website || "",
     linkedin: "" // Pas encore dans la DB
   });
 
@@ -85,30 +86,30 @@ export default function SettingsPage() {
 
   // MODIFICATION FRONTEND: Mise à jour des données quand l'utilisateur change
   useEffect(() => {
-    if (authUser) {
+    if (userData) {
       setProfileData({
-        firstName: authUser.firstname || "",
-        lastName: authUser.lastname || "",
-        email: authUser.email || "",
-        phone: authUser.phone || "",
-        location: authUser.city && authUser.country ? `${authUser.city}, ${authUser.country}` : "",
-        bio: authUser.bio_pro || "",
-        website: authUser.website || "",
+        firstName: userData.firstname || "",
+        lastName: userData.lastname || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        location: userData.city && userData.country ? `${userData.city}, ${userData.country}` : "",
+        bio: userData.bio_pro || "",
+        website: userData.website || "",
         linkedin: "" // Pas encore dans la DB
       });
     }
-  }, [authUser]);
+  }, [userData]);
 
   // MODIFICATION FRONTEND: Fonction pour supprimer la photo de profil
   const handleDeleteProfilePicture = async () => {
     try {
-      const result = await deleteProfilePicture.mutate();
+      await deleteProfilePicture.mutate(undefined as any);
       
       // Mettre à jour le contexte pour supprimer la photo
       setProfilePicture(null);
       
       // Vérifier le message de réponse
-      const message = result?.data?.message || "Photo supprimée avec succès";
+      const message = "Photo supprimée avec succès";
       
       toast({
         title: "Photo supprimée",
@@ -180,9 +181,10 @@ export default function SettingsPage() {
         fileType: 'photo' as 'pdf' | 'photo'
       });
 
-      if (result?.data?.publicUrl) {
+      const resultData = result as any;
+      if (resultData?.data?.publicUrl) {
         // Mettre à jour le contexte global immédiatement
-        setProfilePicture(result.data.publicUrl);
+        setProfilePicture(resultData.data.publicUrl);
         
         toast({
           title: "Photo uploadée !",
@@ -266,7 +268,8 @@ export default function SettingsPage() {
         country: country || ""
       });
 
-      if (result?.data) {
+      const resultData = result as any;
+      if (resultData?.data) {
         toast({
           title: "Profil mis à jour !",
           description: "Vos informations ont été sauvegardées avec succès",

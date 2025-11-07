@@ -26,12 +26,6 @@ interface ApplicationModalProps {
   isApplying: boolean;
 }
 
-interface UploadedDocument {
-  type: 'cv' | 'cover_letter';
-  name: string;
-  uploaded: boolean;
-}
-
 export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   isOpen,
   onClose,
@@ -39,6 +33,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   onApply,
   isApplying
 }) => {
+  const { toast } = useToast();
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>(createInitialDocuments());
   const [useExistingCV, setUseExistingCV] = useState(false);
   const { hasCV, cvInfo } = useUserCV();

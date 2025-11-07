@@ -17,6 +17,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
+import { Company } from "@/types/api";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { 
   Settings, 
@@ -30,7 +31,9 @@ import {
 } from "lucide-react";
 
 export default function CompanySettingsPage() {
-  const { user: company, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  // Vérifier que l'utilisateur est une entreprise
+  const company = user && ('id_company' in user || 'recruiter_mail' in user) ? user as Company : null;
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -393,7 +396,7 @@ export default function CompanySettingsPage() {
                         Nom de l'entreprise
                       </Typography>
                       <Typography variant="h4" className="font-semibold">
-                        {company.name || "Non renseigné"}
+                        {company?.name || "Non renseigné"}
                       </Typography>
                     </div>
                     <div>
@@ -401,7 +404,7 @@ export default function CompanySettingsPage() {
                         Email du recruteur
                       </Typography>
                       <Typography variant="h4" className="font-semibold">
-                        {company.recruiter_mail || "Non renseigné"}
+                        {company?.recruiter_mail || "Non renseigné"}
                       </Typography>
                     </div>
                   </div>

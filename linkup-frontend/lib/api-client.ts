@@ -49,7 +49,7 @@ class ApiClient {
     return document.cookie.includes('linkup_token=') ? 'present' : null;
   }
 
-  private async request<T>(
+  async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {

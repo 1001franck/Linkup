@@ -18,7 +18,8 @@ export function useApplicationTransformer(savedJobs?: Set<number>) {
       const response = await apiClient.request(`/companies/${companyId}`);
       
       // Gérer la structure imbriquée des données
-      const companyData = response.data?.data || response.data;
+      const responseData = response.data as any;
+      const companyData = responseData?.data || responseData;
       
       if (response.success && companyData?.name) {
         // Mettre à jour l'état avec le nom récupéré

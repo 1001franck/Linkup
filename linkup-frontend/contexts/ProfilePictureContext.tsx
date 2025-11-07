@@ -17,8 +17,9 @@ export function ProfilePictureProvider({ children }: { children: React.ReactNode
 
   // Mettre à jour la photo depuis l'API
   useEffect(() => {
-    if (profilePictureData?.data?.profile_picture) {
-      setProfilePicture(profilePictureData.data.profile_picture);
+    const dataTyped = profilePictureData as any;
+    if (dataTyped?.data?.profile_picture) {
+      setProfilePicture(dataTyped.data.profile_picture);
     } else {
       setProfilePicture(null);
     }

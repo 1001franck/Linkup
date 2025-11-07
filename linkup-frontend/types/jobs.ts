@@ -32,6 +32,7 @@ export interface Job {
   salary_min?: number;
   salary_max?: number;
   experience?: string;
+  education?: string;
   industry?: string;
   published_at?: string;
   views?: number;
@@ -88,6 +89,8 @@ export interface JobInteractionsActions {
   shareJob: (job: Job) => Promise<void>;
   isSaved: (jobId: number) => boolean;
   isApplied: (jobId: number) => boolean;
+  isWithdrawn: (jobId: number) => boolean;
+  canApply: (jobId: number) => boolean;
 }
 
 // ========================================

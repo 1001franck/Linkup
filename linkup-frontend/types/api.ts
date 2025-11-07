@@ -23,7 +23,8 @@ export interface User {
 }
 
 export interface Company {
-  Id_company: number;
+  id_company: number;
+  Id_company?: number; // Alias pour compatibilité
   name: string;
   description: string;
   website?: string;
@@ -37,6 +38,8 @@ export interface Company {
   city?: string;
   zip_code?: string;
   country?: string;
+  logo?: string;
+  logo_url?: string;
 }
 
 export interface JobOffer {

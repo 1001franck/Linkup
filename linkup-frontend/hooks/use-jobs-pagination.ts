@@ -54,7 +54,8 @@ export function useJobsPagination(options: UseJobsPaginationOptions = {}) {
 
   // Calcul des métadonnées de pagination
   const paginationState = useMemo((): PaginationState => {
-    const totalItems = data?.data?.total || data?.total || 0;
+    const dataTyped = data as any;
+    const totalItems = dataTyped?.data?.total || dataTyped?.total || 0;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const hasMore = currentPage < totalPages;
     const hasPrevious = currentPage > 1;
@@ -67,7 +68,7 @@ export function useJobsPagination(options: UseJobsPaginationOptions = {}) {
       hasMore,
       hasPrevious
     };
-  }, [data?.data?.total, data?.total, currentPage, itemsPerPage]);
+  }, [(data as any)?.data?.total, (data as any)?.total, currentPage, itemsPerPage]);
 
   // Actions de pagination
   const goToPage = useCallback((page: number) => {
@@ -108,7 +109,8 @@ export function useJobsPagination(options: UseJobsPaginationOptions = {}) {
   };
 
   // Récupération des jobs avec support de la structure imbriquée
-  const jobs = data?.data?.items || data?.items || [];
+  const dataTyped = data as any;
+  const jobs = dataTyped?.data?.items || dataTyped?.items || [];
 
   return {
     // Données

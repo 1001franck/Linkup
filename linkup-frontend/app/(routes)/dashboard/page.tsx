@@ -120,13 +120,13 @@ function DashboardContent() {
       // Rafraîchir les données utilisateur au chargement du dashboard
       refreshCompletion();
     }
-  }, [isAuthenticated, authUser?.id_user]); // Se déclenche quand l'utilisateur change
+  }, [isAuthenticated, authUser && 'id_user' in authUser ? authUser.id_user : null]); // Se déclenche quand l'utilisateur change
   
   // Types sûrs pour les données - utilisation des types API
-  const jobsData = jobs?.data || [];
-  const applicationsData = applications?.data || [];
-  const conversationsData = conversations?.data || [];
-  const savedJobsData = savedJobs?.data || [];
+  const jobsData = ((jobs as any)?.data as any[]) || [];
+  const applicationsData = ((applications as any)?.data as any[]) || [];
+  const conversationsData = ((conversations as any)?.data as any[]) || [];
+  const savedJobsData = ((savedJobs as any)?.data as any[]) || [];
   
 
 
@@ -140,8 +140,8 @@ function DashboardContent() {
     profileCompletion: profileCompletionPercentage,
     connections: authUser.connexion_index || 0,
     profileViews: authUser.profile_views || 0,
-    applications: Array.isArray(applicationsData) ? applicationsData.length : (applicationsData?.data?.length || 0),
-    messages: Array.isArray(conversationsData) ? conversationsData.length : (conversationsData?.data?.length || 0) // Nombre de conversations
+    applications: Array.isArray(applicationsData) ? applicationsData.length : ((applicationsData as any)?.data?.length || 0),
+    messages: Array.isArray(conversationsData) ? conversationsData.length : ((conversationsData as any)?.data?.length || 0) // Nombre de conversations
   } : null; // ✅ Pas de données fallback mockées
 
   // Calculer les pourcentages de changement basés sur les données réelles
@@ -225,11 +225,12 @@ function DashboardContent() {
 
   // Utiliser les tendances réelles de l'API ou fallback vers la simulation
   const applicationsTrend = useMemo(() => {
-    if (trendsData?.data?.applications) {
+    const trends = (trendsData as any)?.data as { applications?: { changeFormatted?: string; trend?: string } } | undefined;
+    if (trends?.applications) {
       // Utiliser les vraies données de l'API
       return {
-        change: trendsData.data.applications.changeFormatted,
-        trend: trendsData.data.applications.trend
+        change: trends.applications.changeFormatted || "0%",
+        trend: trends.applications.trend || "stable"
       };
     }
     // Fallback vers la simulation si l'API n'est pas disponible
@@ -244,11 +245,12 @@ function DashboardContent() {
   }, [trendsData, user?.applications, user?.id]);
   
   const messagesTrend = useMemo(() => {
-    if (trendsData?.data?.messages) {
+    const trends = (trendsData as any)?.data as { messages?: { changeFormatted?: string; trend?: string } } | undefined;
+    if (trends?.messages) {
       // Utiliser les vraies données de l'API
       return {
-        change: trendsData.data.messages.changeFormatted,
-        trend: trendsData.data.messages.trend
+        change: trends.messages.changeFormatted || "0%",
+        trend: trends.messages.trend || "stable"
       };
     }
     // Fallback vers la simulation si l'API n'est pas disponible
@@ -273,7 +275,7 @@ function DashboardContent() {
       icon: Briefcase,
       color: "text-cyan-500",
       loading: applicationsLoading,
-      error: applications?.error
+      error: (applications as any)?.error
     },
     {
       title: "Messages",
@@ -283,14 +285,14 @@ function DashboardContent() {
       icon: MessageCircle,
       color: "text-teal-500",
       loading: conversationsLoading,
-      error: conversations?.error
+      error: (conversations as any)?.error
     }
   ];
 
 
   // MODIFICATION FRONTEND: Offres d'emploi recommandées avec vrai algorithme de matching
   const recommendedJobs = useMemo(() => {
-    const jobs = matchingJobs?.data || [];
+    const jobs = ((matchingJobs as any)?.data as any[]) || [];
     
     // Vérifier si les données sont valides
     if (!Array.isArray(jobs) || jobs.length === 0) {
@@ -321,7 +323,7 @@ function DashboardContent() {
       skills: job.industry ? [job.industry] : ["Technologies"],
       isBookmarked: Array.isArray(savedJobsData) ? savedJobsData.some((saved: any) => saved.job_offer?.id_job_offer === job.id_job_offer) : false
     }));
-  }, [matchingJobs?.data, savedJobsData?.data]);
+  }, [(matchingJobs as any)?.data, savedJobsData]);
 
   // Emplois sauvegardés - utiliser les données de l'API
   const savedJobsList = (savedJobsData || []).slice(0, 3).map((saved: any) => ({
@@ -847,7 +849,7 @@ function DashboardContent() {
                       </div>
                       </motion.div>
                     ))
-                  ) : matchingJobs?.error ? (
+                  ) : (matchingJobs as any)?.error ? (
                     <div className="text-center py-8">
                       <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
                       <Typography variant="large" className="text-red-600 mb-2">

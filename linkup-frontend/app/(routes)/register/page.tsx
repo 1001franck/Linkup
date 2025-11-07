@@ -66,10 +66,10 @@ export default function RegisterPage() {
     if (field === "city" && typeof value === "string") {
       if (value.length >= 2 && formData.country) {
         const cities = City.getCitiesOfCountry(formData.country);
-        const filteredCities = cities
+        const filteredCities = cities ? cities
           .filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
           .map(city => city.name)
-          .slice(0, 8); // Limiter à 8 suggestions
+          .slice(0, 8) : []; // Limiter à 8 suggestions
         setCitySuggestions(filteredCities);
         setShowCitySuggestions(filteredCities.length > 0);
       } else {

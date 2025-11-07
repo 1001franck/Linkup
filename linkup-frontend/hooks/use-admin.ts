@@ -91,7 +91,8 @@ export function useAdminStats() {
       const response = await apiClient.getAdminStats();
       
       if (response.success) {
-        setStats(response.data.data);
+        const responseData = response.data as any;
+        setStats(responseData?.data || responseData);
       } else {
         throw new Error(response.error || 'Erreur lors du chargement des statistiques');
       }
@@ -138,7 +139,8 @@ export function useAdminActivity() {
       
       const response = await apiClient.getAdminActivity();
       if (response.success) {
-        setActivity(response.data || []);
+        const responseData = response.data as any;
+        setActivity(responseData || []);
       } else {
         throw new Error(response.error || 'Erreur lors du chargement de l\'activité');
       }
@@ -187,8 +189,9 @@ export function useAdminUsers(params?: { page?: number; limit?: number; search?:
       const response = await apiClient.getAdminUsers(params);
       
       if (response.success) {
-        setUsers(response.data.data?.data || []);
-        setTotal(response.data.data?.pagination?.total || 0);
+        const responseData = response.data as any;
+        setUsers(responseData?.data?.data || responseData?.data || []);
+        setTotal(responseData?.data?.pagination?.total || responseData?.pagination?.total || 0);
       } else {
         throw new Error(response.error || 'Erreur lors du chargement des utilisateurs');
       }
@@ -216,7 +219,7 @@ export function useAdminUsers(params?: { page?: number; limit?: number; search?:
           variant: "default",
         });
         loadUsers(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la création');
       }
@@ -241,7 +244,7 @@ export function useAdminUsers(params?: { page?: number; limit?: number; search?:
           variant: "default",
         });
         loadUsers(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la mise à jour');
       }
@@ -341,8 +344,9 @@ export function useAdminCompanies(params?: { page?: number; limit?: number; sear
       const response = await apiClient.getAdminCompanies(params);
       
       if (response.success) {
-        setCompanies(response.data.data?.data || []);
-        setTotal(response.data.data?.pagination?.total || 0);
+        const responseData = response.data as any;
+        setCompanies(responseData?.data?.data || responseData?.data || []);
+        setTotal(responseData?.data?.pagination?.total || responseData?.pagination?.total || 0);
       } else {
         throw new Error(response.error || 'Erreur lors du chargement des entreprises');
       }
@@ -370,7 +374,7 @@ export function useAdminCompanies(params?: { page?: number; limit?: number; sear
           variant: "default",
         });
         loadCompanies(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la création');
       }
@@ -395,7 +399,7 @@ export function useAdminCompanies(params?: { page?: number; limit?: number; sear
           variant: "default",
         });
         loadCompanies(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la mise à jour');
       }
@@ -470,8 +474,9 @@ export function useAdminJobs(params?: { page?: number; limit?: number; search?: 
       const response = await apiClient.getAdminJobs(params);
       
       if (response.success) {
-        setJobs(response.data.data?.items || []);
-        setTotal(response.data.data?.total || 0);
+        const responseData = response.data as any;
+        setJobs(responseData?.data?.items || responseData?.items || []);
+        setTotal(responseData?.data?.total || responseData?.total || 0);
       } else {
         throw new Error(response.error || 'Erreur lors du chargement des offres');
       }
@@ -499,7 +504,7 @@ export function useAdminJobs(params?: { page?: number; limit?: number; search?: 
           variant: "default",
         });
         loadJobs(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la création');
       }
@@ -524,7 +529,7 @@ export function useAdminJobs(params?: { page?: number; limit?: number; search?: 
           variant: "default",
         });
         loadJobs(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la mise à jour');
       }
@@ -599,8 +604,9 @@ export function useAdminApplications(params?: { page?: number; limit?: number; s
       const response = await apiClient.getAdminApplications(params);
       
       if (response.success) {
-        setApplications(response.data.data?.data || []);
-        setTotal(response.data.data.pagination?.total || 0);
+        const responseData = response.data as any;
+        setApplications(responseData?.data?.data || responseData?.data || []);
+        setTotal(responseData?.data?.pagination?.total || responseData?.pagination?.total || 0);
       } else {
         console.error('❌ useAdminApplications - Erreur dans la réponse:', response.error);
         throw new Error(response.error || 'Erreur lors du chargement des candidatures');
@@ -629,7 +635,7 @@ export function useAdminApplications(params?: { page?: number; limit?: number; s
           variant: "default",
         });
         loadApplications(); // Recharger la liste
-        return response.data;
+        return response.data as any;
       } else {
         throw new Error(response.error || 'Erreur lors de la mise à jour');
       }

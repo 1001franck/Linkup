@@ -123,13 +123,13 @@ export function CompanyLogoUpload({
         // Le backend retourne: { success: true, data: { logo_url: result.url, message: "..." } }
         // Le client API wrappe: { success: true, data: <réponse_serveur> }
         // Donc la structure finale est: response.data.data.logo_url
-        const serverResponse = response.data;
+        const serverResponse = response.data as any;
         const newLogoUrl = serverResponse?.data?.logo_url 
           || serverResponse?.logo_url 
           || serverResponse?.logo 
           || serverResponse?.url
-          || response.data?.logo_url
-          || response.logo_url;
+          || (response.data as any)?.logo_url
+          || (response as any).logo_url;
         
         console.log("🔍 URL extraite:", newLogoUrl);
         console.log("🔍 Structure response.data:", response.data);
@@ -141,7 +141,7 @@ export function CompanyLogoUpload({
         }
         
         // Mettre à jour le contexte d'authentification
-        updateUser({ logo: newLogoUrl });
+        updateUser({ logo_url: newLogoUrl } as any);
         
         // Mettre à jour le contexte du logo
         setLogo(newLogoUrl);
@@ -182,7 +182,7 @@ export function CompanyLogoUpload({
     setPreview(null);
     setSelectedFile(null);
     setLogo(null);
-    updateUser({ logo: null });
+    updateUser({ logo_url: null } as any);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

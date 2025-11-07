@@ -32,6 +32,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { User, Company } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
+import logger from '@/lib/logger';
 
 // ========================================
 // INTERFACES TYPESCRIPT
@@ -56,7 +57,7 @@ interface AuthContextType {
   /** Fonction de connexion entreprise */
   loginCompany: (recruiter_mail: string, password: string) => Promise<boolean>;
   /** Fonction de déconnexion */
-  logout: () => void;
+  logout: () => Promise<void>;
   /** Fonction de mise à jour des données utilisateur */
   updateUser: (userData: Partial<User | Company>) => void;
   /** Fonction de rafraîchissement du profil */
@@ -92,16 +93,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Vérifier d'abord si c'est un utilisateur
         if (userResult.status === 'fulfilled' && userResult.value.success && userResult.value.data) {
-          const userData = userResult.value.data;
+          const userData = userResult.value.data as User;
           const userRole = userData.role;
           
           if (userRole === 'admin') {
-            const adminUser = { ...userData, role: 'admin' };
+            const adminUser = { ...userData, role: 'admin' } as User;
             setUser(adminUser);
           } else if (userRole === 'company') {
             // Pour les entreprises, utiliser les données de l'entreprise si disponibles
             if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-              setUser(companyResult.value.data);
+              setUser(companyResult.value.data as Company);
             } else {
               // Fallback sur les données utilisateur si l'entreprise n'est pas disponible
               setUser(userData);
@@ -113,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } 
         // Sinon, vérifier si c'est une entreprise
         else if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-          setUser(companyResult.value.data);
+          setUser(companyResult.value.data as Company);
         } 
         // Aucun utilisateur connecté
         else {
@@ -151,11 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const userResponse = await apiClient.getCurrentUser();
           if (userResponse.success && userResponse.data) {
-            setUser(userResponse.data);
+            const userData = userResponse.data as User;
+            setUser(userData);
             
             toast({
               title: 'Connexion réussie',
-              description: `Bienvenue ${userResponse.data.firstname || 'utilisateur'} !`,
+              description: `Bienvenue ${userData.firstname || 'utilisateur'} !`,
               variant: 'default',
             });
             
@@ -210,14 +212,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const response = await apiClient.loginCompany({ recruiter_mail, password });
       
-      if (response.success && response.data?.token) {
+      if (response.success && response.data) {
+        const responseData = response.data as { token?: string; company?: Company };
         // Utiliser les données entreprise de la réponse de connexion
-        if (response.data.company) {
-          setUser(response.data.company);
+        if (responseData.company) {
+          setUser(responseData.company);
           
           toast({
             title: 'Connexion réussie',
-            description: `Bienvenue ${response.data.company.name || 'entreprise'} !`,
+            description: `Bienvenue ${responseData.company.name || 'entreprise'} !`,
             variant: 'default',
           });
           
@@ -227,11 +230,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const companyResponse = await apiClient.getCurrentCompany();
             if (companyResponse.success && companyResponse.data) {
-              setUser(companyResponse.data);
+              const companyData = companyResponse.data as Company;
+              setUser(companyData);
               
               toast({
                 title: 'Connexion réussie',
-                description: `Bienvenue ${companyResponse.data.name || 'entreprise'} !`,
+                description: `Bienvenue ${companyData.name || 'entreprise'} !`,
                 variant: 'default',
               });
               
@@ -241,6 +245,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Erreur lors de la récupération des infos entreprise:', companyError);
           }
         }
+        // Si aucun chemin n'a réussi, retourner false
+        return false;
       } else {
         toast({
           title: 'Erreur de connexion',
@@ -273,7 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Nettoie toutes les données d'authentification et redirige vers l'accueil
    * Détecte automatiquement le type d'utilisateur pour utiliser la bonne route
    */
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       // ========================================
       // DÉTECTION DU TYPE D'UTILISATEUR
@@ -324,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Rediriger vers la page d'accueil
       window.location.href = '/';
+      return;
       
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
@@ -338,6 +345,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       window.location.href = '/';
+      return;
     }
   };
 
@@ -366,14 +374,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Essayer d'abord avec utilisateur normal
       const userResponse = await apiClient.getCurrentUser();
       if (userResponse.success && userResponse.data) {
-        setUser(userResponse.data);
+        setUser(userResponse.data as User);
         return;
       }
       
       // Si échec, essayer avec entreprise
       const companyResponse = await apiClient.getCurrentCompany();
       if (companyResponse.success && companyResponse.data) {
-        setUser(companyResponse.data);
+        setUser(companyResponse.data as Company);
       }
     } catch (error) {
       logger.error('Erreur lors du rafraîchissement du profil:', error);

@@ -168,20 +168,21 @@ function CompleteProfileContent() {
 
       console.log('✅ Upload réussi:', result);
 
-      if (result?.data?.publicUrl) {
-        console.log('🖼️ URL publique:', result.data.publicUrl);
+      const resultData = result as any;
+      if (resultData?.data?.publicUrl) {
+        console.log('🖼️ URL publique:', resultData.data.publicUrl);
         
         // Mettre à jour le contexte global immédiatement
-        setProfilePicture(result.data.publicUrl);
+        setProfilePicture(resultData.data.publicUrl);
         setFormData(prev => ({
           ...prev,
-          profile_picture: result.data.publicUrl
+          profile_picture: resultData.data.publicUrl
         }));
 
         // Mettre à jour le profil dans le hook
         updateProfile({
-          profile_picture: result.data.publicUrl
-        });
+          profile_picture: resultData.data.publicUrl
+        } as any);
 
         toast({
           title: "Photo uploadée !",
@@ -206,7 +207,7 @@ function CompleteProfileContent() {
   // MODIFICATION FRONTEND: Fonction pour supprimer la photo de profil
   const handleDeleteProfilePicture = async () => {
     try {
-      const result = await deleteProfilePicture.mutate();
+      await deleteProfilePicture.mutate(undefined as any);
       
       // Mettre à jour le contexte pour supprimer la photo
       setProfilePicture(null);
@@ -223,7 +224,7 @@ function CompleteProfileContent() {
       });
       
       // Vérifier le message de réponse
-      const message = result?.data?.message || "Photo supprimée avec succès";
+      const message = "Photo supprimée avec succès";
       
       toast({
         title: "Photo supprimée",

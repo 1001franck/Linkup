@@ -197,18 +197,20 @@ const Header: React.FC<HeaderProps> = ({
                       {profilePicture ? (
                         <img
                           src={profilePicture}
-                          alt={`${user.firstname} ${user.lastname}`}
+                          alt={('firstname' in user) ? `${user.firstname} ${user.lastname}` : (user as any).name || 'User'}
                           className="h-6 w-6 rounded-full object-cover"
                         />
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center">
                           <span className="text-white text-xs font-medium">
-                            {user.firstname.charAt(0)}{user.lastname.charAt(0)}
+                            {('firstname' in user) 
+                              ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`
+                              : ((user as any).name || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {user.firstname}
+                        {('firstname' in user) ? user.firstname : (user as any).name || 'User'}
                       </span>
                       <ChevronDown className="h-3 w-3 text-slate-500" />
                     </Button>
@@ -222,22 +224,26 @@ const Header: React.FC<HeaderProps> = ({
                             {profilePicture ? (
                               <img
                                 src={profilePicture}
-                                alt={`${user.firstname} ${user.lastname}`}
+                                alt={('firstname' in user) ? `${user.firstname} ${user.lastname}` : (user as any).name || 'User'}
                                 className="h-10 w-10 rounded-full object-cover"
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center">
                                 <span className="text-white text-sm font-medium">
-                                  {user.firstname.charAt(0)}{user.lastname.charAt(0)}
+                                  {('firstname' in user) 
+                                    ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`
+                                    : ((user as any).name || 'U').charAt(0).toUpperCase()}
                                 </span>
                               </div>
                             )}
                             <div>
                               <p className="text-sm font-medium text-slate-900 dark:text-white">
-                                {user.firstname} {user.lastname}
+                                {('firstname' in user) 
+                                  ? `${user.firstname} ${user.lastname}`
+                                  : (user as any).name || 'User'}
                               </p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {user.email}
+                                {('email' in user) ? user.email : (user as any).recruiter_mail || ''}
                               </p>
                             </div>
                           </div>

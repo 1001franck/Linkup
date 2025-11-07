@@ -21,8 +21,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import CompanyHeader from "@/components/layout/company-header";
 import { useAuth } from "@/contexts/AuthContext";
+import { Company } from "@/types/api";
 import { useCompanyDashboardStats, useCompanyRecentApplications, useCompanyActiveJobs, useCompanyUpcomingInterviews } from "@/hooks/use-api";
 import { BackendStatus } from "@/components/ui/backend-status";
+import { apiClient } from "@/lib/api-client";
 import { useSearchParams } from "next/navigation";
 import { 
   Users, 
@@ -73,7 +75,9 @@ import {
 
 export default function CompanyDashboardPage() {
   const { toast } = useToast();
-  const { user: company, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  // Vérifier que l'utilisateur est une entreprise
+  const company = user && ('id_company' in user || 'recruiter_mail' in user) ? user as Company : null;
   const searchParams = useSearchParams();
   const refreshParam = searchParams.get('refresh');
 

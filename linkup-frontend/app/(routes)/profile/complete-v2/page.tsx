@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -65,17 +65,18 @@ export default function CompleteProfileV2Page() {
   // Pré-remplir le formulaire avec les données utilisateur
   useEffect(() => {
     if (user && 'id_user' in user) {
+      const userTyped = user as any;
       setFormData({
         bio: user.bio_pro || '',
-        description: user.description || '',
-        skills: user.skills || [],
-        job_title: user.job_title || '',
-        experience_level: user.experience_level || '',
+        description: userTyped.description || '',
+        skills: userTyped.skills || [],
+        job_title: userTyped.job_title || '',
+        experience_level: userTyped.experience_level || '',
         city: user.city || '',
         country: user.country || '',
         website: user.website || '',
-        portfolio_link: user.portfolio_link || '',
-        linkedin_link: user.linkedin_link || ''
+        portfolio_link: userTyped.portfolio_link || '',
+        linkedin_link: userTyped.linkedin_link || ''
       });
     }
   }, [user]);
@@ -181,13 +182,12 @@ export default function CompleteProfileV2Page() {
     
     try {
       await updateProfile({
-        bio_pro: formData.bio,
+        bio: formData.bio,
         description: formData.description,
         skills: formData.skills,
         job_title: formData.job_title,
         experience_level: formData.experience_level,
-        city: formData.city,
-        country: formData.country,
+        location: formData.city && formData.country ? `${formData.city}, ${formData.country}` : formData.city || formData.country || '',
         website: formData.website,
         portfolio_link: formData.portfolio_link,
         linkedin_link: formData.linkedin_link
@@ -474,7 +474,7 @@ export default function CompleteProfileV2Page() {
           </div>
           
           <Typography variant="muted" className="text-sm">
-            Étape {currentStep} sur {steps.length} • {completion.essentialPercentage}% complété
+            Étape {currentStep} sur {steps.length} • {completion.percentage}% complété
           </Typography>
         </div>
         

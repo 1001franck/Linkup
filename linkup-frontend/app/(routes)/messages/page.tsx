@@ -81,8 +81,8 @@ function MessagesContent() {
   };
 
   // Utiliser les données de l'API transformées ou un tableau vide
-  const conversations = Array.isArray(conversationsData?.data) 
-    ? transformConversations(conversationsData.data)
+  const conversations = Array.isArray((conversationsData as any)?.data) 
+    ? transformConversations((conversationsData as any).data)
     : Array.isArray(conversationsData) 
     ? transformConversations(conversationsData)
     : [];
@@ -102,8 +102,8 @@ function MessagesContent() {
   };
 
   // Messages de la conversation sélectionnée depuis l'API
-  const messages = Array.isArray(messagesData?.data) 
-    ? transformMessages(messagesData.data, currentUserId)
+  const messages = Array.isArray((messagesData as any)?.data) 
+    ? transformMessages((messagesData as any).data, currentUserId)
     : Array.isArray(messagesData) 
     ? transformMessages(messagesData, currentUserId)
     : [];

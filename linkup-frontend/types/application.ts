@@ -3,6 +3,8 @@
  * Architecture modulaire pour une meilleure maintenabilité
  */
 
+import React from 'react';
+
 // ========================================
 // TYPES DE BASE
 // ========================================
@@ -163,7 +165,7 @@ export interface ApplicationDisplayState {
 // ========================================
 
 export interface ApplicationUtils {
-  getStatusIcon: (status: ApplicationStatus) => JSX.Element;
+  getStatusIcon: (status: ApplicationStatus) => React.JSX.Element;
   getStatusLabel: (status: ApplicationStatus) => string;
   getStatusColor: (status: ApplicationStatus) => string;
   getUrgencyColor: (urgency: UrgencyLevel) => string;

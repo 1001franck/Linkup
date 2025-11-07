@@ -16,10 +16,17 @@ import {
 import { FaMicrosoft, FaBuilding, FaIndustry, FaBolt, FaOilCan } from "react-icons/fa";
 
 interface CompanyCardProps {
-  company: Company;
+  company: Company & {
+    image?: string;
+    logoColor?: string;
+    sector?: string;
+    locations?: string;
+    employees?: string;
+    offers?: number;
+  };
   index: number;
-  onFollow: (companyId: string) => void;
-  onViewOffers: (companyId: string) => void;
+  onFollow: (companyId: string | number) => void;
+  onViewOffers: (companyId: string | number) => void;
 }
 
 /**
@@ -62,7 +69,7 @@ export function CompanyCard({
       <div className="relative h-48 overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center" 
-          style={{ backgroundImage: `url("${company.image}")` }}
+          style={{ backgroundImage: `url("${(company as any).image || '/placeholder-company.jpg'}")` }}
         />
         
         {/* Overlay sombre pour la lisibilité */}
@@ -83,7 +90,7 @@ export function CompanyCard({
             />
           ) : (
             // Sinon, utiliser les icônes React ou placeholder
-            getLogoComponent(company.logo || 'FaBuilding', company.logoColor || 'text-primary')
+            getLogoComponent(company.logo || 'FaBuilding', (company as any).logoColor || 'text-primary')
           )}
         </div>
         
@@ -92,7 +99,7 @@ export function CompanyCard({
           <Button 
             size="sm" 
             className="bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white hover:text-slate-900 shadow-lg border-0 cursor-pointer"
-            onClick={() => onFollow(company.id)}
+            onClick={() => onFollow(String(company.id_company || company.id || ''))}
           >
             <span className="text-xs font-medium">Suivre</span>
           </Button>
@@ -104,7 +111,7 @@ export function CompanyCard({
             {company.name}
           </h3>
           <p className="text-sm text-white/90 drop-shadow-md">
-            {company.sector}
+            {(company as any).sector || company.industry || 'Secteur non spécifié'}
           </p>
         </div>
       </div>
@@ -114,23 +121,23 @@ export function CompanyCard({
         {/* Location */}
         <div className="flex items-center space-x-2 text-muted-foreground">
           <div className="w-1 h-1 bg-primary rounded-full"></div>
-          <span className="text-sm">{company.locations}</span>
+          <span className="text-sm">{(company as any).locations || (company as any).city || (company as any).location || 'Localisation non spécifiée'}</span>
         </div>
         
         {/* Employees */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Taille de l'entreprise</span>
-          <span className="font-medium">{company.employees}</span>
+          <span className="font-medium">{(company as any).employees || (company as any).employees_number || 'Non spécifié'}</span>
         </div>
         
         {/* Offers */}
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <div className="flex items-center space-x-2">
-            {company.offers > 0 ? (
+            {((company as any).offers || 0) > 0 ? (
               <>
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-foreground">
-                  {company.offers} offres actives
+                  {(company as any).offers} offres actives
                 </span>
               </>
             ) : (
@@ -142,12 +149,12 @@ export function CompanyCard({
               </>
             )}
           </div>
-          {company.offers > 0 && (
+          {((company as any).offers || 0) > 0 && (
             <Button 
               size="sm" 
               variant="outline" 
               className="border-primary/50 text-primary hover:bg-primary/10 cursor-pointer"
-              onClick={() => onViewOffers(company.id)}
+              onClick={() => onViewOffers(String(company.id_company || (company as any).id || ''))}
             >
               Voir les offres
             </Button>

@@ -127,12 +127,12 @@ export function useProfileCompletion() {
             location: authUser.city && authUser.country ? `${authUser.city}, ${authUser.country}` : authUser.city || authUser.country || '',
             website: authUser.website,
             // NOUVEAUX CHAMPS de /profile/complete
-            description: authUser.description,
-            job_title: authUser.job_title,
-            experience_level: authUser.experience_level,
-            portfolio_link: authUser.portfolio_link,
-            linkedin_link: authUser.linkedin_link,
-            availability: authUser.availability
+            description: (authUser as any).description,
+            job_title: (authUser as any).job_title,
+            experience_level: (authUser as any).experience_level,
+            portfolio_link: (authUser as any).portfolio_link,
+            linkedin_link: (authUser as any).linkedin_link,
+            availability: (authUser as any).availability
           };
         }
         
@@ -276,30 +276,28 @@ export function useProfileCompletion() {
     
     // MODIFICATION FRONTEND: Sauvegarder en backend (en arrière-plan)
     // Ne pas attendre la réponse pour éviter les blocages
-    updateUser.mutate({
-      bio_pro: updatedData.bio,
-      description: updatedData.description,
-      skills: updatedData.skills,
-      job_title: updatedData.job_title,
-      experience_level: updatedData.experience_level,
-      availability: updatedData.availability,
-      portfolio_link: updatedData.portfolio_link,
-      linkedin_link: updatedData.linkedin_link,
-      website: updatedData.website,
-      // Extraire city et country de location si nécessaire
-      city: updatedData.location?.split(',')[0]?.trim() || '',
-      country: updatedData.location?.split(',')[1]?.trim() || ''
-    }, {
-      onSuccess: () => {
-        // MODIFICATION FRONTEND: Rafraîchir les données utilisateur après sauvegarde
-        refreshUser().catch((error) => {
-          console.error('❌ Erreur lors du rafraîchissement:', error);
-        });
-      },
-      onError: (error) => {
-        console.error('❌ Erreur sauvegarde backend:', error);
-      }
-    });
+    try {
+      await updateUser.mutate({
+        bio_pro: updatedData.bio,
+        description: updatedData.description,
+        skills: updatedData.skills,
+        job_title: updatedData.job_title,
+        experience_level: updatedData.experience_level,
+        availability: updatedData.availability,
+        portfolio_link: updatedData.portfolio_link,
+        linkedin_link: updatedData.linkedin_link,
+        website: updatedData.website,
+        // Extraire city et country de location si nécessaire
+        city: updatedData.location?.split(',')[0]?.trim() || '',
+        country: updatedData.location?.split(',')[1]?.trim() || ''
+      });
+      // MODIFICATION FRONTEND: Rafraîchir les données utilisateur après sauvegarde
+      refreshUser().catch((error: any) => {
+        console.error('❌ Erreur lors du rafraîchissement:', error);
+      });
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde backend:', error);
+    }
   };
 
   // Recalculer la complétion quand les données changent
@@ -319,14 +317,14 @@ export function useProfileCompletion() {
         bio: authUser.bio_pro,
         location: authUser.city && authUser.country ? `${authUser.city}, ${authUser.country}` : authUser.city || authUser.country || '',
         website: authUser.website,
-        description: authUser.description,
-        job_title: authUser.job_title,
-        experience_level: authUser.experience_level,
-        portfolio_link: authUser.portfolio_link,
-        linkedin_link: authUser.linkedin_link,
-        availability: authUser.availability,
-        profile_picture: authUser.profile_picture,
-        skills: authUser.skills || []
+        description: (authUser as any).description,
+        job_title: (authUser as any).job_title,
+        experience_level: (authUser as any).experience_level,
+        portfolio_link: (authUser as any).portfolio_link,
+        linkedin_link: (authUser as any).linkedin_link,
+        availability: (authUser as any).availability,
+        profile_picture: (authUser as any).profile_picture,
+        skills: (authUser as any).skills || []
       };
       
       // Mettre à jour les données du profil
@@ -354,6 +352,8 @@ export function useProfileCompletion() {
     isProfileComplete: completion.isComplete,
     profileCompletionPercentage: completion.percentage,
     nextSteps: completion.nextSteps,
-    missingRequiredFields: completion.missingFields
+    missingRequiredFields: completion.missingFields,
+    isLoading: false, // Pas de chargement spécifique pour le moment
+    user: authUser // Retourner l'utilisateur authentifié
   };
 }

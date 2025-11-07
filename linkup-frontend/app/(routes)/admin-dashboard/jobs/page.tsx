@@ -298,7 +298,7 @@ export default function AdminJobsPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Publiée le {formatDate(job.published_at)}</span>
+                          <span>Publiée le {formatDate(job.published_at || '')}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">

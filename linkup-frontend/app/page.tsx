@@ -23,7 +23,7 @@ import { useDashboardRedirect } from "@/hooks/use-dashboard-redirect";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { CompanyCard } from "@/components/ui/company-card";
 import { useCompanyPagination } from "@/hooks/use-company-pagination";
-import { Company, CompanyFilter } from "@/types/company";
+import { Company, CompanyFilters } from "@/types/company";
 import { 
   Search, 
   MapPin,
@@ -507,9 +507,9 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
   ];
 
   // Filtrer les entreprises selon le filtre actif
-  const filteredCompanies = activeFilter === "Toutes" 
+  const filteredCompanies = (activeFilter === "Toutes" 
     ? companies 
-    : companies.filter(company => company.category === activeFilter);
+    : companies.filter(company => company.category === activeFilter)) as unknown as Company[];
 
   // Hook de pagination
   const {

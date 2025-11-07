@@ -15,7 +15,8 @@ export function useDashboardRedirect() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    logger.debug('🔄 useDashboardRedirect - État:', { isLoading, isAuthenticated, isRedirecting, user: user ? { role: user.role, type: typeof user } : null });
+    const userRole = user && 'role' in user ? user.role : null;
+    logger.debug('🔄 useDashboardRedirect - État:', { isLoading, isAuthenticated, isRedirecting, user: user ? { role: userRole, type: typeof user } : null });
     
     if (!isLoading && isAuthenticated && !isRedirecting) {
       setIsRedirecting(true);
@@ -27,14 +28,15 @@ export function useDashboardRedirect() {
         if (user) {
           logger.debug('👤 Données utilisateur:', user);
           // Vérifier le rôle depuis les données utilisateur
-          if (user.role === 'admin') {
+          const userRole = 'role' in user ? user.role : null;
+          if (userRole === 'admin') {
             redirectPath = '/admin-dashboard';
             logger.debug('🛡️ Redirection admin vers:', redirectPath);
-          } else if ('id_company' in user || 'recruiter_mail' in user || user.role === 'company') {
+          } else if ('id_company' in user || 'recruiter_mail' in user || userRole === 'company') {
             // C'est une entreprise
             redirectPath = '/company-dashboard';
             logger.debug('🏢 Redirection entreprise vers:', redirectPath);
-          } else if ('id_user' in user || user.role === 'user') {
+          } else if ('id_user' in user || userRole === 'user') {
             // C'est un utilisateur
             redirectPath = '/dashboard';
             logger.debug('👤 Redirection utilisateur vers:', redirectPath);
@@ -44,7 +46,8 @@ export function useDashboardRedirect() {
             try {
               const userResponse = await apiClient.getCurrentUser();
               if (userResponse.success && userResponse.data) {
-                const userRole = userResponse.data.role;
+                const userData = userResponse.data as any;
+                const userRole = userData.role;
                 if (userRole === 'admin') {
                   redirectPath = '/admin-dashboard';
                 } else if (userRole === 'company') {

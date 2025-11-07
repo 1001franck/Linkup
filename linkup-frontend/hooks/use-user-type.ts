@@ -77,8 +77,9 @@ export function useUserType() {
         // PRIORITÉ 1: DONNÉES DU CONTEXTE AUTH
         // ========================================
         
-        if (user?.role) {
-          setUserType(user.role as UserType);
+        const userRole = user && 'role' in user ? user.role : null;
+        if (userRole) {
+          setUserType(userRole as UserType);
           setIsLoading(false);
           return;
         }

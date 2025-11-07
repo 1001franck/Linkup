@@ -583,10 +583,17 @@ export function useMatchingJobs(options?: {
   location?: string;
   enabled?: boolean;
 }) {
+  const queryParams = new URLSearchParams();
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.minScore) queryParams.append('minScore', options.minScore.toString());
+  if (options?.industry) queryParams.append('industry', options.industry);
+  if (options?.location) queryParams.append('location', options.location);
+  
+  const endpoint = queryParams.toString() ? `/matching/jobs?${queryParams}` : '/matching/jobs';
+  
   return useApi(
-    () => apiClient.request('/matching/jobs', {
+    () => apiClient.request(endpoint, {
       method: 'GET',
-      params: options
     }),
     [options?.limit, options?.minScore, options?.industry, options?.location, options?.enabled],
     true,
