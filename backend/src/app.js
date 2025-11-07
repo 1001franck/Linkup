@@ -27,6 +27,10 @@ import resetPasswordRoutes from "./routes/resetPassword.routes.js";
 
 const app = express();
 
+// Activer trust proxy pour Render (nécessaire pour express-rate-limit derrière un proxy)
+// Render utilise un reverse proxy, donc on doit faire confiance aux headers X-Forwarded-*
+app.set('trust proxy', true);
+
 // Désactiver le header X-Powered-By pour la sécurité
 app.disable('x-powered-by');
 
