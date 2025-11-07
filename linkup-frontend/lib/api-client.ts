@@ -53,7 +53,10 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
+    // Normaliser l'URL pour éviter les doubles slashes
+    const baseURL = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL;
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${baseURL}${normalizedEndpoint}`;
     
     // Déterminer si c'est un upload de fichier (FormData)
     const isFormData = options.body instanceof FormData;
@@ -141,7 +144,9 @@ class ApiClient {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/health`, {
+      // Normaliser l'URL pour éviter les doubles slashes
+      const baseURL = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL;
+      const response = await fetch(`${baseURL}/health`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
