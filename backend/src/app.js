@@ -57,30 +57,47 @@ const getAllowedOrigins = () => {
 
 const corsOptions = {
 	origin: (origin, callback) => {
-		const allowedOrigins = getAllowedOrigins();
-		
-		// En développement, être plus permissif
-		if (process.env.NODE_ENV !== 'production') {
-			// Autoriser les requêtes sans origin (Postman, curl, etc.)
-			if (!origin) {
-			return callback(null, true);
+		try {
+			const allowedOrigins = getAllowedOrigins();
+			
+			// En développement, être plus permissif
+			if (process.env.NODE_ENV !== 'production') {
+				// Autoriser les requêtes sans origin (Postman, curl, etc.)
+				if (!origin) {
+					return callback(null, true);
+				}
+				// Autoriser toutes les origines localhost en développement
+				if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+					logger.debug(`[CORS] Origine autorisée (dev): ${origin}`);
+					return callback(null, origin);
+				}
 			}
-			// Autoriser toutes les origines localhost en développement
-			if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
-				logger.debug(`[CORS] Origine autorisée (dev): ${origin}`);
-				// Retourner l'origine spécifique pour que les headers CORS soient correctement définis
+			
+			// En production, vérifier les origines autorisées
+			if (!origin) {
+				// Autoriser les requêtes sans origin (utile pour certains cas)
+				return callback(null, true);
+			}
+			
+			// Vérifier si l'origine est dans la liste autorisée
+			if (allowedOrigins.includes(origin)) {
+				logger.debug(`[CORS] Origine autorisée: ${origin}`);
 				return callback(null, origin);
 			}
-		}
-		
-		// Vérifier si l'origine est autorisée
-		if (!origin || allowedOrigins.includes(origin)) {
-			// Retourner l'origine spécifique pour que les headers CORS soient correctement définis
-			logger.debug(`[CORS] Origine autorisée: ${origin}`);
-			callback(null, origin || '*');
-		} else {
+			
+			// Autoriser les sous-domaines Vercel (*.vercel.app) en production
+			if (process.env.NODE_ENV === 'production' && origin.endsWith('.vercel.app')) {
+				logger.debug(`[CORS] Origine Vercel autorisée: ${origin}`);
+				return callback(null, origin);
+			}
+			
+			// Si aucune correspondance, rejeter
 			logger.warn(`[CORS] Origine non autorisée: ${origin}. Origines autorisées:`, allowedOrigins);
 			callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
+		} catch (error) {
+			// Gérer les erreurs dans le callback CORS pour éviter les 500
+			logger.error(`[CORS] Erreur dans le callback CORS:`, error);
+			callback(error);
 		}
 	},
 	credentials: true, // Permettre les cookies
@@ -88,6 +105,7 @@ const corsOptions = {
 	allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 	exposedHeaders: ['Content-Range', 'X-Content-Range'],
 	maxAge: 86400, // Cache preflight requests for 24 hours
+	preflightContinue: false, // Répondre immédiatement aux requêtes OPTIONS
 };
 
 app.use(cors(corsOptions));

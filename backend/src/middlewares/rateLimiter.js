@@ -18,6 +18,10 @@ export const generalLimiter = rateLimit({
 	},
 	standardHeaders: true, // Retourne les headers RateLimit-* dans la réponse
 	legacyHeaders: false, // Désactive les headers X-RateLimit-*
+	skip: (req) => {
+		// Ne pas appliquer le rate limiter aux requêtes OPTIONS (preflight CORS)
+		return req.method === 'OPTIONS';
+	},
 });
 
 /**
