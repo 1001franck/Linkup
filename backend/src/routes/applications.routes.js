@@ -1,7 +1,7 @@
-import express from "express";
-import auth from "../middlewares/auth.js";
-import supabase from "../database/db.js";
-import logger from "../utils/logger.js";
+import express from 'express';
+import auth from '../middlewares/auth.js';
+import supabase from '../database/db.js';
+import logger from '../utils/logger.js';
 import {
 	createApplication,
 	getApplicationsByUser,
@@ -10,45 +10,45 @@ import {
 	updateApplicationStatus,
 	removeApplication,
 	getApplicationStats,
-} from "../services/applicationStore.js";
-import { validateApplicationDocuments } from "../utils/documentValidator.js";
+} from '../services/applicationStore.js';
+import { validateApplicationDocuments } from '../utils/documentValidator.js';
 
 const router = express.Router();
 
 /**
  * POST /applications (protégée)
- * 
+ *
  * AMÉLIORATION FRONTEND: Cette route a été améliorée pour :
  * - Accepter les nouvelles colonnes (notes, interview_date, is_archived)
  * - Valider les données d'entrée
  * - Ajouter des logs détaillés pour le débogage
- * 
- * Body: { 
- *   id_job_offer, 
- *   status?, 
- *   notes?, 
- *   interview_date?, 
- *   is_archived? 
+ *
+ * Body: {
+ *   id_job_offer,
+ *   status?,
+ *   notes?,
+ *   interview_date?,
+ *   is_archived?
  * }
  */
-router.post("/", auth(), async (req, res) => {
+router.post('/', auth(), async (req, res) => {
 	try {
 		logger.debug(`[POST /applications] Nouvelle candidature - Utilisateur: ${req.user.sub}`);
 		logger.debug(`[POST /applications] Données reçues:`, req.body);
 
 		// EXTRACTION: Récupérer les données de la requête
-		const { 
-			id_job_offer, 
-			status = "pending", 
-			notes = null, 
-			interview_date = null, 
-			is_archived = false 
+		const {
+			id_job_offer,
+			status = 'pending',
+			notes = null,
+			interview_date = null,
+			is_archived = false,
 		} = req.body || {};
 
 		// VALIDATION: Vérifier que l'ID de l'offre est fourni
 		if (!id_job_offer) {
 			logger.debug(`[POST /applications] Erreur: id_job_offer manquant`);
-			return res.status(400).json({ error: "id_job_offer est requis" });
+			return res.status(400).json({ error: 'id_job_offer est requis' });
 		}
 
 		// VALIDATION: Vérifier que l'utilisateur a uploadé les 2 documents requis
@@ -60,14 +60,25 @@ router.post("/", auth(), async (req, res) => {
 			return res.status(400).json({ error: documentValidation.error });
 		}
 
-		logger.debug(`[POST /applications] Documents validés:`, documentValidation.documents?.map(d => d.document_type));
+		logger.debug(
+			`[POST /applications] Documents validés:`,
+			documentValidation.documents?.map((d) => d.document_type)
+		);
 
 		// VALIDATION: Vérifier que le statut est valide
-		const validStatuses = ["pending", "reviewed", "interview", "accepted", "rejected", "withdrawn", "archived"];
+		const validStatuses = [
+			'pending',
+			'reviewed',
+			'interview',
+			'accepted',
+			'rejected',
+			'withdrawn',
+			'archived',
+		];
 		if (!validStatuses.includes(status)) {
 			logger.debug(`[POST /applications] Erreur: statut invalide - ${status}`);
-			return res.status(400).json({ 
-				error: `Statut invalide. Statuts acceptés: ${validStatuses.join(", ")}` 
+			return res.status(400).json({
+				error: `Statut invalide. Statuts acceptés: ${validStatuses.join(', ')}`,
 			});
 		}
 
@@ -78,7 +89,7 @@ router.post("/", auth(), async (req, res) => {
 			status,
 			notes,
 			interview_date,
-			is_archived
+			is_archived,
 		});
 
 		// GESTION ERREUR: Si la candidature existe déjà
@@ -87,61 +98,67 @@ router.post("/", auth(), async (req, res) => {
 			return res.status(409).json({ error: application.error });
 		}
 
-		logger.debug(`[POST /applications] Candidature créée avec succès - ID: ${application.id_user}-${application.id_job_offer}`);
+		logger.debug(
+			`[POST /applications] Candidature créée avec succès - ID: ${application.id_user}-${application.id_job_offer}`
+		);
 		res.status(201).json({ data: application });
 	} catch (error) {
-		logger.error("[POST /applications] Erreur serveur:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('[POST /applications] Erreur serveur:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
 /**
  * GET /applications/my (protégée)
- * 
+ *
  * AMÉLIORATION FRONTEND: Cette route a été améliorée pour :
  * - Récupérer les candidatures avec tous les détails (offre + entreprise)
  * - Inclure les nouvelles colonnes (notes, interview_date, is_archived)
  * - Ajouter des logs détaillés pour le débogage
  * - Gérer les paramètres de filtrage (statut, archivage)
- * 
+ *
  * Query params: status?, is_archived?
  * Récupère les candidatures de l'utilisateur connecté
  */
-router.get("/my", auth(), async (req, res) => {
+router.get('/my', auth(), async (req, res) => {
 	try {
 		logger.debug(`[GET /applications/my] Début - Utilisateur: ${req.user.sub}`);
-		
+
 		// EXTRACTION: Récupérer les paramètres de filtrage
 		const { status, is_archived } = req.query;
-		
+
 		// RÉCUPÉRATION: Obtenir toutes les candidatures de l'utilisateur
 		const applications = await getApplicationsByUser(req.user.sub);
-		
+
 		logger.debug(`[GET /applications/my] ${applications?.length || 0} candidatures récupérées`);
-		
+
 		// FILTRAGE: Appliquer les filtres si fournis
 		let filteredApplications = applications || [];
-		
+
 		if (status) {
-			filteredApplications = filteredApplications.filter(app => app.status === status);
+			filteredApplications = filteredApplications.filter((app) => app.status === status);
 		}
-		
+
 		if (is_archived !== undefined) {
 			const archivedFilter = is_archived === 'true';
-			filteredApplications = filteredApplications.filter(app => app.is_archived === archivedFilter);
+			filteredApplications = filteredApplications.filter(
+				(app) => app.is_archived === archivedFilter
+			);
 		}
-		
-		logger.debug(`[GET /applications/my] ${filteredApplications.length} candidatures après filtrage`);
+
+		logger.debug(
+			`[GET /applications/my] ${filteredApplications.length} candidatures après filtrage`
+		);
 		res.json({ data: filteredApplications });
 	} catch (error) {
-		logger.error("[GET /applications/my] Erreur serveur:", error);
-		logger.error("[GET /applications/my] Stack:", error.stack);
-		res.status(500).json({ 
-			error: "Erreur serveur",
-			...(process.env.NODE_ENV !== 'production' && { 
+		logger.error('[GET /applications/my] Erreur serveur:', error);
+		logger.error('[GET /applications/my] Stack:', error.stack);
+		res.status(500).json({
+			error: 'Erreur serveur',
+			...(process.env.NODE_ENV !== 'production' && {
 				details: error.message,
-				stack: error.stack
-			})
+				stack: error.stack,
+			}),
 		});
 	}
 });
@@ -150,35 +167,37 @@ router.get("/my", auth(), async (req, res) => {
  * GET /applications/job/:jobId (protégée)
  * Récupère les candidatures pour une offre d'emploi
  */
-router.get("/job/:jobId", auth(), async (req, res) => {
+router.get('/job/:jobId', auth(), async (req, res) => {
 	try {
 		const applications = await getApplicationsByJob(req.params.jobId);
 		res.json({ data: applications });
 	} catch (error) {
-		logger.error("GET /applications/job/:jobId error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('GET /applications/job/:jobId error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
 /**
  * GET /applications/company/:companyId (protégée)
- * 
+ *
  * AMÉLIORATION FRONTEND: Cette route a été créée pour :
  * - Permettre aux entreprises de récupérer toutes leurs candidatures
  * - Inclure les détails complets des candidats et des offres
  * - Gérer les filtres par statut et par offre
- * 
+ *
  * Query params: status?, jobId?
  * Récupère les candidatures pour une entreprise
  */
-router.get("/company/:companyId", auth(), async (req, res) => {
+router.get('/company/:companyId', auth(), async (req, res) => {
 	try {
 		logger.debug(`[GET /applications/company/:companyId] Entreprise: ${req.params.companyId}`);
-		
+
 		// Vérifier que l'utilisateur est bien l'entreprise concernée
 		if (req.user.role !== 'company' || req.user.sub !== parseInt(req.params.companyId)) {
-			logger.debug(`[GET /applications/company/:companyId] Accès refusé - Role: ${req.user.role}, ID: ${req.user.sub}`);
-			return res.status(403).json({ error: "Accès refusé" });
+			logger.debug(
+				`[GET /applications/company/:companyId] Accès refusé - Role: ${req.user.role}, ID: ${req.user.sub}`
+			);
+			return res.status(403).json({ error: 'Accès refusé' });
 		}
 
 		// Récupérer les filtres
@@ -189,60 +208,67 @@ router.get("/company/:companyId", auth(), async (req, res) => {
 
 		// Récupérer les candidatures
 		const applications = await getApplicationsByCompany(req.params.companyId, filters);
-		
-		logger.debug(`[GET /applications/company/:companyId] ${applications.length} candidatures retournées`);
+
+		logger.debug(
+			`[GET /applications/company/:companyId] ${applications.length} candidatures retournées`
+		);
 		res.json({ data: applications });
 	} catch (error) {
-		logger.error("[GET /applications/company/:companyId] Erreur serveur:", error);
-		res.status(500).json({ 
-			error: "Erreur serveur",
-			...(process.env.NODE_ENV !== 'production' && { details: error.message })
+		logger.error('[GET /applications/company/:companyId] Erreur serveur:', error);
+		res.status(500).json({
+			error: 'Erreur serveur',
+			...(process.env.NODE_ENV !== 'production' && { details: error.message }),
 		});
 	}
 });
 
 /**
  * PUT /applications/:jobId/status (protégée)
- * 
+ *
  * AMÉLIORATION FRONTEND: Cette route a été améliorée pour :
  * - Accepter les nouvelles colonnes (notes, interview_date, is_archived)
  * - Étendre les statuts valides (reviewed, withdrawn, archived)
  * - Valider les données d'entrée
  * - Ajouter des logs détaillés pour le débogage
- * 
- * Body: { 
- *   status, 
- *   notes?, 
- *   interview_date?, 
- *   is_archived? 
+ *
+ * Body: {
+ *   status,
+ *   notes?,
+ *   interview_date?,
+ *   is_archived?
  * }
  * Met à jour le statut d'une candidature et les informations associées
  */
-router.put("/:jobId/status", auth(), async (req, res) => {
+router.put('/:jobId/status', auth(), async (req, res) => {
 	try {
-		logger.debug(`[PUT /applications/:jobId/status] Mise à jour candidature - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`);
+		logger.debug(
+			`[PUT /applications/:jobId/status] Mise à jour candidature - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
+		);
 		logger.debug(`[PUT /applications/:jobId/status] Données reçues:`, req.body);
 
 		// EXTRACTION: Récupérer les données de la requête
-		const { 
-			status, 
-			notes, 
-			interview_date, 
-			is_archived 
-		} = req.body || {};
+		const { status, notes, interview_date, is_archived } = req.body || {};
 
 		// VALIDATION: Vérifier que le statut est fourni
 		if (!status) {
 			logger.debug(`[PUT /applications/:jobId/status] Erreur: status manquant`);
-			return res.status(400).json({ error: "status est requis" });
+			return res.status(400).json({ error: 'status est requis' });
 		}
 
 		// VALIDATION: Vérifier que le statut est valide (statuts étendus)
-		const validStatuses = ["pending", "reviewed", "interview", "accepted", "rejected", "withdrawn", "archived"];
+		const validStatuses = [
+			'pending',
+			'reviewed',
+			'interview',
+			'accepted',
+			'rejected',
+			'withdrawn',
+			'archived',
+		];
 		if (!validStatuses.includes(status)) {
 			logger.debug(`[PUT /applications/:jobId/status] Erreur: statut invalide - ${status}`);
 			return res.status(400).json({
-				error: `Statut invalide. Valeurs acceptées: ${validStatuses.join(", ")}`,
+				error: `Statut invalide. Valeurs acceptées: ${validStatuses.join(', ')}`,
 			});
 		}
 
@@ -254,66 +280,77 @@ router.put("/:jobId/status", auth(), async (req, res) => {
 
 		// MISE À JOUR: Exécuter la mise à jour avec toutes les données
 		const updated = await updateApplicationStatus(
-			req.user.sub, 
-			req.params.jobId, 
-			status, 
+			req.user.sub,
+			req.params.jobId,
+			status,
 			additionalData
 		);
 
 		if (!updated) {
-			logger.debug(`[PUT /applications/:jobId/status] Candidature introuvable - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`);
-			return res.status(404).json({ error: "Candidature introuvable" });
+			logger.debug(
+				`[PUT /applications/:jobId/status] Candidature introuvable - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
+			);
+			return res.status(404).json({ error: 'Candidature introuvable' });
 		}
 
-		logger.debug(`[PUT /applications/:jobId/status] Candidature mise à jour avec succès - ID: ${updated.id_user}-${updated.id_job_offer}`);
+		logger.debug(
+			`[PUT /applications/:jobId/status] Candidature mise à jour avec succès - ID: ${updated.id_user}-${updated.id_job_offer}`
+		);
 		res.json({ data: updated });
 	} catch (error) {
-		logger.error("[PUT /applications/:jobId/status] Erreur serveur:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('[PUT /applications/:jobId/status] Erreur serveur:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
 /**
  * PUT /applications/:jobId/status/company (protégée - entreprises uniquement)
  * Permet aux entreprises de mettre à jour le statut des candidatures qu'elles reçoivent
- * Body: { 
- *   status, 
- *   notes?, 
- *   interview_date?, 
- *   is_archived? 
+ * Body: {
+ *   status,
+ *   notes?,
+ *   interview_date?,
+ *   is_archived?
  * }
  */
-router.put("/:jobId/status/company", auth(), async (req, res) => {
+router.put('/:jobId/status/company', auth(), async (req, res) => {
 	try {
-		logger.debug(`[PUT /applications/:jobId/status/company] Mise à jour par entreprise - Entreprise: ${req.user.sub}, Job: ${req.params.jobId}`);
+		logger.debug(
+			`[PUT /applications/:jobId/status/company] Mise à jour par entreprise - Entreprise: ${req.user.sub}, Job: ${req.params.jobId}`
+		);
 		logger.debug(`[PUT /applications/:jobId/status/company] Données reçues:`, req.body);
 
 		// Vérifier que l'utilisateur est une entreprise
 		if (req.user.role !== 'company') {
-			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: accès refusé - Role: ${req.user.role}`);
-			return res.status(403).json({ error: "Accès refusé - Entreprises uniquement" });
+			logger.debug(
+				`[PUT /applications/:jobId/status/company] Erreur: accès refusé - Role: ${req.user.role}`
+			);
+			return res.status(403).json({ error: 'Accès refusé - Entreprises uniquement' });
 		}
 
 		// EXTRACTION: Récupérer les données de la requête
-		const { 
-			status, 
-			notes, 
-			interview_date, 
-			is_archived 
-		} = req.body || {};
+		const { status, notes, interview_date, is_archived } = req.body || {};
 
 		// VALIDATION: Vérifier que le statut est fourni
 		if (!status) {
 			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: status manquant`);
-			return res.status(400).json({ error: "status est requis" });
+			return res.status(400).json({ error: 'status est requis' });
 		}
 
 		// VALIDATION: Vérifier que le statut est valide
-		const validStatuses = ["pending", "reviewed", "interview", "accepted", "rejected", "withdrawn", "archived"];
+		const validStatuses = [
+			'pending',
+			'reviewed',
+			'interview',
+			'accepted',
+			'rejected',
+			'withdrawn',
+			'archived',
+		];
 		if (!validStatuses.includes(status)) {
 			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: statut invalide - ${status}`);
 			return res.status(400).json({
-				error: `Statut invalide. Valeurs acceptées: ${validStatuses.join(", ")}`,
+				error: `Statut invalide. Valeurs acceptées: ${validStatuses.join(', ')}`,
 			});
 		}
 
@@ -325,21 +362,25 @@ router.put("/:jobId/status/company", auth(), async (req, res) => {
 			.single();
 
 		if (jobError || !jobOffer) {
-			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: offre d'emploi introuvable - Job: ${req.params.jobId}`);
+			logger.debug(
+				`[PUT /applications/:jobId/status/company] Erreur: offre d'emploi introuvable - Job: ${req.params.jobId}`
+			);
 			return res.status(404).json({ error: "Offre d'emploi introuvable" });
 		}
 
 		if (jobOffer.id_company !== req.user.sub) {
-			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: accès refusé - Entreprise: ${req.user.sub}, Propriétaire: ${jobOffer.id_company}`);
-			return res.status(403).json({ error: "Accès refusé - Cette offre ne vous appartient pas" });
+			logger.debug(
+				`[PUT /applications/:jobId/status/company] Erreur: accès refusé - Entreprise: ${req.user.sub}, Propriétaire: ${jobOffer.id_company}`
+			);
+			return res.status(403).json({ error: 'Accès refusé - Cette offre ne vous appartient pas' });
 		}
 
 		// Récupérer l'ID de l'utilisateur depuis le body de la requête
 		const { id_user } = req.body || {};
-		
+
 		if (!id_user) {
 			logger.debug(`[PUT /applications/:jobId/status/company] Erreur: id_user manquant`);
-			return res.status(400).json({ error: "id_user est requis" });
+			return res.status(400).json({ error: 'id_user est requis' });
 		}
 
 		// Mise à jour du statut pour la candidature spécifique
@@ -358,19 +399,23 @@ router.put("/:jobId/status/company", auth(), async (req, res) => {
 
 		if (updateError) {
 			logger.error(`[PUT /applications/:jobId/status/company] Erreur Supabase:`, updateError);
-			return res.status(500).json({ error: "Erreur lors de la mise à jour" });
+			return res.status(500).json({ error: 'Erreur lors de la mise à jour' });
 		}
 
 		if (!updated) {
-			logger.debug(`[PUT /applications/:jobId/status/company] Aucune candidature trouvée - Job: ${req.params.jobId}`);
-			return res.status(404).json({ error: "Aucune candidature trouvée pour cette offre" });
+			logger.debug(
+				`[PUT /applications/:jobId/status/company] Aucune candidature trouvée - Job: ${req.params.jobId}`
+			);
+			return res.status(404).json({ error: 'Aucune candidature trouvée pour cette offre' });
 		}
 
-		logger.debug(`[PUT /applications/:jobId/status/company] Statut mis à jour avec succès - Job: ${req.params.jobId}, Status: ${status}`);
+		logger.debug(
+			`[PUT /applications/:jobId/status/company] Statut mis à jour avec succès - Job: ${req.params.jobId}, Status: ${status}`
+		);
 		res.json({ data: updated });
 	} catch (error) {
-		logger.error("[PUT /applications/:jobId/status/company] Erreur serveur:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('[PUT /applications/:jobId/status/company] Erreur serveur:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -379,12 +424,12 @@ router.put("/:jobId/status/company", auth(), async (req, res) => {
  * Archive ou désarchive une candidature
  * Body: { is_archived: boolean }
  */
-router.put("/:jobId/archive", auth(), async (req, res) => {
+router.put('/:jobId/archive', auth(), async (req, res) => {
 	try {
 		const { is_archived } = req.body || {};
-		
+
 		if (typeof is_archived !== 'boolean') {
-			return res.status(400).json({ error: "is_archived doit être un booléen" });
+			return res.status(400).json({ error: 'is_archived doit être un booléen' });
 		}
 
 		// Mise à jour directe du flag is_archived sans changer le statut
@@ -395,20 +440,20 @@ router.put("/:jobId/archive", auth(), async (req, res) => {
 			.eq('id_job_offer', req.params.jobId)
 			.select()
 			.single();
-		
+
 		if (error) {
 			throw error;
 		}
-		
+
 		const updated = data;
 		if (!updated) {
-			return res.status(404).json({ error: "Candidature introuvable" });
+			return res.status(404).json({ error: 'Candidature introuvable' });
 		}
 
 		res.json({ data: updated });
 	} catch (error) {
-		logger.error("PUT /applications/:jobId/archive error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('PUT /applications/:jobId/archive error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -416,17 +461,17 @@ router.put("/:jobId/archive", auth(), async (req, res) => {
  * DELETE /applications/:jobId (protégée)
  * Supprime une candidature
  */
-router.delete("/:jobId", auth(), async (req, res) => {
+router.delete('/:jobId', auth(), async (req, res) => {
 	try {
 		const deleted = await removeApplication(req.user.sub, req.params.jobId);
 		if (!deleted) {
-			return res.status(404).json({ error: "Candidature introuvable" });
+			return res.status(404).json({ error: 'Candidature introuvable' });
 		}
 
 		res.status(204).send(); // No Content
 	} catch (error) {
-		logger.error("DELETE /applications/:jobId error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('DELETE /applications/:jobId error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -434,13 +479,13 @@ router.delete("/:jobId", auth(), async (req, res) => {
  * GET /applications/stats (protégée - admin seulement)
  * Statistiques des candidatures
  */
-router.get("/stats", auth(["admin"]), async (req, res) => {
+router.get('/stats', auth(['admin']), async (req, res) => {
 	try {
 		const stats = await getApplicationStats();
 		res.json({ data: stats });
 	} catch (error) {
-		logger.error("GET /applications/stats error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('GET /applications/stats error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -448,28 +493,32 @@ router.get("/stats", auth(["admin"]), async (req, res) => {
  * PUT /applications/:jobId/bookmark (protégée)
  * Marquer/démarquer une candidature comme favori
  */
-router.put("/:jobId/bookmark", auth(), async (req, res) => {
+router.put('/:jobId/bookmark', auth(), async (req, res) => {
 	try {
-		logger.debug(`[PUT /applications/:jobId/bookmark] Toggle bookmark - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`);
-		
+		logger.debug(
+			`[PUT /applications/:jobId/bookmark] Toggle bookmark - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
+		);
+
 		const { is_bookmarked } = req.body;
-		
+
 		if (typeof is_bookmarked !== 'boolean') {
-			return res.status(400).json({ error: "is_bookmarked doit être un booléen" });
+			return res.status(400).json({ error: 'is_bookmarked doit être un booléen' });
 		}
 
 		// Pour l'instant, on simule la fonctionnalité
 		// TODO: Ajouter une colonne is_bookmarked dans la table apply
-		res.json({ 
-			data: { 
-				jobId: req.params.jobId, 
+		res.json({
+			data: {
+				jobId: req.params.jobId,
 				is_bookmarked,
-				message: is_bookmarked ? "Candidature ajoutée aux favoris" : "Candidature retirée des favoris"
-			} 
+				message: is_bookmarked
+					? 'Candidature ajoutée aux favoris'
+					: 'Candidature retirée des favoris',
+			},
 		});
 	} catch (error) {
-		logger.error("[PUT /applications/:jobId/bookmark] Erreur serveur:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('[PUT /applications/:jobId/bookmark] Erreur serveur:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -477,21 +526,23 @@ router.put("/:jobId/bookmark", auth(), async (req, res) => {
  * POST /applications/:jobId/feedback-request (protégée)
  * Demander un retour détaillé sur une candidature
  */
-router.post("/:jobId/feedback-request", auth(), async (req, res) => {
+router.post('/:jobId/feedback-request', auth(), async (req, res) => {
 	try {
-		logger.debug(`[POST /applications/:jobId/feedback-request] Demande de retour - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`);
-		
+		logger.debug(
+			`[POST /applications/:jobId/feedback-request] Demande de retour - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
+		);
+
 		// Pour l'instant, on simule la fonctionnalité
 		// TODO: Implémenter l'envoi d'email au recruteur
-		res.json({ 
-			data: { 
+		res.json({
+			data: {
 				jobId: req.params.jobId,
-				message: "Demande de retour envoyée au recruteur"
-			} 
+				message: 'Demande de retour envoyée au recruteur',
+			},
 		});
 	} catch (error) {
-		logger.error("[POST /applications/:jobId/feedback-request] Erreur serveur:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('[POST /applications/:jobId/feedback-request] Erreur serveur:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 

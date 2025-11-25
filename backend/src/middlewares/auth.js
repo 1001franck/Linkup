@@ -1,16 +1,17 @@
-import jwt from "jsonwebtoken";
-import { isRevoked } from "../services/tokenRevokeStore.js";
+import jwt from 'jsonwebtoken';
+import { isRevoked } from '../services/tokenRevokeStore.js';
 
 function auth(allowedRoles = null) {
 	return async (req, res, next) => {
 		// Récupérer le token depuis Authorization header (priorité) ou cookies (fallback)
 		const authHeader = req.headers.authorization;
-		const token = authHeader && authHeader.startsWith('Bearer ') 
-			? authHeader.slice(7) 
-			: req.cookies?.linkup_token; // Utiliser le bon nom de cookie
+		const token =
+			authHeader && authHeader.startsWith('Bearer ')
+				? authHeader.slice(7)
+				: req.cookies?.linkup_token; // Utiliser le bon nom de cookie
 
 		if (!token) {
-			return res.status(401).json({ error: "Token manquant" });
+			return res.status(401).json({ error: 'Token manquant' });
 		}
 
 		// Verify token signature and expiration
@@ -20,23 +21,23 @@ function auth(allowedRoles = null) {
 
 			// Reject tokens that were explicitly revoked server-side (async check)
 			const revoked = await isRevoked(token);
-			if (revoked) return res.status(401).json({ error: "Token révoqué" });
+			if (revoked) return res.status(401).json({ error: 'Token révoqué' });
 
-		// Attach token payload to request for downstream handlers
-		req.user = payload;
+			// Attach token payload to request for downstream handlers
+			req.user = payload;
 
-		// If allowedRoles is provided (array), ensure the role matches
-		if (allowedRoles) {
-			const userRole = payload.role; // Utiliser uniquement 'role' maintenant
-			if (!userRole || !allowedRoles.includes(userRole)) {
-				return res.status(403).json({ error: "Accès interdit" });
+			// If allowedRoles is provided (array), ensure the role matches
+			if (allowedRoles) {
+				const userRole = payload.role; // Utiliser uniquement 'role' maintenant
+				if (!userRole || !allowedRoles.includes(userRole)) {
+					return res.status(403).json({ error: 'Accès interdit' });
+				}
 			}
-		}
 
-		next();
+			next();
 		} catch (e) {
 			// Could log e.message for debugging in dev
-			return res.status(401).json({ error: "Token invalide ou expiré" });
+			return res.status(401).json({ error: 'Token invalide ou expiré' });
 		}
 	};
 }

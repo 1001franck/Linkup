@@ -21,17 +21,19 @@ export function errorHandler(err, req, res, next) {
 
 	// Ne pas exposer les détails de l'erreur en production
 	const isProduction = process.env.NODE_ENV === 'production';
-	
+
 	// Déterminer le code de statut
 	const statusCode = err.statusCode || err.status || 500;
 
 	// Réponse d'erreur sécurisée
 	const errorResponse = {
 		error: isProduction ? 'Erreur serveur' : err.message || 'Erreur serveur',
-		...(isProduction ? {} : { 
-			stack: err.stack,
-			details: err.details 
-		}),
+		...(isProduction
+			? {}
+			: {
+					stack: err.stack,
+					details: err.details,
+				}),
 	};
 
 	// Gestion des erreurs spécifiques
@@ -61,4 +63,3 @@ export function notFoundHandler(req, res, next) {
 		path: req.path,
 	});
 }
-

@@ -3,8 +3,6 @@
  * Validation de taille, type MIME, et sécurité
  */
 
-import logger from './logger.js';
-
 // Configuration des limites
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_MIME_TYPES = {
@@ -28,9 +26,9 @@ export function validateFileSize(size) {
 
 	if (size > MAX_FILE_SIZE) {
 		const maxSizeMB = MAX_FILE_SIZE / (1024 * 1024);
-		return { 
-			valid: false, 
-			error: `Le fichier est trop volumineux. Taille maximum: ${maxSizeMB} MB` 
+		return {
+			valid: false,
+			error: `Le fichier est trop volumineux. Taille maximum: ${maxSizeMB} MB`,
 		};
 	}
 
@@ -50,34 +48,34 @@ export function validateFileType(mimeType, fileType) {
 
 	// Vérifier que le file_type est valide
 	if (!ALLOWED_FILE_TYPES.includes(fileType)) {
-		return { 
-			valid: false, 
-			error: `Type de fichier non autorisé: ${fileType}. Types autorisés: ${ALLOWED_FILE_TYPES.join(', ')}` 
+		return {
+			valid: false,
+			error: `Type de fichier non autorisé: ${fileType}. Types autorisés: ${ALLOWED_FILE_TYPES.join(', ')}`,
 		};
 	}
 
 	// Vérifier le type MIME selon le type de fichier attendu
 	if (fileType === 'pdf' || fileType === 'cv' || fileType === 'cover_letter') {
 		if (mimeType !== 'application/pdf') {
-			return { 
-				valid: false, 
-				error: 'Le fichier doit être un PDF' 
+			return {
+				valid: false,
+				error: 'Le fichier doit être un PDF',
 			};
 		}
 	} else if (fileType === 'photo') {
 		if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) {
-			return { 
-				valid: false, 
-				error: 'Le fichier doit être une image (JPEG, PNG ou WebP)' 
+			return {
+				valid: false,
+				error: 'Le fichier doit être une image (JPEG, PNG ou WebP)',
 			};
 		}
 	}
 
 	// Vérifier que le type MIME est dans la liste autorisée
 	if (!ALLOWED_MIME_TYPES[mimeType]) {
-		return { 
-			valid: false, 
-			error: `Type de fichier non autorisé: ${mimeType}` 
+		return {
+			valid: false,
+			error: `Type de fichier non autorisé: ${mimeType}`,
 		};
 	}
 
@@ -118,12 +116,11 @@ export function validateFile(file, fileType) {
  */
 export function validateFileCount(currentFileCount, maxFiles = 10) {
 	if (currentFileCount >= maxFiles) {
-		return { 
-			valid: false, 
-			error: `Limite de fichiers atteinte. Maximum: ${maxFiles} fichiers` 
+		return {
+			valid: false,
+			error: `Limite de fichiers atteinte. Maximum: ${maxFiles} fichiers`,
 		};
 	}
 
 	return { valid: true };
 }
-

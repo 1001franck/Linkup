@@ -1,5 +1,5 @@
-import supabase from "../database/db.js";
-import logger from "../utils/logger.js";
+import supabase from '../database/db.js';
+import logger from '../utils/logger.js';
 
 /**
  * Calcule les statistiques actuelles d'un utilisateur
@@ -15,7 +15,7 @@ async function getCurrentUserStats(id_user) {
 			.eq('id_user', id_user);
 
 		if (applicationsError) {
-			logger.error("getCurrentUserStats - applications error:", applicationsError);
+			logger.error('getCurrentUserStats - applications error:', applicationsError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
@@ -26,7 +26,7 @@ async function getCurrentUserStats(id_user) {
 			.or(`id_sender.eq.${id_user},id_receiver.eq.${id_user}`);
 
 		if (messagesError) {
-			logger.error("getCurrentUserStats - messages error:", messagesError);
+			logger.error('getCurrentUserStats - messages error:', messagesError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
@@ -37,7 +37,7 @@ async function getCurrentUserStats(id_user) {
 			.eq('id_user', id_user);
 
 		if (savedJobsError) {
-			logger.error("getCurrentUserStats - savedJobs error:", savedJobsError);
+			logger.error('getCurrentUserStats - savedJobs error:', savedJobsError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
@@ -47,13 +47,13 @@ async function getCurrentUserStats(id_user) {
 			savedJobs: savedJobs?.length || 0,
 			applicationsData: applications || [],
 			messagesData: messages || [],
-			savedJobsData: savedJobs || []
+			savedJobsData: savedJobs || [],
 		};
 
 		logger.debug(`[getCurrentUserStats] Statistiques calculées:`, stats);
 		return stats;
 	} catch (err) {
-		logger.error("getCurrentUserStats error:", err);
+		logger.error('getCurrentUserStats error:', err);
 		// Retourner des statistiques par défaut
 		return {
 			applications: 0,
@@ -61,7 +61,7 @@ async function getCurrentUserStats(id_user) {
 			savedJobs: 0,
 			applicationsData: [],
 			messagesData: [],
-			savedJobsData: []
+			savedJobsData: [],
 		};
 	}
 }
@@ -72,11 +72,11 @@ async function getCurrentUserStats(id_user) {
 async function getPreviousWeekUserStats(id_user) {
 	try {
 		logger.debug(`[getPreviousWeekUserStats] Début du calcul pour l'utilisateur ${id_user}`);
-		
+
 		const oneWeekAgo = new Date();
 		oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 		const oneWeekAgoISO = oneWeekAgo.toISOString();
-		
+
 		logger.debug(`[getPreviousWeekUserStats] Date de référence: ${oneWeekAgoISO}`);
 
 		// Applications de la semaine précédente
@@ -87,7 +87,7 @@ async function getPreviousWeekUserStats(id_user) {
 			.lt('application_date', oneWeekAgoISO);
 
 		if (applicationsError) {
-			logger.error("getPreviousWeekUserStats - applications error:", applicationsError);
+			logger.error('getPreviousWeekUserStats - applications error:', applicationsError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
@@ -99,7 +99,7 @@ async function getPreviousWeekUserStats(id_user) {
 			.lt('send_at', oneWeekAgoISO);
 
 		if (messagesError) {
-			logger.error("getPreviousWeekUserStats - messages error:", messagesError);
+			logger.error('getPreviousWeekUserStats - messages error:', messagesError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
@@ -111,25 +111,25 @@ async function getPreviousWeekUserStats(id_user) {
 			.lt('saved_at', oneWeekAgoISO);
 
 		if (savedJobsError) {
-			logger.error("getPreviousWeekUserStats - savedJobs error:", savedJobsError);
+			logger.error('getPreviousWeekUserStats - savedJobs error:', savedJobsError);
 			// Ne pas lancer d'erreur, utiliser 0
 		}
 
 		const stats = {
 			applications: applications?.length || 0,
 			messages: messages?.length || 0,
-			savedJobs: savedJobs?.length || 0
+			savedJobs: savedJobs?.length || 0,
 		};
 
 		logger.debug(`[getPreviousWeekUserStats] Statistiques semaine précédente:`, stats);
 		return stats;
 	} catch (err) {
-		logger.error("getPreviousWeekUserStats error:", err);
+		logger.error('getPreviousWeekUserStats error:', err);
 		// Retourner des statistiques par défaut
 		return {
 			applications: 0,
 			messages: 0,
-			savedJobs: 0
+			savedJobs: 0,
 		};
 	}
 }
@@ -162,7 +162,7 @@ async function getUserTrends(id_user) {
 			currentStats = {
 				applications: 0,
 				messages: 0,
-				savedJobs: 0
+				savedJobs: 0,
 			};
 		}
 
@@ -177,23 +177,20 @@ async function getUserTrends(id_user) {
 			previousStats = {
 				applications: 0,
 				messages: 0,
-				savedJobs: 0
+				savedJobs: 0,
 			};
 		}
 
 		// Calculer les pourcentages de changement
 		const applicationsChange = calculatePercentageChange(
-			currentStats.applications, 
+			currentStats.applications,
 			previousStats.applications
 		);
 
-		const messagesChange = calculatePercentageChange(
-			currentStats.messages, 
-			previousStats.messages
-		);
+		const messagesChange = calculatePercentageChange(currentStats.messages, previousStats.messages);
 
 		const savedJobsChange = calculatePercentageChange(
-			currentStats.savedJobs, 
+			currentStats.savedJobs,
 			previousStats.savedJobs
 		);
 
@@ -202,70 +199,70 @@ async function getUserTrends(id_user) {
 				current: currentStats.applications,
 				previous: previousStats.applications,
 				change: applicationsChange,
-				trend: applicationsChange >= 0 ? "up" : "down",
-				changeFormatted: `${applicationsChange >= 0 ? '+' : ''}${applicationsChange}%`
+				trend: applicationsChange >= 0 ? 'up' : 'down',
+				changeFormatted: `${applicationsChange >= 0 ? '+' : ''}${applicationsChange}%`,
 			},
 			messages: {
 				current: currentStats.messages,
 				previous: previousStats.messages,
 				change: messagesChange,
-				trend: messagesChange >= 0 ? "up" : "down",
-				changeFormatted: `${messagesChange >= 0 ? '+' : ''}${messagesChange}%`
+				trend: messagesChange >= 0 ? 'up' : 'down',
+				changeFormatted: `${messagesChange >= 0 ? '+' : ''}${messagesChange}%`,
 			},
 			savedJobs: {
 				current: currentStats.savedJobs,
 				previous: previousStats.savedJobs,
 				change: savedJobsChange,
-				trend: savedJobsChange >= 0 ? "up" : "down",
-				changeFormatted: `${savedJobsChange >= 0 ? '+' : ''}${savedJobsChange}%`
+				trend: savedJobsChange >= 0 ? 'up' : 'down',
+				changeFormatted: `${savedJobsChange >= 0 ? '+' : ''}${savedJobsChange}%`,
 			},
 			period: {
-				current: "Cette semaine",
-				previous: "Semaine précédente",
-				comparison: "Comparaison sur 7 jours"
+				current: 'Cette semaine',
+				previous: 'Semaine précédente',
+				comparison: 'Comparaison sur 7 jours',
 			},
-			status: "success",
-			generatedAt: new Date().toISOString()
+			status: 'success',
+			generatedAt: new Date().toISOString(),
 		};
 
 		logger.debug(`[getUserTrends] Tendances calculées:`, trends);
 		return trends;
 	} catch (err) {
-		logger.error("getUserTrends error:", err);
-		
+		logger.error('getUserTrends error:', err);
+
 		// Retourner des tendances par défaut en cas d'erreur
 		const fallbackTrends = {
 			applications: {
 				current: 0,
 				previous: 0,
 				change: 0,
-				trend: "neutral",
-				changeFormatted: "0%"
+				trend: 'neutral',
+				changeFormatted: '0%',
 			},
 			messages: {
 				current: 0,
 				previous: 0,
 				change: 0,
-				trend: "neutral",
-				changeFormatted: "0%"
+				trend: 'neutral',
+				changeFormatted: '0%',
 			},
 			savedJobs: {
 				current: 0,
 				previous: 0,
 				change: 0,
-				trend: "neutral",
-				changeFormatted: "0%"
+				trend: 'neutral',
+				changeFormatted: '0%',
 			},
 			period: {
-				current: "Cette semaine",
-				previous: "Semaine précédente",
-				comparison: "Comparaison sur 7 jours"
+				current: 'Cette semaine',
+				previous: 'Semaine précédente',
+				comparison: 'Comparaison sur 7 jours',
 			},
-			status: "error",
+			status: 'error',
 			error: err.message,
-			generatedAt: new Date().toISOString()
+			generatedAt: new Date().toISOString(),
 		};
-		
+
 		logger.debug(`[getUserTrends] Retour des tendances par défaut:`, fallbackTrends);
 		return fallbackTrends;
 	}
@@ -281,19 +278,19 @@ async function getUserDetailedStats(id_user) {
 
 		return {
 			...currentStats,
-			trends: trends,
-			generatedAt: new Date().toISOString()
+			trends,
+			generatedAt: new Date().toISOString(),
 		};
 	} catch (err) {
-		logger.error("getUserDetailedStats error:", err);
+		logger.error('getUserDetailedStats error:', err);
 		throw err;
 	}
 }
 
-export { 
-	getCurrentUserStats, 
-	getPreviousWeekUserStats, 
-	getUserTrends, 
+export {
+	getCurrentUserStats,
+	getPreviousWeekUserStats,
+	getUserTrends,
 	getUserDetailedStats,
-	calculatePercentageChange 
+	calculatePercentageChange,
 };

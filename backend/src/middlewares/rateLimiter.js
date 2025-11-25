@@ -14,7 +14,7 @@ export const generalLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
 	max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 1000 en dev, 100 en prod
 	message: {
-		error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.'
+		error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
 	},
 	standardHeaders: true, // Retourne les headers RateLimit-* dans la réponse
 	legacyHeaders: false, // Désactive les headers X-RateLimit-*
@@ -30,7 +30,7 @@ export const authLimiter = rateLimit({
 	windowMs: 2 * 60 * 1000, // 2 minutes
 	max: process.env.NODE_ENV === 'production' ? 10 : 100, // 100 en dev, 10 en prod
 	message: {
-		error: 'Trop de tentatives. Veuillez réessayer dans 2 minutes.'
+		error: 'Trop de tentatives. Veuillez réessayer dans 2 minutes.',
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
@@ -46,7 +46,7 @@ export const passwordResetLimiter = rateLimit({
 	windowMs: 60 * 60 * 1000, // 1 heure
 	max: 3, // Limite de 3 tentatives par heure
 	message: {
-		error: 'Trop de tentatives de réinitialisation. Veuillez réessayer dans une heure.'
+		error: 'Trop de tentatives de réinitialisation. Veuillez réessayer dans une heure.',
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
@@ -60,9 +60,8 @@ export const uploadLimiter = rateLimit({
 	windowMs: 60 * 60 * 1000, // 1 heure
 	max: 10, // Limite de 10 uploads par heure
 	message: {
-		error: 'Trop d\'uploads. Veuillez réessayer dans une heure.'
+		error: "Trop d'uploads. Veuillez réessayer dans une heure.",
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
 });
-

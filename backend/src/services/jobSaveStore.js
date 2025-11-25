@@ -1,5 +1,5 @@
-import supabase from "../database/db.js";
-const TABLE = "save";
+import supabase from '../database/db.js';
+const TABLE = 'save';
 
 /**
  * Sauvegarder une offre
@@ -10,14 +10,18 @@ export async function saveJob(id_user, id_job_offer) {
 		const uid = Number(id_user);
 		const jid = Number(id_job_offer);
 		if (!Number.isFinite(jid) || jid <= 0) {
-			return { error: "id_job_offer invalide" };
+			return { error: 'id_job_offer invalide' };
 		}
 
 		// ensure job exists to satisfy FK
-		const { data: job, error: jobErr } = await supabase.from("job_offer").select("id_job_offer").eq("id_job_offer", jid).maybeSingle();
+		const { data: job, error: jobErr } = await supabase
+			.from('job_offer')
+			.select('id_job_offer')
+			.eq('id_job_offer', jid)
+			.maybeSingle();
 		if (jobErr) throw jobErr;
 		if (!job) {
-			return { error: "Offre introuvable" };
+			return { error: 'Offre introuvable' };
 		}
 
 		// Ask Supabase to return the inserted row
@@ -29,9 +33,9 @@ export async function saveJob(id_user, id_job_offer) {
 
 		if (error) {
 			// Supabase wraps Postgres errors differently; check message/code
-			const msg = error?.message || "";
-			if (msg.toLowerCase().includes("duplicate") || msg.includes("23505")) {
-				return { error: "Offre déjà sauvegardée" };
+			const msg = error?.message || '';
+			if (msg.toLowerCase().includes('duplicate') || msg.includes('23505')) {
+				return { error: 'Offre déjà sauvegardée' };
 			}
 			throw error;
 		}
@@ -76,7 +80,7 @@ export async function getSavedJobs(id_user) {
 					)
 				`
 			)
-			.eq("id_user", uid);
+			.eq('id_user', uid);
 
 		if (error) throw error;
 
@@ -91,7 +95,12 @@ export async function getSavedJobs(id_user) {
  */
 export async function removeSavedJob(id_user, id_job_offer) {
 	try {
-		const { data, error } = await supabase.from(TABLE).delete().eq("id_user", id_user).eq("id_job_offer", id_job_offer).select();
+		const { data, error } = await supabase
+			.from(TABLE)
+			.delete()
+			.eq('id_user', id_user)
+			.eq('id_job_offer', id_job_offer)
+			.select();
 
 		if (error) throw error;
 

@@ -25,19 +25,18 @@ function hashToken(token) {
 async function cleanupExpiredTokens() {
 	try {
 		const now = new Date().toISOString();
-		const { error } = await supabase
-			.from('revoked_tokens')
-			.delete()
-			.lt('expires_at', now);
+		const { error } = await supabase.from('revoked_tokens').delete().lt('expires_at', now);
 
 		if (error) {
 			// Ignorer l'erreur si la table n'existe pas encore (code 42P01 = relation does not exist)
 			if (error.code === '42P01' || error.message?.includes('does not exist')) {
-				logger.debug('[tokenRevokeStore] Table revoked_tokens n\'existe pas encore. Exécutez backend/token_revocation.sql');
+				logger.debug(
+					"[tokenRevokeStore] Table revoked_tokens n'existe pas encore. Exécutez backend/token_revocation.sql"
+				);
 				return;
 			}
 			logger.warn('[tokenRevokeStore] Erreur lors du nettoyage:', error);
-	}
+		}
 	} catch (e) {
 		// Ignorer les erreurs de connexion réseau silencieusement
 		if (e.message?.includes('fetch failed') || e.message?.includes('ECONNREFUSED')) {
@@ -61,28 +60,31 @@ setInterval(cleanupExpiredTokens, 60 * 60 * 1000).unref(); // Toutes les heures
 export async function revokeToken(token, expSeconds = null, userInfo = null) {
 	try {
 		const tokenHash = hashToken(token);
-		
+
 		// Calculer la date d'expiration
-		const expiresAt = expSeconds 
+		const expiresAt = expSeconds
 			? new Date(expSeconds * 1000).toISOString()
 			: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(); // Par défaut 7 jours
 
 		// Insérer ou mettre à jour le token révoqué
-		const { error } = await supabase
-			.from('revoked_tokens')
-			.upsert({
+		const { error } = await supabase.from('revoked_tokens').upsert(
+			{
 				token_hash: tokenHash,
 				expires_at: expiresAt,
 				user_id: userInfo?.id || null,
 				user_role: userInfo?.role || null,
-			}, {
-				onConflict: 'token_hash'
-			});
+			},
+			{
+				onConflict: 'token_hash',
+			}
+		);
 
 		if (error) {
 			// Ignorer l'erreur si la table n'existe pas encore (code 42P01 = relation does not exist)
 			if (error.code === '42P01' || error.message?.includes('does not exist')) {
-				logger.debug('[tokenRevokeStore] Table revoked_tokens n\'existe pas encore. La révocation sera ignorée jusqu\'à création de la table.');
+				logger.debug(
+					"[tokenRevokeStore] Table revoked_tokens n'existe pas encore. La révocation sera ignorée jusqu'à création de la table."
+				);
 				return;
 			}
 			logger.warn('[tokenRevokeStore] Erreur lors de la révocation:', error);
@@ -90,7 +92,9 @@ export async function revokeToken(token, expSeconds = null, userInfo = null) {
 	} catch (e) {
 		// Ignorer les erreurs de connexion réseau silencieusement
 		if (e.message?.includes('fetch failed') || e.message?.includes('ECONNREFUSED')) {
-			logger.debug('[tokenRevokeStore] Impossible de se connecter à Supabase pour révoquer le token');
+			logger.debug(
+				'[tokenRevokeStore] Impossible de se connecter à Supabase pour révoquer le token'
+			);
 			return;
 		}
 		logger.warn('[tokenRevokeStore] Erreur lors de la révocation:', e);
@@ -109,7 +113,7 @@ export async function isRevoked(token) {
 		cleanupExpiredTokens().catch(() => {}); // Ne pas bloquer si le nettoyage échoue
 
 		const tokenHash = hashToken(token);
-		
+
 		const { data, error } = await supabase
 			.from('revoked_tokens')
 			.select('token_hash')
@@ -123,7 +127,7 @@ export async function isRevoked(token) {
 			}
 			// Si la table n'existe pas encore, considérer comme non révoqué
 			if (error.code === '42P01' || error.message?.includes('does not exist')) {
-				logger.debug('[tokenRevokeStore] Table revoked_tokens n\'existe pas encore');
+				logger.debug("[tokenRevokeStore] Table revoked_tokens n'existe pas encore");
 				return false;
 			}
 			// Pour les autres erreurs, logger en debug seulement

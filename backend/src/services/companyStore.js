@@ -1,22 +1,26 @@
-import supabase from "../database/db.js";
-import bcrypt from "bcryptjs";
-import logger from "../utils/logger.js";
+import supabase from '../database/db.js';
+import bcrypt from 'bcryptjs';
+import logger from '../utils/logger.js';
 
 /**
  * Trouve une entreprise par ID
  */
 async function findById(id_company) {
 	try {
-		const { data, error } = await supabase.from("company").select("*").eq("id_company", id_company).single();
+		const { data, error } = await supabase
+			.from('company')
+			.select('*')
+			.eq('id_company', id_company)
+			.single();
 
-		if (error && error.code !== "PGRST116") {
-			logger.error("findById error:", error);
+		if (error && error.code !== 'PGRST116') {
+			logger.error('findById error:', error);
 			return null;
 		}
 
 		return data || null;
 	} catch (err) {
-		logger.error("findById error:", err);
+		logger.error('findById error:', err);
 		throw err;
 	}
 }
@@ -27,16 +31,20 @@ async function findById(id_company) {
 async function findByName(name) {
 	try {
 		const searchName = String(name).trim().toLowerCase();
-		const { data, error } = await supabase.from("company").select("*").ilike("name", searchName).single();
+		const { data, error } = await supabase
+			.from('company')
+			.select('*')
+			.ilike('name', searchName)
+			.single();
 
-		if (error && error.code !== "PGRST116") {
-			logger.error("findByName error:", error);
+		if (error && error.code !== 'PGRST116') {
+			logger.error('findByName error:', error);
 			return null;
 		}
 
 		return data || null;
 	} catch (err) {
-		logger.error("findByName error:", err);
+		logger.error('findByName error:', err);
 		throw err;
 	}
 }
@@ -53,7 +61,7 @@ async function createCompany({
 	recruiter_lastname = null,
 	recruiter_phone = null,
 	website = null,
-	industry = "Technology",
+	industry = 'Technology',
 	employees_number = null,
 	city = null,
 	zip_code = null,
@@ -63,7 +71,7 @@ async function createCompany({
 	try {
 		// Vérifie les champs obligatoires
 		if (!name || !description || !password || !recruiter_mail) {
-			throw new Error("Champs obligatoires manquants");
+			throw new Error('Champs obligatoires manquants');
 		}
 
 		const normalizedMail = String(recruiter_mail).trim().toLowerCase();
@@ -71,23 +79,23 @@ async function createCompany({
 
 		// ✅ Vérifie si un compte avec ce mail existe déjà
 		const { data: existingMail, error: selectMailError } = await supabase
-			.from("company")
-			.select("id_company")
-			.eq("recruiter_mail", normalizedMail)
+			.from('company')
+			.select('id_company')
+			.eq('recruiter_mail', normalizedMail)
 			.maybeSingle();
 
 		if (selectMailError) throw selectMailError;
-		if (existingMail) throw new Error("Un compte avec cet email existe déjà.");
+		if (existingMail) throw new Error('Un compte avec cet email existe déjà.');
 
 		// ✅ Vérifie si une entreprise avec le même nom existe déjà
 		const { data: existingName, error: selectNameError } = await supabase
-			.from("company")
-			.select("id_company")
-			.ilike("name", normalizedName) // insensible à la casse
+			.from('company')
+			.select('id_company')
+			.ilike('name', normalizedName) // insensible à la casse
 			.maybeSingle();
 
 		if (selectNameError) throw selectNameError;
-		if (existingName) throw new Error("Une entreprise avec ce nom existe déjà.");
+		if (existingName) throw new Error('Une entreprise avec ce nom existe déjà.');
 
 		// Hash du mot de passe
 		const hashedPassword = await bcrypt.hash(String(password), 10);
@@ -104,7 +112,7 @@ async function createCompany({
 
 		// Insertion dans Supabase
 		const { data, error } = await supabase
-			.from("company")
+			.from('company')
 			.insert({
 				name: String(name).trim(),
 				description: String(description).trim(),
@@ -121,14 +129,14 @@ async function createCompany({
 				country: country ? String(country).trim() : null,
 				founded_year: validatedFoundedYear,
 			})
-			.select("id_company, name, recruiter_mail, created_at")
+			.select('id_company, name, recruiter_mail, created_at')
 			.single();
 
 		if (error) throw error;
 
 		return data;
 	} catch (err) {
-		logger.error("createCompany error:", err);
+		logger.error('createCompany error:', err);
 		throw err;
 	}
 }
@@ -144,7 +152,7 @@ async function verifyCompanyCredentials(recruiter_mail, password) {
 		const ok = await bcrypt.compare(String(password), company.password);
 		return ok ? company : null;
 	} catch (err) {
-		logger.error("verifyCompanyCredentials error:", err);
+		logger.error('verifyCompanyCredentials error:', err);
 		throw err;
 	}
 }
@@ -156,16 +164,20 @@ async function findByMail(recruiter_mail) {
 	try {
 		const searchMail = String(recruiter_mail).trim().toLowerCase();
 
-		const { data, error } = await supabase.from("company").select("*").ilike("recruiter_mail", searchMail).single();
+		const { data, error } = await supabase
+			.from('company')
+			.select('*')
+			.ilike('recruiter_mail', searchMail)
+			.single();
 
-		if (error && error.code !== "PGRST116") {
-			logger.error("findByRecruiterMail error:", error);
+		if (error && error.code !== 'PGRST116') {
+			logger.error('findByRecruiterMail error:', error);
 			return null;
 		}
 
 		return data || null;
 	} catch (err) {
-		logger.error("findByRecruiterMail error:", err);
+		logger.error('findByRecruiterMail error:', err);
 		throw err;
 	}
 }
@@ -176,9 +188,9 @@ async function findByMail(recruiter_mail) {
 async function verifyCompanyPassword(id_company, currentPassword) {
 	try {
 		const { data: company, error } = await supabase
-			.from("company")
-			.select("password")
-			.eq("id_company", id_company)
+			.from('company')
+			.select('password')
+			.eq('id_company', id_company)
 			.single();
 
 		if (error || !company || !company.password) {
@@ -188,7 +200,7 @@ async function verifyCompanyPassword(id_company, currentPassword) {
 		const match = await bcrypt.compare(String(currentPassword), company.password);
 		return match;
 	} catch (err) {
-		logger.error("verifyCompanyPassword error:", err);
+		logger.error('verifyCompanyPassword error:', err);
 		return false;
 	}
 }
@@ -201,8 +213,8 @@ async function updateCompanyPassword(id_company, currentPassword, newPassword) {
 		// Vérifier le mot de passe actuel
 		const isValid = await verifyCompanyPassword(id_company, currentPassword);
 		if (!isValid) {
-			const err = new Error("Mot de passe actuel incorrect");
-			err.code = "INVALID_CURRENT_PASSWORD";
+			const err = new Error('Mot de passe actuel incorrect');
+			err.code = 'INVALID_CURRENT_PASSWORD';
 			throw err;
 		}
 
@@ -211,18 +223,18 @@ async function updateCompanyPassword(id_company, currentPassword, newPassword) {
 
 		// Mettre à jour dans la base de données
 		const { error } = await supabase
-			.from("company")
+			.from('company')
 			.update({ password: hashedPassword })
-			.eq("id_company", id_company);
+			.eq('id_company', id_company);
 
 		if (error) {
-			logger.error("updateCompanyPassword error:", error);
-			throw new Error("Erreur lors de la mise à jour du mot de passe");
+			logger.error('updateCompanyPassword error:', error);
+			throw new Error('Erreur lors de la mise à jour du mot de passe');
 		}
 
 		return true;
 	} catch (err) {
-		logger.error("updateCompanyPassword error:", err);
+		logger.error('updateCompanyPassword error:', err);
 		throw err;
 	}
 }
@@ -235,11 +247,28 @@ async function updateCompany(id_company, changes = {}) {
 		const updateData = {};
 
 		for (const [key, value] of Object.entries(changes)) {
-			if (["name", "description", "website", "password", "industry", "employees_number", "recruiter_firstname", "recruiter_lastname", "recruiter_phone", "recruiter_mail", "city", "zip_code", "country", "logo"].includes(key)) {
-				if (key === "password") {
+			if (
+				[
+					'name',
+					'description',
+					'website',
+					'password',
+					'industry',
+					'employees_number',
+					'recruiter_firstname',
+					'recruiter_lastname',
+					'recruiter_phone',
+					'recruiter_mail',
+					'city',
+					'zip_code',
+					'country',
+					'logo',
+				].includes(key)
+			) {
+				if (key === 'password') {
 					const hash = await bcrypt.hash(String(value), 10);
 					updateData[key] = hash;
-				} else if (key === "recruiter_mail") {
+				} else if (key === 'recruiter_mail') {
 					updateData[key] = value !== null ? String(value).trim().toLowerCase() : null;
 				} else {
 					updateData[key] = value !== null ? String(value).trim() : null;
@@ -249,16 +278,21 @@ async function updateCompany(id_company, changes = {}) {
 
 		if (Object.keys(updateData).length === 0) return null;
 
-		const { data, error } = await supabase.from("company").update(updateData).eq("id_company", id_company).select().single();
+		const { data, error } = await supabase
+			.from('company')
+			.update(updateData)
+			.eq('id_company', id_company)
+			.select()
+			.single();
 
 		if (error) {
-			logger.error("updateCompany error:", error);
+			logger.error('updateCompany error:', error);
 			return null;
 		}
 
 		return data || null;
 	} catch (err) {
-		logger.error("updateCompany error:", err);
+		logger.error('updateCompany error:', err);
 		throw err;
 	}
 }
@@ -268,29 +302,29 @@ async function updateCompany(id_company, changes = {}) {
  */
 async function removeCompany(id_company) {
 	try {
-		const { error } = await supabase.from("company").delete().eq("id_company", id_company);
+		const { error } = await supabase.from('company').delete().eq('id_company', id_company);
 
 		if (error) {
-			logger.error("removeCompany error:", error);
+			logger.error('removeCompany error:', error);
 			return false;
 		}
 
 		return true;
 	} catch (err) {
-		logger.error("removeCompany error:", err);
+		logger.error('removeCompany error:', err);
 		throw err;
 	}
 }
 
 /**
  * Récupère toutes les entreprises avec pagination, recherche et filtres
- * 
+ *
  * AMÉLIORATION : Ajout du support des filtres industry et city
  * - Filtre par secteur d'activité (industry)
  * - Filtre par ville (city)
  * - Recherche textuelle sur nom et description
  * - Pagination avec offset/limit
- * 
+ *
  * @param {Object} options - Options de filtrage et pagination
  * @param {number} options.page - Numéro de page (défaut: 1)
  * @param {number} options.limit - Nombre d'éléments par page (défaut: 20)
@@ -299,7 +333,13 @@ async function removeCompany(id_company) {
  * @param {string} options.city - Filtre par ville
  * @returns {Object} - { items: Array, page: number, limit: number, total: number }
  */
-async function getAllCompanies({ page = 1, limit = 20, search = null, industry = null, city = null } = {}) {
+async function getAllCompanies({
+	page = 1,
+	limit = 20,
+	search = null,
+	industry = null,
+	city = null,
+} = {}) {
 	try {
 		// Validation et conversion des paramètres
 		page = Number(page) || 1;
@@ -308,10 +348,13 @@ async function getAllCompanies({ page = 1, limit = 20, search = null, industry =
 
 		// Initialisation de la requête Supabase avec comptage et jointure pour les offres d'emploi
 		// On joint la table job_offer pour compter le nombre d'offres actives par entreprise
-		let query = supabase.from("company").select(`
+		let query = supabase.from('company').select(
+			`
 			*,
 			job_offers:job_offer(count)
-		`, { count: "exact" });
+		`,
+			{ count: 'exact' }
+		);
 
 		// 🔍 FILTRE DE RECHERCHE TEXTUELLE
 		// Recherche insensible à la casse sur le nom et la description
@@ -322,34 +365,34 @@ async function getAllCompanies({ page = 1, limit = 20, search = null, industry =
 		// 🏭 FILTRE PAR SECTEUR D'ACTIVITÉ
 		// Recherche insensible à la casse sur le champ industry
 		if (industry) {
-			query = query.ilike("industry", `%${industry}%`);
+			query = query.ilike('industry', `%${industry}%`);
 		}
 
 		// 🏙️ FILTRE PAR VILLE
 		// Recherche insensible à la casse sur le champ city
 		if (city) {
-			query = query.ilike("city", `%${city}%`);
+			query = query.ilike('city', `%${city}%`);
 		}
 
 		// ⚠️ OPTIMISATION PERFORMANCE: Limiter le nombre d'entreprises chargées
 		// Pour le tri par nombre d'offres, on doit charger les données
 		// Mais on limite à un maximum raisonnable pour éviter les problèmes de mémoire
 		const MAX_COMPANIES_TO_LOAD = 1000; // Maximum d'entreprises à charger pour le tri
-		
+
 		// 📊 EXÉCUTION DE LA REQUÊTE avec limite pour éviter de charger trop de données
 		const { data, error, count } = await query.limit(MAX_COMPANIES_TO_LOAD);
 
 		if (error) {
 			if (process.env.NODE_ENV !== 'production') {
-				logger.error("getAllCompanies error:", error);
+				logger.error('getAllCompanies error:', error);
 			}
 			throw error;
 		}
 
 		// Transformation des données pour inclure le nombre d'offres d'emploi
-		const enrichedData = (data || []).map(company => ({
+		const enrichedData = (data || []).map((company) => ({
 			...company,
-			jobsAvailable: company.job_offers?.[0]?.count || 0 // Nombre d'offres d'emploi actives
+			jobsAvailable: company.job_offers?.[0]?.count || 0, // Nombre d'offres d'emploi actives
 		}));
 
 		// 🎯 TRI PAR NOMBRE D'OFFRES (du plus grand au plus petit)
@@ -361,23 +404,34 @@ async function getAllCompanies({ page = 1, limit = 20, search = null, industry =
 		const paginatedData = enrichedData.slice(startIndex, endIndex);
 
 		// Ajuster le total si on a limité le chargement
-		const actualTotal = count && count > MAX_COMPANIES_TO_LOAD ? MAX_COMPANIES_TO_LOAD : (count || 0);
+		const actualTotal = count && count > MAX_COMPANIES_TO_LOAD ? MAX_COMPANIES_TO_LOAD : count || 0;
 
-		return { 
-			data: paginatedData, 
+		return {
+			data: paginatedData,
 			pagination: {
-				page, 
-				limit, 
+				page,
+				limit,
 				total: actualTotal,
-				totalPages: Math.ceil(actualTotal / limit)
-			}
+				totalPages: Math.ceil(actualTotal / limit),
+			},
 		};
 	} catch (err) {
 		if (process.env.NODE_ENV !== 'production') {
-			logger.error("getAllCompanies error:", err);
+			logger.error('getAllCompanies error:', err);
 		}
 		throw err;
 	}
 }
 
-export { findById, findByName, createCompany, verifyCompanyCredentials, updateCompany, removeCompany, getAllCompanies, findByMail, verifyCompanyPassword, updateCompanyPassword };
+export {
+	findById,
+	findByName,
+	createCompany,
+	verifyCompanyCredentials,
+	updateCompany,
+	removeCompany,
+	getAllCompanies,
+	findByMail,
+	verifyCompanyPassword,
+	updateCompanyPassword,
+};

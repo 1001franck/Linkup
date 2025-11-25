@@ -1,7 +1,11 @@
-import express from "express";
-import { passwordResetLimiter } from "../middlewares/rateLimiter.js";
-import { requestPasswordResetMail, tokenUpdatePassword } from "../services/forgottenPasswordStore.js";
-import logger from "../utils/logger.js";
+import express from 'express';
+import { passwordResetLimiter } from '../middlewares/rateLimiter.js';
+import {
+	requestPasswordResetMail,
+	tokenUpdatePassword,
+} from '../services/forgottenPasswordStore.js';
+import { validatePasswordReset } from '../utils/validators.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -10,18 +14,18 @@ const router = express.Router();
  * Envoie un mail avec un lien de réinitialisation
  * Rate limited: 3 tentatives par heure par IP
  */
-router.post("/request", passwordResetLimiter, async (req, res) => {
+router.post('/request', passwordResetLimiter, async (req, res) => {
 	try {
 		const { email } = req.body;
-		if (!email) return res.status(400).json({ error: "Email requis" });
+		if (!email) return res.status(400).json({ error: 'Email requis' });
 
 		const result = await requestPasswordResetMail(email);
 		if (result.error) return res.status(400).json({ error: result.error });
 
-		res.json({ message: "Email de réinitialisation envoyé" });
+		res.json({ message: 'Email de réinitialisation envoyé' });
 	} catch (error) {
-		logger.error("POST /password/forgot error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('POST /password/forgot error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -30,20 +34,29 @@ router.post("/request", passwordResetLimiter, async (req, res) => {
  * Réinitialise le mot de passe avec le token reçu
  * Rate limited: 3 tentatives par heure par IP
  */
-router.post("/reset", passwordResetLimiter, async (req, res) => {
+router.post('/reset', passwordResetLimiter, async (req, res) => {
 	try {
 		const { token, newPassword } = req.body;
 		if (!token || !newPassword) {
-			return res.status(400).json({ error: "Token et nouveau mot de passe requis" });
+			return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
+		}
+
+		// Validation du nouveau mot de passe
+		const passwordValidation = validatePasswordReset(newPassword);
+		if (!passwordValidation.valid) {
+			return res.status(400).json({
+				error: 'Le nouveau mot de passe ne respecte pas les critères de sécurité',
+				details: passwordValidation.errors,
+			});
 		}
 
 		const result = await tokenUpdatePassword(token, newPassword);
 		if (result.error) return res.status(400).json({ error: result.error });
 
-		res.json({ message: "Mot de passe mis à jour avec succès" });
+		res.json({ message: 'Mot de passe mis à jour avec succès' });
 	} catch (error) {
-		logger.error("POST /forgotten-password/reset error:", error);
-		res.status(500).json({ error: "Erreur serveur" });
+		logger.error('POST /forgotten-password/reset error:', error);
+		res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 

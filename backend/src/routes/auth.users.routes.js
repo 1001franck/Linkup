@@ -1,12 +1,12 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import auth from "../middlewares/auth.js";
-import { authLimiter } from "../middlewares/rateLimiter.js";
-import { revokeToken } from "../services/tokenRevokeStore.js";
-import { findByEmail, createUser } from "../services/userStore.js";
-import { validateUserSignup, isValidEmail } from "../utils/validators.js";
-import logger from "../utils/logger.js";
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import auth from '../middlewares/auth.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
+import { revokeToken } from '../services/tokenRevokeStore.js';
+import { findByEmail, createUser } from '../services/userStore.js';
+import { validateUserSignup, isValidEmail } from '../utils/validators.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -15,22 +15,22 @@ const router = express.Router();
  * Body: { email, password, firstname, lastname, phone?, bio_pro?, city?, country? }
  * Rate limited: 5 tentatives par 15 minutes par IP
  */
-router.post("/signup", authLimiter, async (req, res) => {
+router.post('/signup', authLimiter, async (req, res) => {
 	try {
 		// Validation stricte des entrées
 		const validation = validateUserSignup(req.body);
-		
+
 		if (!validation.valid) {
-			return res.status(400).json({ 
-				error: "Données invalides",
-				details: validation.errors
+			return res.status(400).json({
+				error: 'Données invalides',
+				details: validation.errors,
 			});
 		}
 
 		// Vérifier si l'email existe déjà
 		const exists = await findByEmail(validation.sanitized.email);
 		if (exists) {
-			return res.status(409).json({ error: "Email déjà utilisé" });
+			return res.status(409).json({ error: 'Email déjà utilisé' });
 		}
 
 		// Hash du mot de passe (bcrypt async)
@@ -44,7 +44,7 @@ router.post("/signup", authLimiter, async (req, res) => {
 
 		// Retour: ne jamais renvoyer le hash du mot de passe
 		return res.status(201).json({
-			message: "Utilisateur créé avec succès",
+			message: 'Utilisateur créé avec succès',
 			id_user: user.id_user,
 			email: user.email,
 			firstname: user.firstname,
@@ -53,8 +53,8 @@ router.post("/signup", authLimiter, async (req, res) => {
 			phone: user.phone,
 		});
 	} catch (error) {
-		logger.error("Signup error:", error);
-		return res.status(500).json({ error: "Erreur serveur" });
+		logger.error('Signup error:', error);
+		return res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -63,13 +63,13 @@ router.post("/signup", authLimiter, async (req, res) => {
  * Body: { email, password }
  * Rate limited: 5 tentatives par 15 minutes par IP
  */
-router.post("/login", authLimiter, async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
 	const { email, password } = req.body || {};
-	
+
 	try {
 		// Validation de base
 		if (!email || !password) {
-			return res.status(400).json({ error: "Email et mot de passe sont requis" });
+			return res.status(400).json({ error: 'Email et mot de passe sont requis' });
 		}
 
 		// Validation format email
@@ -83,14 +83,14 @@ router.post("/login", authLimiter, async (req, res) => {
 		const user = await findByEmail(normalizedEmail);
 		if (!user) {
 			// Ne pas révéler si l'email existe ou non (sécurité)
-			return res.status(401).json({ error: "Identifiants invalides" });
+			return res.status(401).json({ error: 'Identifiants invalides' });
 		}
 
 		// Compare provided password with stored hash
 		const ok = await bcrypt.compare(String(password), user.password);
 		if (!ok) {
 			// Ne pas révéler si le mot de passe est incorrect (sécurité)
-			return res.status(401).json({ error: "Identifiants invalides" });
+			return res.status(401).json({ error: 'Identifiants invalides' });
 		}
 
 		// Sign JWT containing minimal claims
@@ -101,7 +101,7 @@ router.post("/login", authLimiter, async (req, res) => {
 				email: user.email,
 			},
 			process.env.JWT_SECRET,
-			{ expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+			{ expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
 		);
 
 		// Définir les options de cookie sécurisées
@@ -118,17 +118,17 @@ router.post("/login", authLimiter, async (req, res) => {
 		res.cookie('linkup_token', token, cookieOptions);
 
 		return res.json({
-			message: "Connexion réussie",
+			message: 'Connexion réussie',
 			// Le token est stocké dans un cookie httpOnly, pas dans le body JSON (sécurité)
 			user: {
 				id: user.id_user,
 				email: user.email,
-				role: user.role
-			}
+				role: user.role,
+			},
 		});
 	} catch (error) {
-		logger.error("Login error:", error);
-		return res.status(500).json({ error: "Erreur serveur" });
+		logger.error('Login error:', error);
+		return res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 
@@ -136,35 +136,38 @@ router.post("/login", authLimiter, async (req, res) => {
  * POST /auth/users/logout
  * Cookie: token=<token>
  */
-router.post("/logout", auth(), async (req, res) => {
+router.post('/logout', auth(), async (req, res) => {
 	try {
 		// Récupérer le token depuis Authorization header (priorité) ou cookies (fallback)
 		const authHeader = req.headers.authorization;
-		const token = authHeader && authHeader.startsWith('Bearer ') 
-			? authHeader.slice(7) 
-			: req.cookies?.linkup_token; // Utiliser le bon nom de cookie
-		
+		const token =
+			authHeader && authHeader.startsWith('Bearer ')
+				? authHeader.slice(7)
+				: req.cookies?.linkup_token; // Utiliser le bon nom de cookie
+
 		const decoded = jwt.decode(token);
 		const exp = decoded && decoded.exp ? decoded.exp : null;
-		
+
 		// Informations utilisateur pour le tracking
-		const userInfo = req.user ? {
-			id: req.user.sub,
-			role: req.user.role
-		} : null;
-		
+		const userInfo = req.user
+			? {
+					id: req.user.sub,
+					role: req.user.role,
+				}
+			: null;
+
 		// Révoquer le token dans la base de données (non-blocking)
 		revokeToken(token, exp, userInfo).catch((e) => {
-			logger.warn("[logout] Erreur lors de la révocation du token:", e);
+			logger.warn('[logout] Erreur lors de la révocation du token:', e);
 		});
 
 		// Nettoyer les cookies côté serveur
 		res.clearCookie('linkup_token');
-		
+
 		return res.json({ ok: true });
 	} catch (err) {
-		logger.error("Logout error:", err);
-		return res.status(500).json({ error: "Erreur serveur" });
+		logger.error('Logout error:', err);
+		return res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
 

@@ -1,7 +1,7 @@
-import supabase from "../database/db.js";
-import { getProfilePicture } from "./userFilesStore.js";
-import { calculateMatchingScore } from "./matchingStore.js";
-import logger from "../utils/logger.js";
+import supabase from '../database/db.js';
+import { getProfilePicture } from './userFilesStore.js';
+import { calculateMatchingScore } from './matchingStore.js';
+import logger from '../utils/logger.js';
 
 /**
  * Service pour les statistiques spécifiques d'une entreprise
@@ -22,14 +22,14 @@ async function getCompanyDashboardStats(id_company) {
 			interviewsStats,
 			hiredStats,
 			recentApplications,
-			activeJobs
+			activeJobs,
 		] = await Promise.all([
 			getJobsStats(id_company),
 			getApplicationsStats(id_company),
 			getInterviewsStats(id_company),
 			getHiredStats(id_company),
 			getRecentApplications(id_company),
-			getActiveJobs(id_company)
+			getActiveJobs(id_company),
 		]);
 
 		const stats = {
@@ -40,14 +40,14 @@ async function getCompanyDashboardStats(id_company) {
 			newApplications: applicationsStats.thisWeek,
 			interviewsScheduled: interviewsStats.total, // Total des entretiens programmés
 			hiredCandidates: hiredStats.total, // Total des candidats embauchés
-			
+
 			// Données détaillées
-			recentApplications: recentApplications,
+			recentApplications,
 			activeJobsList: activeJobs, // Liste des offres actives (renommé pour éviter le conflit)
-			
+
 			// Métadonnées
 			generatedAt: new Date().toISOString(),
-			companyId: id_company
+			companyId: id_company,
 		};
 
 		return stats;
@@ -83,7 +83,7 @@ async function getJobsStats(id_company) {
 			return { total: total || 0, active: 0 };
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 
 		// Récupérer les offres qui ont des candidats acceptés
 		const { data: acceptedApplications, error: acceptedError } = await supabase
@@ -96,7 +96,7 @@ async function getJobsStats(id_company) {
 
 		// Les offres avec des candidats acceptés
 		const jobsWithAcceptedCandidates = new Set(
-			(acceptedApplications || []).map(app => app.id_job_offer)
+			(acceptedApplications || []).map((app) => app.id_job_offer)
 		);
 
 		// Offres actives = total - offres avec candidats acceptés
@@ -104,7 +104,7 @@ async function getJobsStats(id_company) {
 
 		return {
 			total: total || 0,
-			active: Math.max(0, active) // S'assurer que c'est pas négatif
+			active: Math.max(0, active), // S'assurer que c'est pas négatif
 		};
 	} catch (error) {
 		logger.error(`[getJobsStats] Erreur pour l'entreprise ${id_company}:`, error);
@@ -129,7 +129,7 @@ async function getApplicationsStats(id_company) {
 			return { total: 0, thisWeek: 0 };
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 
 		// Maintenant compter les candidatures pour ces offres
 		const { count: total, error: totalError } = await supabase
@@ -154,7 +154,7 @@ async function getApplicationsStats(id_company) {
 
 		return {
 			total: total || 0,
-			thisWeek: thisWeek || 0
+			thisWeek: thisWeek || 0,
 		};
 	} catch (error) {
 		logger.error(`[getApplicationsStats] Erreur pour l'entreprise ${id_company}:`, error);
@@ -179,7 +179,7 @@ async function getInterviewsStats(id_company) {
 			return { total: 0 };
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 
 		// Total des entretiens programmés (tous les statuts 'interview')
 		const { count: total, error: totalError } = await supabase
@@ -191,7 +191,7 @@ async function getInterviewsStats(id_company) {
 		if (totalError) throw totalError;
 
 		return {
-			total: total || 0
+			total: total || 0,
 		};
 	} catch (error) {
 		logger.error(`[getInterviewsStats] Erreur pour l'entreprise ${id_company}:`, error);
@@ -216,7 +216,7 @@ async function getHiredStats(id_company) {
 			return { total: 0 };
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 
 		// Total des candidats embauchés (tous les statuts 'accepted')
 		const { count: total, error: totalError } = await supabase
@@ -228,7 +228,7 @@ async function getHiredStats(id_company) {
 		if (totalError) throw totalError;
 
 		return {
-			total: total || 0
+			total: total || 0,
 		};
 	} catch (error) {
 		logger.error(`[getHiredStats] Erreur pour l'entreprise ${id_company}:`, error);
@@ -253,7 +253,7 @@ async function getRecentApplications(id_company) {
 			return [];
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 		const jobTitles = companyJobs.reduce((acc, job) => {
 			acc[job.id_job_offer] = job.title;
 			return acc;
@@ -262,13 +262,15 @@ async function getRecentApplications(id_company) {
 		// Maintenant récupérer les candidatures pour ces offres (sans jointure d'abord)
 		const { data: applications, error } = await supabase
 			.from('apply')
-			.select(`
+			.select(
+				`
 				id_user,
 				id_job_offer,
 				application_date,
 				status,
 				interview_date
-			`)
+			`
+			)
 			.in('id_job_offer', jobIds)
 			.order('application_date', { ascending: false })
 			.limit(3);
@@ -277,7 +279,7 @@ async function getRecentApplications(id_company) {
 
 		// Si on a des candidatures, récupérer les infos utilisateur séparément
 		if (applications && applications.length > 0) {
-			const userIds = applications.map(app => app.id_user);
+			const userIds = applications.map((app) => app.id_user);
 			const { data: users, error: usersError } = await supabase
 				.from('user_')
 				.select('*')
@@ -310,53 +312,65 @@ async function getRecentApplications(id_company) {
 			}, {});
 
 			// Transformer les données pour correspondre au format frontend
-			const transformedApplications = await Promise.all(applications.map(async app => {
-				const user = userMap[app.id_user];
-				const jobOffer = jobOfferMap[app.id_job_offer];
-				const firstname = user?.firstname || '';
-				const lastname = user?.lastname || '';
-				
-				// Récupérer la photo de profil de l'utilisateur
-				let profilePicture = null;
-				if (user) {
-					try {
-						profilePicture = await getProfilePicture(app.id_user);
-					} catch (error) {
-						logger.error(`[getRecentApplications] Erreur récupération photo pour ${app.id_user}:`, error);
-					}
-				}
-				
-				// Calculer le vrai score de matching
-				let matchScore = 50; // Score par défaut
-				if (user && jobOffer) {
-					try {
-						const matchingResult = await calculateMatchingScore(user, jobOffer);
-						matchScore = matchingResult.score || 50;
-					} catch (error) {
-						logger.error(`[getRecentApplications] Erreur calcul matching pour ${app.id_user}/${app.id_job_offer}:`, error);
-					}
-				}
-				
-				// Fallback vers les initiales si pas de photo
-				const avatar = profilePicture || (user ? `${firstname.charAt(0)}${lastname.charAt(0)}` : "??");
-				
-				return {
-					id: `${app.id_user}-${app.id_job_offer}`, // Clé composite
-					candidateName: user ? `${firstname} ${lastname}`.trim() || "Utilisateur sans nom" : "Utilisateur inconnu",
-					candidateTitle: user?.job_title || "Candidat",
-					jobTitle: jobTitles[app.id_job_offer] || "Offre d'emploi",
-					appliedDate: new Date(app.application_date).toLocaleDateString('fr-FR'),
-					status: app.status,
-					experience: user?.experience_level || "Non spécifié",
-					location: user ? `${user.city || ''} ${user.country || ''}`.trim() || "Non spécifié" : "Non spécifié",
-					matchScore: matchScore, // Score calculé avec l'algorithme de matching
-					avatar: avatar,
-					profilePicture: profilePicture, // Ajouter la photo de profil
-					email: user?.email || "",
-					interviewDate: app.interview_date
-				};
-			}));
+			const transformedApplications = await Promise.all(
+				applications.map(async (app) => {
+					const user = userMap[app.id_user];
+					const jobOffer = jobOfferMap[app.id_job_offer];
+					const firstname = user?.firstname || '';
+					const lastname = user?.lastname || '';
 
+					// Récupérer la photo de profil de l'utilisateur
+					let profilePicture = null;
+					if (user) {
+						try {
+							profilePicture = await getProfilePicture(app.id_user);
+						} catch (error) {
+							logger.error(
+								`[getRecentApplications] Erreur récupération photo pour ${app.id_user}:`,
+								error
+							);
+						}
+					}
+
+					// Calculer le vrai score de matching
+					let matchScore = 50; // Score par défaut
+					if (user && jobOffer) {
+						try {
+							const matchingResult = await calculateMatchingScore(user, jobOffer);
+							matchScore = matchingResult.score || 50;
+						} catch (error) {
+							logger.error(
+								`[getRecentApplications] Erreur calcul matching pour ${app.id_user}/${app.id_job_offer}:`,
+								error
+							);
+						}
+					}
+
+					// Fallback vers les initiales si pas de photo
+					const avatar =
+						profilePicture || (user ? `${firstname.charAt(0)}${lastname.charAt(0)}` : '??');
+
+					return {
+						id: `${app.id_user}-${app.id_job_offer}`, // Clé composite
+						candidateName: user
+							? `${firstname} ${lastname}`.trim() || 'Utilisateur sans nom'
+							: 'Utilisateur inconnu',
+						candidateTitle: user?.job_title || 'Candidat',
+						jobTitle: jobTitles[app.id_job_offer] || "Offre d'emploi",
+						appliedDate: new Date(app.application_date).toLocaleDateString('fr-FR'),
+						status: app.status,
+						experience: user?.experience_level || 'Non spécifié',
+						location: user
+							? `${user.city || ''} ${user.country || ''}`.trim() || 'Non spécifié'
+							: 'Non spécifié',
+						matchScore, // Score calculé avec l'algorithme de matching
+						avatar,
+						profilePicture, // Ajouter la photo de profil
+						email: user?.email || '',
+						interviewDate: app.interview_date,
+					};
+				})
+			);
 
 			return transformedApplications;
 		}
@@ -376,7 +390,8 @@ async function getActiveJobs(id_company) {
 		// D'abord récupérer toutes les offres de l'entreprise
 		const { data: allJobs, error: jobsError } = await supabase
 			.from('job_offer')
-			.select(`
+			.select(
+				`
 				id_job_offer,
 				title,
 				location,
@@ -386,7 +401,8 @@ async function getActiveJobs(id_company) {
 				published_at,
 				industry,
 				experience
-			`)
+			`
+			)
 			.eq('id_company', id_company)
 			.order('published_at', { ascending: false });
 
@@ -396,7 +412,7 @@ async function getActiveJobs(id_company) {
 			return [];
 		}
 
-		const jobIds = allJobs.map(job => job.id_job_offer);
+		const jobIds = allJobs.map((job) => job.id_job_offer);
 
 		// Récupérer les offres qui ont des candidats acceptés
 		const { data: acceptedApplications, error: acceptedError } = await supabase
@@ -409,15 +425,14 @@ async function getActiveJobs(id_company) {
 
 		// Les offres avec des candidats acceptés
 		const jobsWithAcceptedCandidates = new Set(
-			(acceptedApplications || []).map(app => app.id_job_offer)
+			(acceptedApplications || []).map((app) => app.id_job_offer)
 		);
 
 		// Filtrer pour ne garder que les offres actives (sans candidats acceptés)
-		const activeJobs = allJobs.filter(job => !jobsWithAcceptedCandidates.has(job.id_job_offer));
+		const activeJobs = allJobs.filter((job) => !jobsWithAcceptedCandidates.has(job.id_job_offer));
 
 		// Limiter à 6 offres maximum
 		const jobs = activeJobs.slice(0, 6);
-
 
 		// Pour chaque offre, récupérer les statistiques
 		const jobsWithStats = await Promise.all(
@@ -432,15 +447,17 @@ async function getActiveJobs(id_company) {
 				return {
 					id: job.id_job_offer,
 					title: job.title,
-					department: job.industry || "Général",
-					location: job.location || "Non spécifié",
-					type: job.contract_type || "CDI",
-					salary: job.salary_min && job.salary_max ? 
-						`${job.salary_min}-${job.salary_max}k€` : "Non spécifié",
+					department: job.industry || 'Général',
+					location: job.location || 'Non spécifié',
+					type: job.contract_type || 'CDI',
+					salary:
+						job.salary_min && job.salary_max
+							? `${job.salary_min}-${job.salary_max}k€`
+							: 'Non spécifié',
 					applications: applicationsCount || 0,
 					postedDate: new Date(job.published_at).toLocaleDateString('fr-FR'),
 					status: 'active', // Toutes les offres sont actives par défaut
-					experience: job.experience || "Non spécifié"
+					experience: job.experience || 'Non spécifié',
 				};
 			})
 		);
@@ -469,25 +486,27 @@ async function getUpcomingInterviews(id_company) {
 			return [];
 		}
 
-		const jobIds = companyJobs.map(job => job.id_job_offer);
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
 		const jobTitles = companyJobs.reduce((acc, job) => {
 			acc[job.id_job_offer] = job.title;
 			return acc;
 		}, {});
 
 		const now = new Date();
-		
+
 		// Récupérer les entretiens pour ces offres (sans jointure d'abord)
 		// Conditions : statut = 'interview' ET date future ET interview_date non null
 		const { data: interviews, error } = await supabase
 			.from('apply')
-			.select(`
+			.select(
+				`
 				id_user,
 				id_job_offer,
 				interview_date,
 				status,
 				notes
-			`)
+			`
+			)
 			.in('id_job_offer', jobIds)
 			.eq('status', 'interview')
 			.not('interview_date', 'is', null) // S'assurer que la date existe
@@ -502,7 +521,7 @@ async function getUpcomingInterviews(id_company) {
 		}
 
 		// Récupérer les infos utilisateur séparément
-		const userIds = interviews.map(interview => interview.id_user);
+		const userIds = interviews.map((interview) => interview.id_user);
 		const { data: users, error: usersError } = await supabase
 			.from('user_')
 			.select('id_user, firstname, lastname, job_title, city, country')
@@ -520,59 +539,69 @@ async function getUpcomingInterviews(id_company) {
 		}, {});
 
 		// Transformer les données pour correspondre au format frontend
-		const transformedInterviews = await Promise.all(interviews.map(async interview => {
-			const user = userMap[interview.id_user];
-			
-			// Vérifier que la date d'entretien est valide et future
-			if (!interview.interview_date) {
-				return null;
-			}
-			
-			const interviewDate = new Date(interview.interview_date);
-			
-			// Double vérification que la date est future
-			if (interviewDate <= now) {
-				return null;
-			}
-			
-			// Récupérer la photo de profil de l'utilisateur
-			let profilePicture = null;
-			if (user) {
-				try {
-					profilePicture = await getProfilePicture(interview.id_user);
-				} catch (error) {
-					logger.error(`[getUpcomingInterviews] Erreur récupération photo pour ${interview.id_user}:`, error);
+		const transformedInterviews = await Promise.all(
+			interviews.map(async (interview) => {
+				const user = userMap[interview.id_user];
+
+				// Vérifier que la date d'entretien est valide et future
+				if (!interview.interview_date) {
+					return null;
 				}
-			}
-			
-			// Fallback vers les initiales si pas de photo
-			const firstname = user?.firstname || '';
-			const lastname = user?.lastname || '';
-			const avatar = profilePicture || (user ? `${firstname.charAt(0)}${lastname.charAt(0)}` : "??");
-			
-			return {
-				id: `${interview.id_user}-${interview.id_job_offer}`, // Clé composite
-				candidateName: user ? `${firstname} ${lastname}`.trim() || "Utilisateur sans nom" : "Utilisateur inconnu",
-				candidateTitle: user?.job_title || "Candidat",
-				jobTitle: jobTitles[interview.id_job_offer] || "Offre d'emploi",
-				date: interviewDate.toLocaleDateString('fr-FR'),
-				time: interviewDate.toLocaleTimeString('fr-FR', { 
-					hour: '2-digit', 
-					minute: '2-digit' 
-				}),
-				type: "Visioconférence", // Valeur par défaut car interview_type n'existe pas
-				interviewer: "À définir", // Valeur par défaut car interviewer_name n'existe pas
-				status: interview.status,
-				interviewDate: interview.interview_date,
-				avatar: avatar,
-				profilePicture: profilePicture,
-				location: user ? `${user.city || ''} ${user.country || ''}`.trim() || "Non spécifié" : "Non spécifié",
-				notes: interview.notes || ""
-			};
-		}));
+
+				const interviewDate = new Date(interview.interview_date);
+
+				// Double vérification que la date est future
+				if (interviewDate <= now) {
+					return null;
+				}
+
+				// Récupérer la photo de profil de l'utilisateur
+				let profilePicture = null;
+				if (user) {
+					try {
+						profilePicture = await getProfilePicture(interview.id_user);
+					} catch (error) {
+						logger.error(
+							`[getUpcomingInterviews] Erreur récupération photo pour ${interview.id_user}:`,
+							error
+						);
+					}
+				}
+
+				// Fallback vers les initiales si pas de photo
+				const firstname = user?.firstname || '';
+				const lastname = user?.lastname || '';
+				const avatar =
+					profilePicture || (user ? `${firstname.charAt(0)}${lastname.charAt(0)}` : '??');
+
+				return {
+					id: `${interview.id_user}-${interview.id_job_offer}`, // Clé composite
+					candidateName: user
+						? `${firstname} ${lastname}`.trim() || 'Utilisateur sans nom'
+						: 'Utilisateur inconnu',
+					candidateTitle: user?.job_title || 'Candidat',
+					jobTitle: jobTitles[interview.id_job_offer] || "Offre d'emploi",
+					date: interviewDate.toLocaleDateString('fr-FR'),
+					time: interviewDate.toLocaleTimeString('fr-FR', {
+						hour: '2-digit',
+						minute: '2-digit',
+					}),
+					type: 'Visioconférence', // Valeur par défaut car interview_type n'existe pas
+					interviewer: 'À définir', // Valeur par défaut car interviewer_name n'existe pas
+					status: interview.status,
+					interviewDate: interview.interview_date,
+					avatar,
+					profilePicture,
+					location: user
+						? `${user.city || ''} ${user.country || ''}`.trim() || 'Non spécifié'
+						: 'Non spécifié',
+					notes: interview.notes || '',
+				};
+			})
+		);
 
 		// Filtrer les entretiens null (dates invalides ou passées)
-		const validInterviews = transformedInterviews.filter(interview => interview !== null);
+		const validInterviews = transformedInterviews.filter((interview) => interview !== null);
 
 		return validInterviews;
 	} catch (error) {
@@ -587,11 +616,11 @@ async function getUpcomingInterviews(id_company) {
  */
 async function getAllJobsForManagement(id_company) {
 	try {
-		
 		// Récupérer toutes les offres (actives, en pause, fermées)
 		const { data: allJobs, error: jobsError } = await supabase
 			.from('job_offer')
-			.select(`
+			.select(
+				`
 				id_job_offer,
 				title,
 				location,
@@ -603,7 +632,8 @@ async function getAllJobsForManagement(id_company) {
 				experience,
 				remote,
 				urgency
-			`)
+			`
+			)
 			.eq('id_company', id_company)
 			.order('published_at', { ascending: false });
 
@@ -613,7 +643,7 @@ async function getAllJobsForManagement(id_company) {
 			return [];
 		}
 
-		const jobIds = allJobs.map(job => job.id_job_offer);
+		const jobIds = allJobs.map((job) => job.id_job_offer);
 
 		// Récupérer les offres qui ont des candidats acceptés
 		const { data: acceptedApplications, error: acceptedError } = await supabase
@@ -626,7 +656,7 @@ async function getAllJobsForManagement(id_company) {
 
 		// Les offres avec des candidats acceptés
 		const jobsWithAcceptedCandidates = new Set(
-			(acceptedApplications || []).map(app => app.id_job_offer)
+			(acceptedApplications || []).map((app) => app.id_job_offer)
 		);
 
 		// Pour la page de gestion, on veut TOUTES les offres, pas seulement les actives
@@ -652,17 +682,19 @@ async function getAllJobsForManagement(id_company) {
 				return {
 					id: job.id_job_offer,
 					title: job.title,
-					department: job.industry || "Général",
-					location: job.location || "Non spécifié",
-					type: job.contract_type || "CDI",
-					salary: job.salary_min && job.salary_max ? 
-						`${job.salary_min}-${job.salary_max}k€` : "Non spécifié",
+					department: job.industry || 'Général',
+					location: job.location || 'Non spécifié',
+					type: job.contract_type || 'CDI',
+					salary:
+						job.salary_min && job.salary_max
+							? `${job.salary_min}-${job.salary_max}k€`
+							: 'Non spécifié',
 					applications: applicationsCount || 0,
 					postedDate: new Date(job.published_at).toLocaleDateString('fr-FR'),
 					status: realStatus, // Statut réel de l'offre
 					urgent: job.urgency === 'high',
 					remote: job.remote === 'Oui',
-					experience: job.experience || "Non spécifié"
+					experience: job.experience || 'Non spécifié',
 				};
 			})
 		);
@@ -682,7 +714,8 @@ async function getAllJobs(id_company) {
 		// Récupérer toutes les offres (actives, en pause, fermées)
 		const { data: allJobs, error: jobsError } = await supabase
 			.from('job_offer')
-			.select(`
+			.select(
+				`
 				id_job_offer,
 				title,
 				location,
@@ -694,7 +727,8 @@ async function getAllJobs(id_company) {
 				experience,
 				remote,
 				urgency
-			`)
+			`
+			)
 			.eq('id_company', id_company)
 			.order('published_at', { ascending: false });
 
@@ -704,7 +738,7 @@ async function getAllJobs(id_company) {
 			return [];
 		}
 
-		const jobIds = allJobs.map(job => job.id_job_offer);
+		const jobIds = allJobs.map((job) => job.id_job_offer);
 
 		// Récupérer les offres qui ont des candidats acceptés
 		const { data: acceptedApplications, error: acceptedError } = await supabase
@@ -717,11 +751,11 @@ async function getAllJobs(id_company) {
 
 		// Les offres avec des candidats acceptés
 		const jobsWithAcceptedCandidates = new Set(
-			(acceptedApplications || []).map(app => app.id_job_offer)
+			(acceptedApplications || []).map((app) => app.id_job_offer)
 		);
 
 		// Filtrer pour ne garder que les offres actives (sans candidats acceptés)
-		const activeJobs = allJobs.filter(job => !jobsWithAcceptedCandidates.has(job.id_job_offer));
+		const activeJobs = allJobs.filter((job) => !jobsWithAcceptedCandidates.has(job.id_job_offer));
 
 		// Limiter à 6 offres maximum
 		const jobs = activeJobs.slice(0, 6);
@@ -739,17 +773,19 @@ async function getAllJobs(id_company) {
 				return {
 					id: job.id_job_offer,
 					title: job.title,
-					department: job.industry || "Général",
-					location: job.location || "Non spécifié",
-					type: job.contract_type || "CDI",
-					salary: job.salary_min && job.salary_max ? 
-						`${job.salary_min}-${job.salary_max}k€` : "Non spécifié",
+					department: job.industry || 'Général',
+					location: job.location || 'Non spécifié',
+					type: job.contract_type || 'CDI',
+					salary:
+						job.salary_min && job.salary_max
+							? `${job.salary_min}-${job.salary_max}k€`
+							: 'Non spécifié',
 					applications: applicationsCount || 0,
 					postedDate: new Date(job.published_at).toLocaleDateString('fr-FR'),
 					status: 'active', // Toutes les offres sont actives par défaut
 					urgent: job.urgency === 'high',
 					remote: job.remote === 'Oui',
-					experience: job.experience || "Non spécifié"
+					experience: job.experience || 'Non spécifié',
 				};
 			})
 		);
@@ -771,5 +807,5 @@ export {
 	getActiveJobs,
 	getUpcomingInterviews,
 	getAllJobs,
-	getAllJobsForManagement
+	getAllJobsForManagement,
 };

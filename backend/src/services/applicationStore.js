@@ -1,8 +1,8 @@
-import supabase from "../database/db.js";
-import logger from "../utils/logger.js";
-import { calculateMatchingScore } from "./matchingStore.js";
+import supabase from '../database/db.js';
+import logger from '../utils/logger.js';
+import { calculateMatchingScore } from './matchingStore.js';
 
-const BUCKET = process.env.SUPABASE_BUCKET || "user_files";
+const BUCKET = process.env.SUPABASE_BUCKET || 'user_files';
 
 /**
  * Créer une nouvelle candidature
@@ -12,19 +12,19 @@ const BUCKET = process.env.SUPABASE_BUCKET || "user_files";
 export async function createApplication(applicationData) {
 	try {
 		const { data, error } = await supabase
-			.from("apply")
+			.from('apply')
 			.insert([applicationData])
 			.select()
 			.single();
 
 		if (error) {
-			logger.error("createApplication error:", error);
+			logger.error('createApplication error:', error);
 			throw error;
 		}
 
 		return data;
 	} catch (err) {
-		logger.error("createApplication error:", err);
+		logger.error('createApplication error:', err);
 		throw err;
 	}
 }
@@ -39,8 +39,9 @@ export async function getApplicationsByUser(userId) {
 		// Requête simplifiée pour éviter les erreurs de relation
 		// On récupère d'abord les candidatures avec les infos de base de l'offre
 		const { data, error } = await supabase
-			.from("apply")
-			.select(`
+			.from('apply')
+			.select(
+				`
 				*,
 				job_offer!inner(
 					id_job_offer,
@@ -67,18 +68,20 @@ export async function getApplicationsByUser(userId) {
 						logo
 					)
 				)
-			`)
-			.eq("id_user", userId)
-			.order("application_date", { ascending: false });
+			`
+			)
+			.eq('id_user', userId)
+			.order('application_date', { ascending: false });
 
 		if (error) {
-			logger.error("getApplicationsByUser error:", error);
+			logger.error('getApplicationsByUser error:', error);
 			// Si l'erreur vient de la relation company, on essaie sans
 			if (error.message && error.message.includes('company')) {
-				logger.warn("getApplicationsByUser: Tentative sans relation company");
+				logger.warn('getApplicationsByUser: Tentative sans relation company');
 				const { data: dataWithoutCompany, error: errorWithoutCompany } = await supabase
-					.from("apply")
-					.select(`
+					.from('apply')
+					.select(
+						`
 						*,
 						job_offer!inner(
 							id_job_offer,
@@ -100,15 +103,16 @@ export async function getApplicationsByUser(userId) {
 							published_at,
 							id_company
 						)
-					`)
-					.eq("id_user", userId)
-					.order("application_date", { ascending: false });
-				
+					`
+					)
+					.eq('id_user', userId)
+					.order('application_date', { ascending: false });
+
 				if (errorWithoutCompany) {
-					logger.error("getApplicationsByUser error (sans company):", errorWithoutCompany);
+					logger.error('getApplicationsByUser error (sans company):', errorWithoutCompany);
 					throw errorWithoutCompany;
 				}
-				
+
 				// Enrichir avec les données de l'entreprise séparément si nécessaire
 				return dataWithoutCompany || [];
 			}
@@ -117,7 +121,7 @@ export async function getApplicationsByUser(userId) {
 
 		return data || [];
 	} catch (err) {
-		logger.error("getApplicationsByUser error:", err);
+		logger.error('getApplicationsByUser error:', err);
 		throw err;
 	}
 }
@@ -130,8 +134,9 @@ export async function getApplicationsByUser(userId) {
 export async function getApplicationsByJob(jobId) {
 	try {
 		const { data, error } = await supabase
-			.from("apply")
-			.select(`
+			.from('apply')
+			.select(
+				`
 				*,
 				user_!inner(
 					id_user,
@@ -139,18 +144,19 @@ export async function getApplicationsByJob(jobId) {
 					lastname,
 					email
 				)
-			`)
-			.eq("id_job_offer", jobId)
-			.order("application_date", { ascending: false });
+			`
+			)
+			.eq('id_job_offer', jobId)
+			.order('application_date', { ascending: false });
 
 		if (error) {
-			logger.error("getApplicationsByJob error:", error);
+			logger.error('getApplicationsByJob error:', error);
 			throw error;
 		}
 
 		return data || [];
 	} catch (err) {
-		logger.error("getApplicationsByJob error:", err);
+		logger.error('getApplicationsByJob error:', err);
 		throw err;
 	}
 }
@@ -164,12 +170,13 @@ export async function getApplicationsByJob(jobId) {
 export async function getApplicationsByCompany(companyId, filters = {}) {
 	try {
 		logger.debug(`[getApplicationsByCompany] Début - Company: ${companyId}, Filters:`, filters);
-		
+
 		// Construire la requête SANS les documents (relation non définie dans Supabase)
 		// Les documents seront récupérés manuellement après
 		let query = supabase
-			.from("apply")
-			.select(`
+			.from('apply')
+			.select(
+				`
 				*,
 				user_!inner(
 					id_user,
@@ -204,41 +211,44 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 						name
 					)
 				)
-			`)
-			.eq("job_offer.company.id_company", companyId);
+			`
+			)
+			.eq('job_offer.company.id_company', companyId);
 
 		// Appliquer les filtres
 		if (filters.status) {
-			query = query.eq("status", filters.status);
+			query = query.eq('status', filters.status);
 			logger.debug(`[getApplicationsByCompany] Filtre status appliqué: ${filters.status}`);
 		}
 
 		if (filters.jobId) {
-			query = query.eq("id_job_offer", filters.jobId);
+			query = query.eq('id_job_offer', filters.jobId);
 			logger.debug(`[getApplicationsByCompany] Filtre jobId appliqué: ${filters.jobId}`);
 		}
 
-		query = query.order("application_date", { ascending: false });
+		query = query.order('application_date', { ascending: false });
 
 		const { data, error } = await query;
 
 		if (error) {
-			logger.error("[getApplicationsByCompany] Erreur Supabase:", error);
+			logger.error('[getApplicationsByCompany] Erreur Supabase:', error);
 			throw error;
 		}
 
 		logger.debug(`[getApplicationsByCompany] ${data?.length || 0} candidatures récupérées`);
-		
+
 		// Récupérer les documents manuellement pour toutes les candidatures
 		// (la relation n'est pas définie dans Supabase, donc on ne peut pas faire de JOIN)
 		if (data && data.length > 0) {
 			try {
 				// Récupérer tous les documents pour toutes les candidatures en une seule requête
-				const userIds = [...new Set(data.map(app => app.id_user))];
-				const jobIds = [...new Set(data.map(app => app.id_job_offer))];
-				
-				logger.debug(`[getApplicationsByCompany] Récupération documents pour ${userIds.length} utilisateurs et ${jobIds.length} offres`);
-				
+				const userIds = [...new Set(data.map((app) => app.id_user))];
+				const jobIds = [...new Set(data.map((app) => app.id_job_offer))];
+
+				logger.debug(
+					`[getApplicationsByCompany] Récupération documents pour ${userIds.length} utilisateurs et ${jobIds.length} offres`
+				);
+
 				const { data: allDocuments, error: docError } = await supabase
 					.from('application_documents')
 					.select('*')
@@ -261,7 +271,9 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 						const key = `${application.id_user}-${application.id_job_offer}`;
 						application.application_documents = documentsByApplication[key] || [];
 						if (application.application_documents.length > 0) {
-							logger.debug(`[getApplicationsByCompany] ${application.application_documents.length} documents assignés à la candidature ${key}`);
+							logger.debug(
+								`[getApplicationsByCompany] ${application.application_documents.length} documents assignés à la candidature ${key}`
+							);
 						}
 					}
 				} else {
@@ -319,14 +331,21 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 
 						// Assigner les URLs résolues
 						for (const application of data) {
-							if (application.application_documents && Array.isArray(application.application_documents)) {
+							if (
+								application.application_documents &&
+								Array.isArray(application.application_documents)
+							) {
 								for (const doc of application.application_documents) {
 									if (doc.document_type === 'cv' && doc.file_url === 'existing_cv') {
 										if (cvMap[application.id_user]) {
 											doc.file_url = cvMap[application.id_user];
-											logger.debug(`[getApplicationsByCompany] URL CV existant résolue pour user ${application.id_user}: ${doc.file_url}`);
+											logger.debug(
+												`[getApplicationsByCompany] URL CV existant résolue pour user ${application.id_user}: ${doc.file_url}`
+											);
 										} else {
-											logger.warn(`[getApplicationsByCompany] CV existant non trouvé dans user_files pour user ${application.id_user}`);
+											logger.warn(
+												`[getApplicationsByCompany] CV existant non trouvé dans user_files pour user ${application.id_user}`
+											);
 											doc.file_url = null;
 										}
 									}
@@ -337,25 +356,39 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 						logger.warn(`[getApplicationsByCompany] Erreur récupération CV existants:`, fileError);
 					}
 				} catch (resolveError) {
-					logger.error(`[getApplicationsByCompany] Erreur résolution URLs CV existants:`, resolveError);
+					logger.error(
+						`[getApplicationsByCompany] Erreur résolution URLs CV existants:`,
+						resolveError
+					);
 				}
 			}
-			
-			// Calculer le score de matching pour chaque candidature
-			for (const application of data) {
+
+			// Calculer le score de matching pour chaque candidature en parallèle (optimisation N+1)
+			// Utiliser Promise.all pour exécuter tous les calculs en parallèle au lieu de séquentiellement
+			const matchingPromises = data.map(async (application) => {
 				if (application.user_ && application.job_offer) {
 					try {
-						const matchingResult = await calculateMatchingScore(application.user_, application.job_offer);
+						const matchingResult = await calculateMatchingScore(
+							application.user_,
+							application.job_offer
+						);
 						application.matchScore = matchingResult.score || 50;
 					} catch (error) {
-						logger.error(`[getApplicationsByCompany] Erreur calcul matching pour ${application.id_user}/${application.id_job_offer}:`, error);
+						logger.error(
+							`[getApplicationsByCompany] Erreur calcul matching pour ${application.id_user}/${application.id_job_offer}:`,
+							error
+						);
 						application.matchScore = 50; // Score par défaut en cas d'erreur
 					}
 				} else {
 					application.matchScore = 50; // Score par défaut si données manquantes
 				}
-			}
-			
+				return application;
+			});
+
+			// Attendre que tous les calculs soient terminés
+			await Promise.all(matchingPromises);
+
 			// Log pour déboguer la structure des documents
 			if (data.length > 0) {
 				logger.debug(`[getApplicationsByCompany] Exemple de structure - Premier élément:`, {
@@ -363,18 +396,20 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 					id_job_offer: data[0].id_job_offer,
 					matchScore: data[0].matchScore,
 					application_documents: data[0].application_documents,
-					user_: data[0].user_ ? {
-						firstname: data[0].user_.firstname,
-						lastname: data[0].user_.lastname,
-						email: data[0].user_.email
-					} : null
+					user_: data[0].user_
+						? {
+								firstname: data[0].user_.firstname,
+								lastname: data[0].user_.lastname,
+								email: data[0].user_.email,
+							}
+						: null,
 				});
 			}
 		}
 
 		return data || [];
 	} catch (err) {
-		logger.error("[getApplicationsByCompany] Erreur:", err);
+		logger.error('[getApplicationsByCompany] Erreur:', err);
 		throw err;
 	}
 }
@@ -395,21 +430,21 @@ export async function updateApplicationStatus(userId, jobId, status, notes = nul
 		}
 
 		const { data, error } = await supabase
-			.from("apply")
+			.from('apply')
 			.update(updateData)
-			.eq("id_user", userId)
-			.eq("id_job_offer", jobId)
+			.eq('id_user', userId)
+			.eq('id_job_offer', jobId)
 			.select()
 			.single();
 
 		if (error) {
-			logger.error("updateApplicationStatus error:", error);
+			logger.error('updateApplicationStatus error:', error);
 			throw error;
 		}
 
 		return data;
 	} catch (err) {
-		logger.error("updateApplicationStatus error:", err);
+		logger.error('updateApplicationStatus error:', err);
 		throw err;
 	}
 }
@@ -423,19 +458,19 @@ export async function updateApplicationStatus(userId, jobId, status, notes = nul
 export async function removeApplication(userId, jobId) {
 	try {
 		const { error } = await supabase
-			.from("apply")
+			.from('apply')
 			.delete()
-			.eq("id_user", userId)
-			.eq("id_job_offer", jobId);
+			.eq('id_user', userId)
+			.eq('id_job_offer', jobId);
 
 		if (error) {
-			logger.error("removeApplication error:", error);
+			logger.error('removeApplication error:', error);
 			throw error;
 		}
 
 		return true;
 	} catch (err) {
-		logger.error("removeApplication error:", err);
+		logger.error('removeApplication error:', err);
 		throw err;
 	}
 }
@@ -447,18 +482,16 @@ export async function removeApplication(userId, jobId) {
  */
 export async function getApplicationStats(companyId = null) {
 	try {
-		let query = supabase
-			.from("apply")
-			.select("status, application_date");
+		let query = supabase.from('apply').select('status, application_date');
 
 		if (companyId) {
-			query = query.eq("job_offer.company.id_company", companyId);
+			query = query.eq('job_offer.company.id_company', companyId);
 		}
 
 		const { data, error } = await query;
 
 		if (error) {
-			logger.error("getApplicationStats error:", error);
+			logger.error('getApplicationStats error:', error);
 			throw error;
 		}
 
@@ -470,15 +503,15 @@ export async function getApplicationStats(companyId = null) {
 			interview: 0,
 			withdrawn: 0,
 			archived: 0,
-			recent: 0 // Candidatures des 7 derniers jours
+			recent: 0, // Candidatures des 7 derniers jours
 		};
 
 		const sevenDaysAgo = new Date();
 		sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-		data.forEach(application => {
+		data.forEach((application) => {
 			// Compter par statut
-			if (stats.hasOwnProperty(application.status)) {
+			if (Object.prototype.hasOwnProperty.call(stats, application.status)) {
 				stats[application.status]++;
 			}
 
@@ -491,7 +524,7 @@ export async function getApplicationStats(companyId = null) {
 
 		return stats;
 	} catch (err) {
-		logger.error("getApplicationStats error:", err);
+		logger.error('getApplicationStats error:', err);
 		throw err;
 	}
 }
@@ -508,9 +541,8 @@ export async function getAllApplications(options = {}) {
 		const offset = (page - 1) * limit;
 		logger.debug('🔍 getAllApplications - Paramètres calculés:', { page, limit, offset, search });
 
-		let query = supabase
-			.from("apply")
-			.select(`
+		let query = supabase.from('apply').select(
+			`
 				*,
 				user_!inner(
 					id_user,
@@ -526,46 +558,51 @@ export async function getAllApplications(options = {}) {
 						name
 					)
 				)
-			`, { count: "exact" });
+			`,
+			{ count: 'exact' }
+		);
 
 		// Filtre de recherche
 		if (search) {
 			logger.debug('🔍 getAllApplications - Ajout du filtre de recherche:', search);
-			query = query.or(`user_.firstname.ilike.%${search}%,user_.lastname.ilike.%${search}%,job_offer.title.ilike.%${search}%,job_offer.company.name.ilike.%${search}%`);
+			query = query.or(
+				`user_.firstname.ilike.%${search}%,user_.lastname.ilike.%${search}%,job_offer.title.ilike.%${search}%,job_offer.company.name.ilike.%${search}%`
+			);
 		}
 
-		query = query
-			.order("application_date", { ascending: false })
-			.range(offset, offset + limit - 1);
+		query = query.order('application_date', { ascending: false }).range(offset, offset + limit - 1);
 
 		logger.debug('🔍 getAllApplications - Exécution de la requête Supabase...');
 		const { data, error, count } = await query;
-		logger.debug('🔍 getAllApplications - Résultat Supabase:', { 
-			dataLength: data?.length, 
-			error: error?.message || error, 
+		logger.debug('🔍 getAllApplications - Résultat Supabase:', {
+			dataLength: data?.length,
+			error: error?.message || error,
 			count,
-			firstItem: data?.[0] ? {
-				id_user: data[0].id_user,
-				id_job_offer: data[0].id_job_offer,
-				user_: data[0].user_,
-				job_offer: data[0].job_offer
-			} : null
+			firstItem: data?.[0]
+				? {
+						id_user: data[0].id_user,
+						id_job_offer: data[0].id_job_offer,
+						user_: data[0].user_,
+						job_offer: data[0].job_offer,
+					}
+				: null,
 		});
 
 		if (error) {
-			logger.error("❌ getAllApplications error:", error);
+			logger.error('❌ getAllApplications error:', error);
 			throw error;
 		}
 
 		// Enrichir les données avec les informations jointes
 		logger.debug('🔍 getAllApplications - Enrichissement des données...');
-		const enrichedData = (data || []).map(application => ({
+		const enrichedData = (data || []).map((application) => ({
 			...application,
-			user_name: `${application.user_?.firstname || ''} ${application.user_?.lastname || ''}`.trim(),
+			user_name:
+				`${application.user_?.firstname || ''} ${application.user_?.lastname || ''}`.trim(),
 			job_title: application.job_offer?.title || '',
 			company_name: application.job_offer?.company?.name || '',
 			user_email: application.user_?.email || '',
-			profile_picture: null // Pas de colonne profile_picture dans la table user_
+			profile_picture: null, // Pas de colonne profile_picture dans la table user_
 		}));
 
 		const result = {
@@ -574,25 +611,27 @@ export async function getAllApplications(options = {}) {
 				page,
 				limit,
 				total: count || 0,
-				totalPages: Math.ceil((count || 0) / limit)
-			}
+				totalPages: Math.ceil((count || 0) / limit),
+			},
 		};
 
 		logger.debug('✅ getAllApplications - Résultat final:', {
 			dataLength: result.data.length,
 			pagination: result.pagination,
-			firstItem: result.data[0] ? {
-				id_user: result.data[0].id_user,
-				id_job_offer: result.data[0].id_job_offer,
-				user_name: result.data[0].user_name,
-				job_title: result.data[0].job_title,
-				company_name: result.data[0].company_name
-			} : null
+			firstItem: result.data[0]
+				? {
+						id_user: result.data[0].id_user,
+						id_job_offer: result.data[0].id_job_offer,
+						user_name: result.data[0].user_name,
+						job_title: result.data[0].job_title,
+						company_name: result.data[0].company_name,
+					}
+				: null,
 		});
 
 		return result;
 	} catch (err) {
-		logger.error("❌ getAllApplications error:", err);
+		logger.error('❌ getAllApplications error:', err);
 		throw err;
 	}
 }

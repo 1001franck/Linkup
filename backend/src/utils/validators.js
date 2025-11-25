@@ -1,7 +1,125 @@
+import { z } from 'zod';
+
 /**
  * Utilitaires de validation pour les entrées utilisateur
  * Validation stricte des emails, mots de passe, etc.
  */
+
+const phoneRegex = /^\+?[0-9]{10,15}$/;
+const websiteRegex = /^https?:\/\/.+/i;
+const currentYear = new Date().getFullYear();
+
+// Schéma de mot de passe partagé (force + contraintes)
+export const passwordSchema = z
+	.string({ required_error: 'Le mot de passe est requis' })
+	.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+	.max(128, 'Le mot de passe ne peut pas dépasser 128 caractères')
+	.refine((value) => /[A-Z]/.test(value), 'Le mot de passe doit contenir au moins une majuscule')
+	.refine((value) => /[a-z]/.test(value), 'Le mot de passe doit contenir au moins une minuscule')
+	.refine((value) => /[0-9]/.test(value), 'Le mot de passe doit contenir au moins un chiffre')
+	.refine(
+		(value) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value),
+		'Le mot de passe doit contenir au moins un caractère spécial'
+	);
+
+const emailSchema = z
+	.string({ required_error: "L'email est requis" })
+	.trim()
+	.min(1, "L'email est requis")
+	.max(320, "L'email ne peut pas dépasser 320 caractères")
+	.email("Format d'email invalide")
+	.transform((value) => value.toLowerCase());
+
+const optionalString = (max, label) =>
+	z.preprocess(
+		(value) => {
+			if (typeof value !== 'string') return undefined;
+			const trimmed = value.trim();
+			return trimmed.length ? trimmed : undefined;
+		},
+		z.string().max(max, `${label} ne peut pas dépasser ${max} caractères`).optional()
+	);
+
+const optionalPhoneSchema = z.preprocess((value) => {
+	if (typeof value !== 'string') return undefined;
+	const trimmed = value.trim();
+	if (!trimmed) return undefined;
+	return trimmed.replace(/[\s-()]/g, '');
+}, z.string().regex(phoneRegex, 'Format de téléphone invalide').optional());
+
+const foundedYearSchema = z.preprocess(
+	(value) => {
+		if (value === undefined || value === null || value === '') return undefined;
+		const parsed = Number(value);
+		return Number.isNaN(parsed) ? NaN : parsed;
+	},
+	z
+		.number({
+			invalid_type_error: "L'année de fondation doit être un nombre",
+		})
+		.int("L'année de fondation doit être un nombre entier")
+		.min(1800, "L'année de fondation doit être entre 1800 et l'année actuelle")
+		.max(currentYear, `L'année de fondation doit être entre 1800 et ${currentYear}`)
+		.optional()
+);
+
+const userSignupSchema = z.object({
+	email: emailSchema,
+	password: passwordSchema,
+	firstname: z
+		.string({ required_error: 'Le prénom est requis' })
+		.trim()
+		.min(1, 'Le prénom est requis')
+		.max(100, 'Le prénom ne peut pas dépasser 100 caractères'),
+	lastname: z
+		.string({ required_error: 'Le nom est requis' })
+		.trim()
+		.min(1, 'Le nom est requis')
+		.max(100, 'Le nom ne peut pas dépasser 100 caractères'),
+	phone: optionalPhoneSchema,
+	bio_pro: optionalString(1000, 'La bio professionnelle'),
+	city: optionalString(100, 'La ville'),
+	country: optionalString(100, 'Le pays'),
+});
+
+const companySignupSchema = z.object({
+	name: z
+		.string({ required_error: "Le nom de l'entreprise est requis" })
+		.trim()
+		.min(2, "Le nom de l'entreprise doit contenir au moins 2 caractères")
+		.max(200, "Le nom de l'entreprise ne peut pas dépasser 200 caractères"),
+	description: z
+		.string({ required_error: 'La description est requise' })
+		.trim()
+		.min(10, 'La description doit contenir au moins 10 caractères')
+		.max(2000, 'La description ne peut pas dépasser 2000 caractères'),
+	recruiter_mail: emailSchema,
+	password: passwordSchema,
+	website: z.preprocess(
+		(value) => {
+			if (typeof value !== 'string') return undefined;
+			const trimmed = value.trim();
+			return trimmed.length ? trimmed : undefined;
+		},
+		z
+			.string()
+			.max(500, "L'URL du site web ne peut pas dépasser 500 caractères")
+			.refine(
+				(value) => websiteRegex.test(value),
+				"L'URL du site web doit commencer par http:// ou https://"
+			)
+			.optional()
+	),
+	recruiter_firstname: optionalString(100, 'Le prénom du recruteur'),
+	recruiter_lastname: optionalString(100, 'Le nom du recruteur'),
+	recruiter_phone: optionalPhoneSchema,
+	industry: optionalString(100, "Le secteur d'activité"),
+	city: optionalString(100, 'La ville'),
+	zip_code: optionalString(20, 'Le code postal'),
+	country: optionalString(100, 'Le pays'),
+	employees_number: optionalString(50, "Le nombre d'employés"),
+	founded_year: foundedYearSchema,
+});
 
 /**
  * Valide le format d'un email
@@ -12,15 +130,15 @@ export function isValidEmail(email) {
 	if (!email || typeof email !== 'string') {
 		return false;
 	}
-	
+
 	// Regex pour validation email (RFC 5322 simplifié)
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	
+
 	// Vérifier la longueur max (320 caractères selon RFC)
 	if (email.length > 320) {
 		return false;
 	}
-	
+
 	return emailRegex.test(email.trim().toLowerCase());
 }
 
@@ -30,45 +148,15 @@ export function isValidEmail(email) {
  * @returns {{valid: boolean, errors: string[]}} - Résultat de la validation
  */
 export function validatePasswordStrength(password) {
-	const errors = [];
-	
-	if (!password || typeof password !== 'string') {
-		return { valid: false, errors: ['Le mot de passe est requis'] };
+	const result = passwordSchema.safeParse(password);
+
+	if (result.success) {
+		return { valid: true, errors: [] };
 	}
-	
-	// Longueur minimale
-	if (password.length < 8) {
-		errors.push('Le mot de passe doit contenir au moins 8 caractères');
-	}
-	
-	// Longueur maximale (pour éviter les attaques DoS)
-	if (password.length > 128) {
-		errors.push('Le mot de passe ne peut pas dépasser 128 caractères');
-	}
-	
-	// Au moins une majuscule
-	if (!/[A-Z]/.test(password)) {
-		errors.push('Le mot de passe doit contenir au moins une majuscule');
-	}
-	
-	// Au moins une minuscule
-	if (!/[a-z]/.test(password)) {
-		errors.push('Le mot de passe doit contenir au moins une minuscule');
-	}
-	
-	// Au moins un chiffre
-	if (!/[0-9]/.test(password)) {
-		errors.push('Le mot de passe doit contenir au moins un chiffre');
-	}
-	
-	// Au moins un caractère spécial
-	if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-		errors.push('Le mot de passe doit contenir au moins un caractère spécial');
-	}
-	
+
 	return {
-		valid: errors.length === 0,
-		errors: errors
+		valid: false,
+		errors: formatZodErrors(result.error.issues),
 	};
 }
 
@@ -82,13 +170,14 @@ export function sanitizeString(str, maxLength = 255) {
 	if (!str || typeof str !== 'string') {
 		return '';
 	}
-	
+
 	// Trim et limiter la longueur
 	let sanitized = str.trim().slice(0, maxLength);
-	
+
 	// Supprimer les caractères de contrôle (sauf \n, \r, \t)
+	// eslint-disable-next-line no-control-regex
 	sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-	
+
 	return sanitized;
 }
 
@@ -101,218 +190,118 @@ export function isValidPhone(phone) {
 	if (!phone || typeof phone !== 'string') {
 		return false;
 	}
-	
+
 	// Supprimer les espaces, tirets, parenthèses
-	const cleaned = phone.replace(/[\s\-\(\)]/g, '');
-	
+	const cleaned = phone.replace(/[\s-()]/g, '');
+
 	// Vérifier que c'est uniquement des chiffres et + (pour l'international)
-	const phoneRegex = /^\+?[0-9]{10,15}$/;
-	
 	return phoneRegex.test(cleaned);
 }
 
 /**
- * Valide et sanitize les données utilisateur pour l'inscription
+ * Valide et sanitize les données utilisateur pour l'inscription (Zod)
  * @param {object} data - Données utilisateur
  * @returns {{valid: boolean, errors: string[], sanitized: object}} - Résultat de la validation
  */
 export function validateUserSignup(data) {
-	const errors = [];
-	const sanitized = {};
-	
-	// Email
-	if (!data.email) {
-		errors.push('L\'email est requis');
-	} else if (!isValidEmail(data.email)) {
-		errors.push('Format d\'email invalide');
-	} else {
-		sanitized.email = data.email.trim().toLowerCase();
+	const result = userSignupSchema.safeParse(data);
+
+	if (!result.success) {
+		return {
+			valid: false,
+			errors: formatZodErrors(result.error.issues),
+			sanitized: {},
+		};
 	}
-	
-	// Password
-	if (!data.password) {
-		errors.push('Le mot de passe est requis');
-	} else {
-		const passwordValidation = validatePasswordStrength(data.password);
-		if (!passwordValidation.valid) {
-			errors.push(...passwordValidation.errors);
-		}
-		// Ne pas inclure le mot de passe dans sanitized (il sera hashé)
-	}
-	
-	// Firstname
-	if (data.firstname) {
-		sanitized.firstname = sanitizeString(data.firstname, 100);
-		if (sanitized.firstname.length < 1) {
-			errors.push('Le prénom est requis');
-		}
-	} else {
-		errors.push('Le prénom est requis');
-	}
-	
-	// Lastname
-	if (data.lastname) {
-		sanitized.lastname = sanitizeString(data.lastname, 100);
-		if (sanitized.lastname.length < 1) {
-			errors.push('Le nom est requis');
-		}
-	} else {
-		errors.push('Le nom est requis');
-	}
-	
-	// Phone (optionnel mais validé si fourni)
-	if (data.phone) {
-		if (!isValidPhone(data.phone)) {
-			errors.push('Format de téléphone invalide');
-		} else {
-			sanitized.phone = sanitizeString(data.phone, 20);
-		}
-	}
-	
-	// Bio_pro (optionnel)
-	if (data.bio_pro) {
-		sanitized.bio_pro = sanitizeString(data.bio_pro, 1000);
-	}
-	
-	// City (optionnel)
-	if (data.city) {
-		sanitized.city = sanitizeString(data.city, 100);
-	}
-	
-	// Country (optionnel)
-	if (data.country) {
-		sanitized.country = sanitizeString(data.country, 100);
-	}
-	
-	// Role - NE PAS PERMETTRE L'INJECTION DE ROLE
-	// Le rôle doit toujours être défini par le serveur
-	sanitized.role = 'user'; // Par défaut, toujours 'user'
-	
+
+	const parsed = result.data;
+	const sanitized = {
+		email: sanitizeString(parsed.email, 320).toLowerCase(),
+		firstname: sanitizeString(parsed.firstname, 100),
+		lastname: sanitizeString(parsed.lastname, 100),
+		role: 'user',
+	};
+
+	if (parsed.phone) sanitized.phone = sanitizeString(parsed.phone, 20);
+	if (parsed.bio_pro) sanitized.bio_pro = sanitizeString(parsed.bio_pro, 1000);
+	if (parsed.city) sanitized.city = sanitizeString(parsed.city, 100);
+	if (parsed.country) sanitized.country = sanitizeString(parsed.country, 100);
+
 	return {
-		valid: errors.length === 0,
-		errors: errors,
-		sanitized: sanitized
+		valid: true,
+		errors: [],
+		sanitized,
 	};
 }
 
 /**
- * Valide et sanitize les données entreprise pour l'inscription
+ * Valide et sanitize les données entreprise pour l'inscription (Zod)
  * @param {object} data - Données entreprise
  * @returns {{valid: boolean, errors: string[], sanitized: object}} - Résultat de la validation
  */
 export function validateCompanySignup(data) {
-	const errors = [];
-	const sanitized = {};
-	
-	// Name (obligatoire)
-	if (!data.name) {
-		errors.push('Le nom de l\'entreprise est requis');
-	} else {
-		sanitized.name = sanitizeString(data.name, 200);
-		if (sanitized.name.length < 2) {
-			errors.push('Le nom de l\'entreprise doit contenir au moins 2 caractères');
-		}
+	const result = companySignupSchema.safeParse(data);
+
+	if (!result.success) {
+		return {
+			valid: false,
+			errors: formatZodErrors(result.error.issues),
+			sanitized: {},
+		};
 	}
-	
-	// Description (obligatoire)
-	if (!data.description) {
-		errors.push('La description est requise');
-	} else {
-		sanitized.description = sanitizeString(data.description, 2000);
-		if (sanitized.description.length < 10) {
-			errors.push('La description doit contenir au moins 10 caractères');
-		}
-	}
-	
-	// Recruiter mail (obligatoire)
-	if (!data.recruiter_mail) {
-		errors.push('L\'email du recruteur est requis');
-	} else if (!isValidEmail(data.recruiter_mail)) {
-		errors.push('Format d\'email du recruteur invalide');
-	} else {
-		sanitized.recruiter_mail = data.recruiter_mail.trim().toLowerCase();
-	}
-	
-	// Password (obligatoire avec validation de force)
-	if (!data.password) {
-		errors.push('Le mot de passe est requis');
-	} else {
-		const passwordValidation = validatePasswordStrength(data.password);
-		if (!passwordValidation.valid) {
-			errors.push(...passwordValidation.errors);
-		}
-		// Ne pas inclure le mot de passe dans sanitized (il sera hashé)
-	}
-	
-	// Website (optionnel mais validé si fourni)
-	if (data.website) {
-		const websiteRegex = /^https?:\/\/.+/i;
-		if (!websiteRegex.test(data.website)) {
-			errors.push('L\'URL du site web doit commencer par http:// ou https://');
-		} else {
-			sanitized.website = sanitizeString(data.website, 500);
-		}
-	}
-	
-	// Recruiter firstname (optionnel)
-	if (data.recruiter_firstname) {
-		sanitized.recruiter_firstname = sanitizeString(data.recruiter_firstname, 100);
-	}
-	
-	// Recruiter lastname (optionnel)
-	if (data.recruiter_lastname) {
-		sanitized.recruiter_lastname = sanitizeString(data.recruiter_lastname, 100);
-	}
-	
-	// Recruiter phone (optionnel mais validé si fourni)
-	if (data.recruiter_phone) {
-		if (!isValidPhone(data.recruiter_phone)) {
-			errors.push('Format de téléphone du recruteur invalide');
-		} else {
-			sanitized.recruiter_phone = sanitizeString(data.recruiter_phone, 20);
-		}
-	}
-	
-	// Industry (optionnel)
-	if (data.industry) {
-		sanitized.industry = sanitizeString(data.industry, 100);
-	}
-	
-	// City (optionnel)
-	if (data.city) {
-		sanitized.city = sanitizeString(data.city, 100);
-	}
-	
-	// Zip code (optionnel)
-	if (data.zip_code) {
-		sanitized.zip_code = sanitizeString(data.zip_code, 20);
-	}
-	
-	// Country (optionnel)
-	if (data.country) {
-		sanitized.country = sanitizeString(data.country, 100);
-	}
-	
-	// Employees number (optionnel)
-	if (data.employees_number) {
-		sanitized.employees_number = sanitizeString(data.employees_number, 50);
-	}
-	
-	// Founded year (optionnel mais validé si fourni)
-	if (data.founded_year !== undefined && data.founded_year !== null) {
-		const year = parseInt(data.founded_year);
-		const currentYear = new Date().getFullYear();
-		if (isNaN(year) || year < 1800 || year > currentYear) {
-			errors.push(`L'année de fondation doit être entre 1800 et ${currentYear}`);
-		} else {
-			sanitized.founded_year = year;
-		}
-	}
-	
+
+	const parsed = result.data;
+	const sanitized = {
+		name: sanitizeString(parsed.name, 200),
+		description: sanitizeString(parsed.description, 2000),
+		recruiter_mail: sanitizeString(parsed.recruiter_mail, 320).toLowerCase(),
+	};
+
+	if (parsed.website) sanitized.website = sanitizeString(parsed.website, 500);
+	if (parsed.recruiter_firstname)
+		sanitized.recruiter_firstname = sanitizeString(parsed.recruiter_firstname, 100);
+	if (parsed.recruiter_lastname)
+		sanitized.recruiter_lastname = sanitizeString(parsed.recruiter_lastname, 100);
+	if (parsed.recruiter_phone)
+		sanitized.recruiter_phone = sanitizeString(parsed.recruiter_phone, 20);
+	if (parsed.industry) sanitized.industry = sanitizeString(parsed.industry, 100);
+	if (parsed.city) sanitized.city = sanitizeString(parsed.city, 100);
+	if (parsed.zip_code) sanitized.zip_code = sanitizeString(parsed.zip_code, 20);
+	if (parsed.country) sanitized.country = sanitizeString(parsed.country, 100);
+	if (parsed.employees_number)
+		sanitized.employees_number = sanitizeString(parsed.employees_number, 50);
+	if (parsed.founded_year !== undefined) sanitized.founded_year = parsed.founded_year;
+
 	return {
-		valid: errors.length === 0,
-		errors: errors,
-		sanitized: sanitized
+		valid: true,
+		errors: [],
+		sanitized,
 	};
 }
 
+function formatZodErrors(issues = []) {
+	return [...new Set(issues.map((issue) => issue.message))];
+}
+
+/**
+ * Valide un nouveau mot de passe pour le reset
+ * @param {string} newPassword - Nouveau mot de passe à valider
+ * @returns {{valid: boolean, errors: string[]}} - Résultat de la validation
+ */
+export function validatePasswordReset(newPassword) {
+	try {
+		passwordSchema.parse(newPassword);
+		return { valid: true, errors: [] };
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			return {
+				valid: false,
+				errors: formatZodErrors(error.issues),
+			};
+		}
+		return {
+			valid: false,
+			errors: ['Erreur de validation du mot de passe'],
+		};
+	}
+}
