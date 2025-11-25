@@ -1,0 +1,158 @@
+/* Styles personnalisés pour react-phone-input-2 avec classes personnalisées */
+
+/* Wrapper principal */
+.phone-input-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.phone-input-wrapper .react-tel-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Champ de saisie personnalisé */
+.custom-phone-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 40px !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 6px !important;
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 14px !important;
+  padding-left: 50px !important;
+  padding-right: 12px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-phone-input:focus {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2) !important;
+  outline: none !important;
+}
+
+/* Dropdown des pays personnalisé */
+.custom-flag-dropdown {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 6px 0 0 6px !important;
+  background-color: hsl(var(--background)) !important;
+  border-right: none !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  box-sizing: border-box !important;
+}
+
+.custom-flag-dropdown:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.custom-flag-dropdown.open {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Liste des pays personnalisée */
+.custom-country-list {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 6px !important;
+  background-color: hsl(var(--background)) !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  min-width: 200px !important; /* largeur minimum pour que ce soit lisible */
+  position: absolute !important; /* nécessaire pour le dropdown */
+  z-index: 9999 !important;
+  box-sizing: border-box !important;
+  left: 0 !important;
+  right: auto !important; /* Ne pas forcer width à 100% */
+}
+
+.custom-country-list .country {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding: 8px 12px !important;
+}
+
+.custom-country-list .country:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.custom-country-list .country.highlight {
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* Champ de recherche personnalisé */
+.custom-search-box {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  padding: 8px 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.custom-search-box:focus {
+  outline: none !important;
+  border-bottom-color: hsl(var(--ring)) !important;
+}
+
+/* Styles pour le mode sombre */
+.dark .custom-phone-input {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .custom-flag-dropdown {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.dark .custom-country-list {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  min-width: 200px !important; /* largeur minimum pour que ce soit lisible */
+  position: absolute !important; /* nécessaire pour le dropdown */
+  z-index: 9999 !important;
+}
+
+.dark .custom-country-list .country {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+
+.dark .custom-search-box {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+
+/* Override des styles par défaut de react-phone-input-2 */
+.phone-input-wrapper .react-tel-input .form-control {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.phone-input-wrapper .react-tel-input .flag-dropdown {
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  box-sizing: border-box !important;
+}
+
+.phone-input-wrapper .react-tel-input .country-list {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  left: 0 !important;
+  right: auto !important; /* Ne pas forcer width à 100% */
+  min-width: 200px !important; /* largeur minimum pour que ce soit lisible */
+}

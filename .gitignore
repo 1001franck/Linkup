@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+linkup-frontend/.next/
+linkup-frontend/out/
+linkup-frontend/build/
+linkup-frontend/.vercel
+
+# Production
+linkup-frontend/dist/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env*.local
+backend/.env
+backend/.env.local
+linkup-frontend/.env
+linkup-frontend/.env.local
+linkup-frontend/.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
