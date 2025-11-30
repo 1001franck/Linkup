@@ -78,9 +78,13 @@ const corsOptions = {
 	origin: (origin, callback) => {
 		const allowedOrigins = getAllowedOrigins();
 		const isProduction = process.env.NODE_ENV === 'production';
+		const hasFrontendUrl = !!process.env.FRONTEND_URL || !!process.env.FRONTEND_URLS;
 
-		// En développement, whitelist explicite (pas de wildcard)
-		if (!isProduction) {
+		// Si FRONTEND_URL est défini, on considère qu'on est en production (même si NODE_ENV n'est pas défini)
+		const shouldUseProductionLogic = isProduction || hasFrontendUrl;
+
+		// En développement (local uniquement), whitelist explicite (pas de wildcard)
+		if (!shouldUseProductionLogic) {
 			// Autoriser les requêtes sans origin uniquement pour les outils de test (Postman, curl)
 			// Mais logger un avertissement pour la sécurité
 			if (!origin) {
@@ -99,7 +103,7 @@ const corsOptions = {
 			return callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
 		}
 
-		// En production, vérification stricte
+		// En production ou si FRONTEND_URL est défini, vérification stricte
 		if (!origin || allowedOrigins.includes(origin)) {
 			logger.debug(`[CORS] Origine autorisée (prod): ${origin}`);
 			callback(null, origin || '*');

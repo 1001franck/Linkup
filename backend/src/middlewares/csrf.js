@@ -47,6 +47,11 @@ export function csrfProtection(req, res, next) {
 	// Méthodes mutantes nécessitant une protection CSRF
 	const mutatingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
 
+	// Si c'est une requête OPTIONS (preflight CORS), laisser passer sans vérification
+	if (req.method === 'OPTIONS') {
+		return next();
+	}
+
 	// Si ce n'est pas une méthode mutante, passer
 	if (!mutatingMethods.includes(req.method)) {
 		return next();
