@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ import {
 } from "@/components/company-dashboard/application-utils";
 import { XCircle } from "lucide-react";
 
-export default function ApplicationsPage() {
+function ApplicationsPageContent() {
   const { toast } = useToast();
   const { user } = useAuth();
   const searchParams = useSearchParams();
@@ -439,5 +439,31 @@ export default function ApplicationsPage() {
         <Toaster />
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function ApplicationsPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+          <CompanyHeader />
+          <div className="pt-20 pb-16">
+            <Container>
+              <div className="py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+                    <Typography variant="muted">Chargement...</Typography>
+                  </div>
+                </div>
+              </div>
+            </Container>
+          </div>
+        </div>
+      </ProtectedRoute>
+    }>
+      <ApplicationsPageContent />
+    </Suspense>
   );
 }
