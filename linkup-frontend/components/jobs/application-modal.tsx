@@ -8,7 +8,7 @@ import { Typography } from '@/components/ui/typography';
 import { DocumentUpload } from '@/components/applications/document-upload';
 import { X, Briefcase, Building, MapPin, DollarSign, CheckCircle, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDocumentValidation, createInitialDocuments, updateDocument, removeDocument, type UploadedDocument } from '@/hooks/use-document-validation';
+import { useDocumentValidation, createInitialDocuments, updateDocument, removeDocument, type UploadedDocument as DocumentValidationType } from '@/hooks/use-document-validation';
 import { useUserCV } from '@/hooks/use-user-cv';
 import { apiClient } from '@/lib/api-client';
 
@@ -26,12 +26,6 @@ interface ApplicationModalProps {
   isApplying: boolean;
 }
 
-interface UploadedDocument {
-  type: 'cv' | 'cover_letter';
-  name: string;
-  uploaded: boolean;
-}
-
 export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   isOpen,
   onClose,
@@ -39,7 +33,8 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   onApply,
   isApplying
 }) => {
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>(createInitialDocuments());
+  const { toast } = useToast();
+  const [uploadedDocuments, setUploadedDocuments] = useState<DocumentValidationType[]>(createInitialDocuments());
   const [useExistingCV, setUseExistingCV] = useState(false);
   const { hasCV, cvInfo } = useUserCV();
 

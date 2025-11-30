@@ -189,7 +189,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
                     {logo ? (
                       <img 
                         src={logo} 
-                        alt={`${company.name} Logo`} 
+                        alt={company ? `${company.name} Logo` : 'Logo'} 
                         className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
@@ -198,7 +198,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
                     </div>
                     )}
                     <span className="hidden md:block text-sm font-medium text-foreground">
-                      {company.name}
+                      {company?.name || 'Entreprise'}
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-500" />
                   </Button>
@@ -207,8 +207,8 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                        <p className="text-sm font-medium text-foreground">{company.name}</p>
-                        <p className="text-xs text-muted-foreground">{company.recruiter_mail}</p>
+                        <p className="text-sm font-medium text-foreground">{company?.name || 'Entreprise'}</p>
+                        <p className="text-xs text-muted-foreground">{company?.recruiter_mail || ''}</p>
                       </div>
                       
                       <div className="py-2">

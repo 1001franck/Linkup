@@ -2,10 +2,13 @@ import dotenv from 'dotenv';
 import app from './app.js';
 import { initDB } from './database/db.js';
 import { createUser } from './services/userStore.js';
+import { validateEnv } from './config/env.js';
 import logger from './utils/logger.js';
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+// Valider toutes les variables d'environnement au démarrage
+const env = validateEnv();
+const PORT = env.PORT;
 
 // Gestion des erreurs non capturées (production-ready)
 process.on('uncaughtException', (error) => {
@@ -30,16 +33,14 @@ process.on('SIGINT', () => {
 });
 
 // Affichage des variables d'environnement importantes
-logger.info("===== Vérification des variables d'environnement =====");
-logger.info(`SUPABASE_URL: ${process.env.SUPABASE_URL ? '[CONFIGURÉE]' : '[MANQUANTE]'}`);
-logger.info(`JWT_SECRET: ${process.env.JWT_SECRET ? '[CONFIGURÉ]' : '[MANQUANT]'}`);
+// (La validation complète est déjà faite par validateEnv() ci-dessus)
+logger.info('===== Configuration validée =====');
+logger.info(`NODE_ENV: ${env.NODE_ENV}`);
 logger.info(`PORT: ${PORT}`);
-
-// Vérification des variables critiques
-if (!process.env.JWT_SECRET) {
-	logger.error("❌ ERREUR CRITIQUE: JWT_SECRET n'est pas défini");
-	process.exit(1);
-}
+logger.info(`SUPABASE_URL: ${env.SUPABASE_URL ? '[CONFIGURÉE]' : '[MANQUANTE]'}`);
+logger.info(
+	`JWT_SECRET: ${env.JWT_SECRET ? `[CONFIGURÉ - ${env.JWT_SECRET.length} caractères]` : '[MANQUANT]'}`
+);
 
 // Initialiser la connexion à la base de données
 initDB();
@@ -47,7 +48,7 @@ initDB();
 // Crée un administrateur par défaut au démarrage (uniquement si activé via variables d'environnement)
 async function createDefaultAdmin() {
 	// Vérifier si la création d'admin par défaut est activée
-	const CREATE_DEFAULT_ADMIN = process.env.CREATE_DEFAULT_ADMIN === 'true';
+	const CREATE_DEFAULT_ADMIN = env.CREATE_DEFAULT_ADMIN;
 
 	if (!CREATE_DEFAULT_ADMIN) {
 		logger.info(
@@ -60,8 +61,8 @@ async function createDefaultAdmin() {
 		const { findByEmail } = await import('./services/userStore.js');
 
 		// Email et mot de passe configurables via variables d'environnement
-		const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
-		const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+		const adminEmail = env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+		const adminPassword = env.DEFAULT_ADMIN_PASSWORD;
 
 		if (!adminPassword) {
 			logger.error('❌ DEFAULT_ADMIN_PASSWORD est requis si CREATE_DEFAULT_ADMIN=true');
@@ -78,15 +79,16 @@ async function createDefaultAdmin() {
 
 		// Hasher le mot de passe avant de l'envoyer
 		const bcrypt = await import('bcryptjs');
-		const password_hash = await bcrypt.hash(adminPassword, 10);
+		const { BCRYPT_SALT_ROUNDS } = await import('./utils/constants.js');
+		const password_hash = await bcrypt.hash(adminPassword, BCRYPT_SALT_ROUNDS);
 
 		await createUser({
 			email: adminEmail,
 			password_hash,
-			firstname: process.env.DEFAULT_ADMIN_FIRSTNAME || 'Admin',
-			lastname: process.env.DEFAULT_ADMIN_LASTNAME || 'User',
+			firstname: env.DEFAULT_ADMIN_FIRSTNAME || 'Admin',
+			lastname: env.DEFAULT_ADMIN_LASTNAME || 'User',
 			role: 'admin',
-			phone: process.env.DEFAULT_ADMIN_PHONE || '0123456789',
+			phone: env.DEFAULT_ADMIN_PHONE || '0123456789',
 		});
 
 		logger.info(`✅ Administrateur par défaut créé : ${adminEmail}`);

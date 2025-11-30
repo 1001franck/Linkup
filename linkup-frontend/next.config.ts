@@ -36,6 +36,46 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
+          {
+            key: 'Content-Security-Policy',
+            value: (() => {
+              const isProduction = process.env.NODE_ENV === 'production';
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+              
+              // CSP plus stricte en production
+              const directives = [
+                "default-src 'self'",
+                // Next.js nécessite unsafe-inline et unsafe-eval même en production
+                // Mais on peut utiliser nonce ou hash en production (à implémenter plus tard)
+                isProduction 
+                  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live" // Vercel Analytics
+                  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                "style-src 'self' 'unsafe-inline'", // TailwindCSS nécessite unsafe-inline
+                "img-src 'self' data: https: blob:", // Autoriser images depuis HTTPS (Unsplash, Clearbit, etc.)
+                "font-src 'self' data:",
+                `connect-src 'self' ${apiUrl} https://logo.clearbit.com`, // API backend + Clearbit
+                "frame-ancestors 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+              ];
+              
+              // Forcer HTTPS uniquement en production
+              if (isProduction) {
+                directives.push("upgrade-insecure-requests");
+              }
+              
+              return directives.join('; ');
+            })()
+          },
+          {
+            key: 'Permissions-Policy',
+            value: [
+              'camera=()',
+              'microphone=()',
+              'geolocation=()',
+              'interest-cohort=()',
+            ].join(', ')
+          },
         ],
       },
     ];

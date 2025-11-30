@@ -16,7 +16,35 @@ if (!supabaseUrl || !supabaseKey) {
 	process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Configuration optimisée du client Supabase
+// Note: Supabase utilise PostgREST qui gère automatiquement le connection pooling côté serveur
+// Le client JavaScript utilise HTTP/2 et réutilise les connexions automatiquement
+const supabase = createClient(supabaseUrl, supabaseKey, {
+	// Configuration pour optimiser les performances
+	db: {
+		schema: 'public', // Schéma par défaut
+	},
+	auth: {
+		// Désactiver la persistance automatique si non nécessaire
+		persistSession: false, // On gère les sessions via JWT dans les cookies
+		autoRefreshToken: false, // Pas de refresh automatique pour le service role
+	},
+	global: {
+		// Utiliser fetch natif (ou un fetch optimisé si disponible)
+		fetch: globalThis.fetch,
+		// Headers par défaut pour optimiser les requêtes
+		headers: {
+			'x-client-info': 'linkup-backend@1.0.0',
+		},
+	},
+	// Configuration des timeouts pour éviter les requêtes qui traînent
+	realtime: {
+		// Désactiver realtime si non utilisé (améliore les performances)
+		params: {
+			eventsPerSecond: 0,
+		},
+	},
+});
 
 // Fonction pour tester la connexion
 export async function initDB() {

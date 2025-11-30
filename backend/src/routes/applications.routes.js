@@ -12,6 +12,7 @@ import {
 	getApplicationStats,
 } from '../services/applicationStore.js';
 import { validateApplicationDocuments } from '../utils/documentValidator.js';
+import { validateNumericId } from '../middlewares/security.js';
 
 const router = express.Router();
 
@@ -167,7 +168,7 @@ router.get('/my', auth(), async (req, res) => {
  * GET /applications/job/:jobId (protégée)
  * Récupère les candidatures pour une offre d'emploi
  */
-router.get('/job/:jobId', auth(), async (req, res) => {
+router.get('/job/:jobId', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const applications = await getApplicationsByJob(req.params.jobId);
 		res.json({ data: applications });
@@ -188,7 +189,7 @@ router.get('/job/:jobId', auth(), async (req, res) => {
  * Query params: status?, jobId?
  * Récupère les candidatures pour une entreprise
  */
-router.get('/company/:companyId', auth(), async (req, res) => {
+router.get('/company/:companyId', validateNumericId('companyId'), auth(), async (req, res) => {
 	try {
 		logger.debug(`[GET /applications/company/:companyId] Entreprise: ${req.params.companyId}`);
 
@@ -239,7 +240,7 @@ router.get('/company/:companyId', auth(), async (req, res) => {
  * }
  * Met à jour le statut d'une candidature et les informations associées
  */
-router.put('/:jobId/status', auth(), async (req, res) => {
+router.put('/:jobId/status', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		logger.debug(
 			`[PUT /applications/:jobId/status] Mise à jour candidature - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
@@ -313,7 +314,7 @@ router.put('/:jobId/status', auth(), async (req, res) => {
  *   is_archived?
  * }
  */
-router.put('/:jobId/status/company', auth(), async (req, res) => {
+router.put('/:jobId/status/company', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		logger.debug(
 			`[PUT /applications/:jobId/status/company] Mise à jour par entreprise - Entreprise: ${req.user.sub}, Job: ${req.params.jobId}`
@@ -424,7 +425,7 @@ router.put('/:jobId/status/company', auth(), async (req, res) => {
  * Archive ou désarchive une candidature
  * Body: { is_archived: boolean }
  */
-router.put('/:jobId/archive', auth(), async (req, res) => {
+router.put('/:jobId/archive', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const { is_archived } = req.body || {};
 
@@ -461,7 +462,7 @@ router.put('/:jobId/archive', auth(), async (req, res) => {
  * DELETE /applications/:jobId (protégée)
  * Supprime une candidature
  */
-router.delete('/:jobId', auth(), async (req, res) => {
+router.delete('/:jobId', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const deleted = await removeApplication(req.user.sub, req.params.jobId);
 		if (!deleted) {
@@ -493,7 +494,7 @@ router.get('/stats', auth(['admin']), async (req, res) => {
  * PUT /applications/:jobId/bookmark (protégée)
  * Marquer/démarquer une candidature comme favori
  */
-router.put('/:jobId/bookmark', auth(), async (req, res) => {
+router.put('/:jobId/bookmark', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		logger.debug(
 			`[PUT /applications/:jobId/bookmark] Toggle bookmark - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`
@@ -526,7 +527,7 @@ router.put('/:jobId/bookmark', auth(), async (req, res) => {
  * POST /applications/:jobId/feedback-request (protégée)
  * Demander un retour détaillé sur une candidature
  */
-router.post('/:jobId/feedback-request', auth(), async (req, res) => {
+router.post('/:jobId/feedback-request', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		logger.debug(
 			`[POST /applications/:jobId/feedback-request] Demande de retour - Utilisateur: ${req.user.sub}, Job: ${req.params.jobId}`

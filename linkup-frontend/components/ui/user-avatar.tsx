@@ -5,7 +5,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
@@ -69,9 +69,10 @@ export function UserAvatar({
   const initials = getInitials(name);
   const backgroundColor = getBackgroundColor(name);
   const sizeClass = sizeClasses[size];
+  const [imageError, setImageError] = useState(false);
 
   // Si une image est fournie, l'afficher
-  if (src) {
+  if (src && !imageError) {
     return (
       <div 
         className={cn(
@@ -86,18 +87,9 @@ export function UserAvatar({
           src={src} 
           alt={alt || name}
           className="h-full w-full object-cover"
-          onError={(e) => {
-            // Si l'image ne charge pas, afficher les initiales
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            const parent = target.parentElement;
-            if (parent) {
-              parent.innerHTML = `
-                <div class="h-full w-full ${backgroundColor} flex items-center justify-center text-white font-semibold">
-                  ${initials}
-                </div>
-              `;
-            }
+          onError={() => {
+            // Si l'image ne charge pas, afficher les initiales via state
+            setImageError(true);
           }}
         />
       </div>
@@ -192,9 +184,10 @@ export function CompanyAvatar({
   const backgroundColor = getBackgroundColor(name);
   const sizeClass = sizeClasses[size];
   const logoUrl = getLogoUrl();
+  const [imageError, setImageError] = useState(false);
 
   // Si un logo est disponible, l'afficher
-  if (logoUrl) {
+  if (logoUrl && !imageError) {
     return (
       <div 
         className={cn(
@@ -209,19 +202,9 @@ export function CompanyAvatar({
           src={logoUrl} 
           alt={`Logo ${name}`}
           className="h-full w-full object-contain p-1"
-          onError={(e) => {
-            // Si le logo ne charge pas, afficher les initiales
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            const parent = target.parentElement;
-            if (parent) {
-              parent.className = parent.className.replace('bg-white', backgroundColor);
-              parent.innerHTML = `
-                <div class="h-full w-full flex items-center justify-center text-white font-semibold">
-                  ${initials}
-                </div>
-              `;
-            }
+          onError={() => {
+            // Si le logo ne charge pas, afficher les initiales via state
+            setImageError(true);
           }}
         />
       </div>

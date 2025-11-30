@@ -16,7 +16,7 @@
  * 🔐 FONCTIONNALITÉS :
  * - Détection automatique du rôle utilisateur
  * - Gestion des états de chargement
- * - Fallback vers localStorage
+ * - Utilise uniquement AuthContext (sécurisé)
  * - Types TypeScript stricts
  * 
  * 🚀 INTÉGRATION BACKEND :
@@ -74,27 +74,16 @@ export function useUserType() {
 
       try {
         // ========================================
-        // PRIORITÉ 1: DONNÉES DU CONTEXTE AUTH
+        // UTILISER UNIQUEMENT LE CONTEXTE AUTH
         // ========================================
+        // Suppression du fallback localStorage pour des raisons de sécurité
+        // Les données utilisateur doivent venir uniquement du contexte AuthContext
+        // qui récupère les données depuis l'API backend
         
-        if (user?.role) {
+        if (user && ('role' in user) && user.role) {
           setUserType(user.role as UserType);
-          setIsLoading(false);
-          return;
-        }
-
-        // ========================================
-        // PRIORITÉ 2: FALLBACK VERS LOCALSTORAGE
-        // ========================================
-        
-        if (typeof window !== 'undefined') {
-          const userData = localStorage.getItem('user');
-          if (userData) {
-            const parsedUser = JSON.parse(userData);
-            setUserType(parsedUser.role as UserType);
-          } else {
-            setUserType(null);
-          }
+        } else {
+          setUserType(null);
         }
       } catch (error) {
         console.error('Erreur lors de la détection du type d\'utilisateur:', error);

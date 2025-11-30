@@ -505,7 +505,7 @@ export function useMyFiles() {
 // Hook pour les statistiques globales
 export function useGlobalStats() {
   return useApi(
-    () => apiClient.request('/stats/global'),
+    () => apiClient.publicRequest('/stats/global'),
     []
   );
 }
@@ -513,7 +513,7 @@ export function useGlobalStats() {
 // Hook pour les statistiques de résumé
 export function useStatsSummary() {
   return useApi(
-    () => apiClient.request('/stats/summary'),
+    () => apiClient.publicRequest('/stats/summary'),
     []
   );
 }
@@ -522,7 +522,7 @@ export function useStatsSummary() {
 export function useUserTrends(options?: { enabled?: boolean }) {
   const { isAuthenticated } = useAuth();
   return useApi(
-    () => apiClient.request('/users/me/stats/trends'),
+    () => apiClient.publicRequest('/users/me/stats/trends'),
     [],
     isAuthenticated && (options?.enabled !== false),
     isAuthenticated && (options?.enabled !== false)
@@ -533,7 +533,7 @@ export function useUserTrends(options?: { enabled?: boolean }) {
 export function useUserDetailedStats() {
   const { isAuthenticated } = useAuth();
   return useApi(
-    () => apiClient.request('/users/me/stats/detailed'),
+    () => apiClient.publicRequest('/users/me/stats/detailed'),
     [],
     isAuthenticated
   );
@@ -583,10 +583,20 @@ export function useMatchingJobs(options?: {
   location?: string;
   enabled?: boolean;
 }) {
+  // Construire l'URL avec les query params
+  const buildUrl = () => {
+    const queryParams = new URLSearchParams();
+    if (options?.limit) queryParams.append('limit', options.limit.toString());
+    if (options?.minScore) queryParams.append('minScore', options.minScore.toString());
+    if (options?.industry) queryParams.append('industry', options.industry);
+    if (options?.location) queryParams.append('location', options.location);
+    const queryString = queryParams.toString();
+    return `/matching/jobs${queryString ? `?${queryString}` : ''}`;
+  };
+
   return useApi(
-    () => apiClient.request('/matching/jobs', {
+    () => apiClient.publicRequest(buildUrl(), {
       method: 'GET',
-      params: options
     }),
     [options?.limit, options?.minScore, options?.industry, options?.location, options?.enabled],
     true,
@@ -600,7 +610,7 @@ export function useMatchingJobs(options?: {
 // MODIFICATION FRONTEND: Hook pour récupérer les insights de matching
 export function useMatchingInsights(userId?: number) {
   return useApi(
-    () => apiClient.request(`/matching/insights/${userId}`, {
+    () => apiClient.publicRequest(`/matching/insights/${userId}`, {
       method: 'GET'
     }),
     [userId],
@@ -631,7 +641,7 @@ export function useDeleteProfilePicture() {
 export function useProfilePicture() {
   const { isAuthenticated } = useAuth();
   return useApi(
-    () => apiClient.request('/user-files/profile-picture'),
+    () => apiClient.publicRequest('/user-files/profile-picture'),
     [],
     isAuthenticated
   );

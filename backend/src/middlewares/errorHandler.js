@@ -4,16 +4,24 @@
  */
 
 import logger from '../utils/logger.js';
+import { AppError, handleError } from '../utils/errors.js';
 
 /**
  * Middleware de gestion des erreurs
  * Doit être ajouté en dernier dans app.js
+ * Utilise la hiérarchie d'erreurs personnalisées pour une meilleure gestion
  */
 export function errorHandler(err, req, res, next) {
-	// Log de l'erreur
+	// Utiliser la fonction centralisée handleError pour les erreurs AppError
+	if (err instanceof AppError) {
+		return handleError(err, res, logger);
+	}
+
+	// Log de l'erreur pour les erreurs non-AppError
 	logger.error('Erreur non gérée:', {
 		message: err.message,
 		stack: err.stack,
+		name: err.name,
 		method: req.method,
 		path: req.path,
 		ip: req.ip,
@@ -25,22 +33,11 @@ export function errorHandler(err, req, res, next) {
 	// Déterminer le code de statut
 	const statusCode = err.statusCode || err.status || 500;
 
-	// Réponse d'erreur sécurisée
-	const errorResponse = {
-		error: isProduction ? 'Erreur serveur' : err.message || 'Erreur serveur',
-		...(isProduction
-			? {}
-			: {
-					stack: err.stack,
-					details: err.details,
-				}),
-	};
-
-	// Gestion des erreurs spécifiques
-	if (err.name === 'ValidationError') {
+	// Gestion des erreurs spécifiques (compatibilité avec les anciennes erreurs)
+	if (err.name === 'ValidationError' || err.name === 'ZodError') {
 		return res.status(400).json({
 			error: 'Erreur de validation',
-			details: isProduction ? undefined : err.details,
+			details: isProduction ? undefined : err.details || err.issues,
 		});
 	}
 
@@ -51,6 +48,16 @@ export function errorHandler(err, req, res, next) {
 	}
 
 	// Erreur par défaut
+	const errorResponse = {
+		error: isProduction ? 'Erreur serveur' : err.message || 'Erreur serveur',
+		...(isProduction
+			? {}
+			: {
+					stack: err.stack,
+					details: err.details,
+				}),
+	};
+
 	res.status(statusCode).json(errorResponse);
 }
 
@@ -58,8 +65,11 @@ export function errorHandler(err, req, res, next) {
  * Middleware pour capturer les routes non trouvées
  */
 export function notFoundHandler(req, res, next) {
+	const isProduction = process.env.NODE_ENV === 'production';
+
 	res.status(404).json({
 		error: 'Route non trouvée',
-		path: req.path,
+		// Ne pas exposer le chemin complet en production pour éviter de révéler la structure de l'API
+		...(isProduction ? {} : { path: req.path }),
 	});
 }

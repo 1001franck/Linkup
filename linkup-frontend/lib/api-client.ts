@@ -49,7 +49,7 @@ class ApiClient {
     return document.cookie.includes('linkup_token=') ? 'present' : null;
   }
 
-  private async request<T>(
+  public async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
@@ -88,12 +88,20 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        // Ne pas logger les erreurs 404 pour les endpoints de vérification d'authentification
+        // Ne pas logger les erreurs 401/404 pour les endpoints de vérification d'authentification
         // car c'est un comportement attendu (on essaie /users/me et /companies/me pour déterminer le type)
         const isAuthCheckEndpoint = url.includes('/users/me') || url.includes('/companies/me');
-        if (!isAuthCheckEndpoint || response.status !== 404) {
-        logger.error(`[API Error] ${response.status} from ${url}:`, data);
+        const isAuthError = response.status === 401 || response.status === 404;
+        
+        if (!isAuthCheckEndpoint || !isAuthError) {
+          // Logger uniquement les erreurs non liées à l'authentification
+          if (response.status >= 500) {
+            logger.error(`[API Error] ${response.status} from ${url}:`, data);
+          } else if (response.status >= 400) {
+            logger.warn(`[API Warning] ${response.status} from ${url}:`, data);
+          }
         }
+        
         // Retourner directement les détails d'erreur au lieu de throw
         return {
           success: false,
@@ -606,18 +614,6 @@ class ApiClient {
     return this.request('/admin/dashboard');
   }
 
-  async getAdminUsers() {
-    return this.request('/admin/users');
-  }
-
-  async getAdminCompanies() {
-    return this.request('/admin/companies');
-  }
-
-  async getAdminJobs() {
-    return this.request('/admin/jobs');
-  }
-
   async banUser(userId: number, reason: string, duration: string) {
     return this.request(`/admin/users/${userId}/ban`, {
       method: 'POST',
@@ -861,6 +857,18 @@ class ApiClient {
     return this.request(`/admin/jobs/${jobId}`, {
       method: 'DELETE',
     });
+  }
+
+  // ========================================
+  // MÉTHODES PUBLIQUES POUR LES HOOKS
+  // ========================================
+  
+  /**
+   * Méthode publique pour effectuer des requêtes API depuis les hooks
+   * Utilisée par useApi et autres hooks personnalisés
+   */
+  async publicRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, options);
   }
 
   // Gestion des candidatures

@@ -7,7 +7,6 @@
  */
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ThemeProvider } from "@/components/layout/theme-provider";
@@ -18,16 +17,6 @@ import { CompanyLogoProvider } from "@/contexts/CompanyLogoContext";
 import { JobsInteractionsProvider } from "@/contexts/JobsInteractionsContext";
 import { ConditionalLayout } from "@/components/layout/conditional-layout";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "LinkUp - Connectez-vous aux opportunités",
@@ -97,7 +86,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className="antialiased min-h-screen bg-background text-foreground"
         suppressHydrationWarning
       >
         <ThemeProvider

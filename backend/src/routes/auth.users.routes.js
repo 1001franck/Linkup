@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken';
 import auth from '../middlewares/auth.js';
 import { authLimiter } from '../middlewares/rateLimiter.js';
 import { revokeToken } from '../services/tokenRevokeStore.js';
-import { findByEmail, createUser } from '../services/userStore.js';
+import { findByEmailForAuth, findByEmail, createUser } from '../services/userStore.js';
 import { validateUserSignup, isValidEmail } from '../utils/validators.js';
+import { BCRYPT_SALT_ROUNDS, JWT_DEFAULT_EXPIRES_IN } from '../utils/constants.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -34,7 +35,7 @@ router.post('/signup', authLimiter, async (req, res) => {
 		}
 
 		// Hash du mot de passe (bcrypt async)
-		const password_hash = await bcrypt.hash(req.body.password, 10);
+		const password_hash = await bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS);
 
 		// Création utilisateur avec données sanitizées
 		const user = await createUser({
@@ -80,7 +81,7 @@ router.post('/login', authLimiter, async (req, res) => {
 		// Normaliser l'email
 		const normalizedEmail = email.trim().toLowerCase();
 
-		const user = await findByEmail(normalizedEmail);
+		const user = await findByEmailForAuth(normalizedEmail);
 		if (!user) {
 			// Ne pas révéler si l'email existe ou non (sécurité)
 			return res.status(401).json({ error: 'Identifiants invalides' });
@@ -101,7 +102,7 @@ router.post('/login', authLimiter, async (req, res) => {
 				email: user.email,
 			},
 			process.env.JWT_SECRET,
-			{ expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+			{ expiresIn: process.env.JWT_EXPIRES_IN || JWT_DEFAULT_EXPIRES_IN }
 		);
 
 		// Définir les options de cookie sécurisées

@@ -393,7 +393,7 @@ export default function CompanySettingsPage() {
                         Nom de l'entreprise
                       </Typography>
                       <Typography variant="h4" className="font-semibold">
-                        {company.name || "Non renseigné"}
+                        {(company && 'name' in company) ? company.name : "Non renseigné"}
                       </Typography>
                     </div>
                     <div>
@@ -401,7 +401,7 @@ export default function CompanySettingsPage() {
                         Email du recruteur
                       </Typography>
                       <Typography variant="h4" className="font-semibold">
-                        {company.recruiter_mail || "Non renseigné"}
+                        {(company && 'recruiter_mail' in company) ? company.recruiter_mail : "Non renseigné"}
                       </Typography>
                     </div>
                   </div>

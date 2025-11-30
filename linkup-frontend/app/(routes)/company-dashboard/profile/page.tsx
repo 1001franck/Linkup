@@ -55,15 +55,16 @@ export default function CompanyProfilePage() {
   useEffect(() => {
     if (company && isAuthenticated) {
       setFormData({
-        name: company.name || "",
-        description: company.description || "",
-        industry: company.industry || "",
-        website: company.website || "",
-        city: company.city || "",
-        country: company.country || "",
-        recruiter_name: company.recruiter_name || "",
-        recruiter_email: company.recruiter_email || "",
-        recruiter_phone: company.recruiter_phone || "",
+        name: (company && 'name' in company) ? (company.name || "") : "",
+        description: (company && 'description' in company) ? (company.description || "") : "",
+        industry: (company && 'industry' in company) ? (company.industry || "") : "",
+        website: (company && 'website' in company) ? (company.website || "") : "",
+        city: (company && 'city' in company) ? (company.city || "") : "",
+        country: (company && 'country' in company) ? (company.country || "") : "",
+        recruiter_name: (company && 'recruiter_firstname' in company && 'recruiter_lastname' in company) 
+          ? `${(company as any).recruiter_firstname} ${(company as any).recruiter_lastname}` : "",
+        recruiter_email: (company && 'recruiter_mail' in company) ? (company as any).recruiter_mail : "",
+        recruiter_phone: (company && 'recruiter_phone' in company) ? (company as any).recruiter_phone : "",
       });
     }
   }, [company, isAuthenticated]);
@@ -76,11 +77,14 @@ export default function CompanyProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!company?.id_company) return;
+    const companyId = (company && ('id_company' in company || 'Id_company' in company)) 
+      ? (company.id_company || (company as any).Id_company) 
+      : null;
+    if (!companyId) return;
 
     setIsSaving(true);
     try {
-      const response = await apiClient.updateCompany(company.id_company, formData);
+      const response = await apiClient.updateCompany(companyId, formData);
       
       if (response.success) {
         toast({
@@ -143,8 +147,8 @@ export default function CompanyProfilePage() {
               {/* Logo Upload */}
               <div className="lg:col-span-1">
                 <CompanyLogoUpload
-                  companyId={company.id_company}
-                  currentLogo={company.logo || ""}
+                  companyId={(company as any).id_company || (company as any).Id_company || 0}
+                  currentLogo={(company && 'logo' in company) ? (company.logo || "") : ""}
                 />
               </div>
 

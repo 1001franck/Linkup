@@ -9,6 +9,7 @@ import { generalLimiter } from './middlewares/rateLimiter.js';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 import { metricsMiddleware, metricsHandler, metricsAuth } from './middlewares/metrics.js';
 import { sanitizeSearchParams, limitRequestSize } from './middlewares/security.js';
+import { csrfMiddleware } from './middlewares/csrf.js';
 import logger from './utils/logger.js';
 
 import authUserRoutes from './routes/auth.users.routes.js';
@@ -28,6 +29,7 @@ import statsRoutes from './routes/stats.routes.js';
 import companyStatsRoutes from './routes/companyStats.routes.js';
 import forgottenPasswordRoutes from './routes/forgottenPassword.routes.js';
 import resetPasswordRoutes from './routes/resetPassword.routes.js';
+import healthRoutes from './routes/health.routes.js';
 
 const app = express();
 
@@ -46,8 +48,16 @@ app.use(metricsMiddleware);
 const getAllowedOrigins = () => {
 	const origins = [];
 
-	// Origines de développement (toujours autorisées)
-	origins.push('http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002');
+	// Origines de développement (whitelist explicite)
+	const devOrigins = [
+		'http://localhost:3000',
+		'http://localhost:3001',
+		'http://localhost:3002',
+		'http://127.0.0.1:3000',
+		'http://127.0.0.1:3001',
+		'http://127.0.0.1:3002',
+	];
+	origins.push(...devOrigins);
 
 	// Origines de production depuis les variables d'environnement
 	if (process.env.FRONTEND_URL) {
@@ -67,31 +77,37 @@ const getAllowedOrigins = () => {
 const corsOptions = {
 	origin: (origin, callback) => {
 		const allowedOrigins = getAllowedOrigins();
+		const isProduction = process.env.NODE_ENV === 'production';
 
-		// En développement, être plus permissif
-		if (process.env.NODE_ENV !== 'production') {
-			// Autoriser les requêtes sans origin (Postman, curl, etc.)
+		// En développement, whitelist explicite (pas de wildcard)
+		if (!isProduction) {
+			// Autoriser les requêtes sans origin uniquement pour les outils de test (Postman, curl)
+			// Mais logger un avertissement pour la sécurité
 			if (!origin) {
+				logger.debug('[CORS] Requête sans origin autorisée (dev - outils de test uniquement)');
 				return callback(null, true);
 			}
-			// Autoriser toutes les origines localhost en développement
-			if (
-				origin &&
-				(origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))
-			) {
+
+			// Vérifier si l'origine est dans la whitelist explicite
+			if (allowedOrigins.includes(origin)) {
 				logger.debug(`[CORS] Origine autorisée (dev): ${origin}`);
-				// Retourner l'origine spécifique pour que les headers CORS soient correctement définis
 				return callback(null, origin);
 			}
+
+			// Rejeter les origines non autorisées même en dev
+			logger.warn(`[CORS] Origine non autorisée en dev: ${origin}. Whitelist:`, allowedOrigins);
+			return callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
 		}
 
-		// Vérifier si l'origine est autorisée
+		// En production, vérification stricte
 		if (!origin || allowedOrigins.includes(origin)) {
-			// Retourner l'origine spécifique pour que les headers CORS soient correctement définis
-			logger.debug(`[CORS] Origine autorisée: ${origin}`);
+			logger.debug(`[CORS] Origine autorisée (prod): ${origin}`);
 			callback(null, origin || '*');
 		} else {
-			logger.warn(`[CORS] Origine non autorisée: ${origin}. Origines autorisées:`, allowedOrigins);
+			logger.warn(
+				`[CORS] Origine non autorisée (prod): ${origin}. Origines autorisées:`,
+				allowedOrigins
+			);
 			callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
 		}
 	},
@@ -104,8 +120,26 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Compression des réponses (améliore les performances)
-app.use(compression());
+// Compression optimisée des réponses (améliore les performances)
+// Configuration fine : niveau de compression, types MIME, filtres
+app.use(
+	compression({
+		// Niveau de compression (1-9, 6 est un bon compromis performance/taille)
+		level: process.env.NODE_ENV === 'production' ? 6 : 4,
+		// Filtrer les types MIME à compresser
+		filter: (req, res) => {
+			// Ne pas compresser si le client ne le supporte pas
+			if (req.headers['x-no-compression']) {
+				return false;
+			}
+			// Utiliser le filtre par défaut de compression
+			return compression.filter(req, res);
+		},
+		// Types MIME à compresser (par défaut: text/*, application/json, etc.)
+		// On peut être plus spécifique pour optimiser
+		threshold: 1024, // Compresser seulement si la taille est > 1KB
+	})
+);
 
 // Limite de taille pour les body JSON (protection contre les attaques DoS)
 app.use(express.json({ limit: '1mb' }));
@@ -116,29 +150,71 @@ app.use(performanceMiddleware); // Monitoring des performances
 app.use(limitRequestSize(2 * 1024 * 1024)); // Limite à 2MB pour toutes les requêtes
 app.use(sanitizeSearchParams); // Sanitize les paramètres de recherche
 
-// Headers de sécurité
+// Protection CSRF (génère le token et vérifie pour les requêtes mutantes)
+// Note: Désactivé en développement pour faciliter les tests, activé en production
+if (process.env.NODE_ENV === 'production') {
+	app.use(csrfMiddleware);
+	logger.info('✅ Protection CSRF activée');
+} else {
+	logger.debug('⚠️  Protection CSRF désactivée en développement');
+}
+
+// Headers de sécurité renforcés
 app.use((req, res, next) => {
+	const isProduction = process.env.NODE_ENV === 'production';
+
 	// Protection XSS
 	res.setHeader('X-Content-Type-Options', 'nosniff');
 	res.setHeader('X-Frame-Options', 'DENY');
 	res.setHeader('X-XSS-Protection', '1; mode=block');
 	res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-	// Content Security Policy (basique - à adapter selon vos besoins)
-	if (process.env.NODE_ENV === 'production') {
+	// Permissions-Policy (anciennement Feature-Policy)
+	// Désactive les fonctionnalités non nécessaires pour améliorer la sécurité
+	res.setHeader(
+		'Permissions-Policy',
+		'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+	);
+
+	// Strict-Transport-Security (HSTS) - uniquement en production avec HTTPS
+	if (isProduction) {
+		// HSTS: Force HTTPS pendant 1 an, inclut les sous-domaines
+		res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+	}
+
+	// Content Security Policy renforcée
+	if (isProduction) {
+		// CSP stricte pour la production
 		res.setHeader(
 			'Content-Security-Policy',
-			"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+			"default-src 'self'; " +
+				"script-src 'self'; " +
+				"style-src 'self' 'unsafe-inline'; " +
+				"img-src 'self' data: https:; " +
+				"font-src 'self' data:; " +
+				"connect-src 'self' https:; " +
+				"frame-ancestors 'none'; " +
+				"base-uri 'self'; " +
+				"form-action 'self'; " +
+				'upgrade-insecure-requests;'
+		);
+	} else {
+		// CSP plus permissive en développement pour faciliter le debug
+		res.setHeader(
+			'Content-Security-Policy',
+			"default-src 'self'; " +
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+				"style-src 'self' 'unsafe-inline'; " +
+				"img-src 'self' data: https: http:; " +
+				"connect-src 'self' http://localhost:* https:;"
 		);
 	}
 
 	next();
 });
 
-// Santé
-app.get('/health', (req, res) => {
-	res.json({ status: 'ok', uptime: process.uptime() });
-});
+// Health check (doit être avant les autres routes pour être accessible rapidement)
+app.use('/health', healthRoutes);
 
 // Export Prometheus metrics (protégé par clé optionnelle)
 app.get('/metrics', metricsAuth, metricsHandler);

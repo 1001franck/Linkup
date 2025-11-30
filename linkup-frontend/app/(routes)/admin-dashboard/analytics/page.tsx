@@ -11,6 +11,7 @@ import { Container } from "@/components/layout/container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useAdminStats, useAdminActivity } from "@/hooks/use-admin";
@@ -35,6 +36,9 @@ export default function AdminAnalyticsPage() {
   // Hooks admin
   const { stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useAdminStats();
   const { activity, isLoading: activityLoading, error: activityError, refetch: refetchActivity } = useAdminActivity();
+  
+  // Typage des stats pour éviter les erreurs TypeScript
+  const statsTyped = stats as any;
 
   const handleRefresh = async () => {
     try {
@@ -112,7 +116,7 @@ export default function AdminAnalyticsPage() {
                     ) : (
                       <>
                         <Typography variant="h3" className="text-2xl font-bold text-foreground">
-                          {stats?.users?.totalUsers || 0}
+                          {statsTyped?.users?.totalUsers || statsTyped?.totalUsers || 0}
                         </Typography>
                         <Typography variant="muted" className="text-sm">
                           Total inscrits
@@ -148,7 +152,7 @@ export default function AdminAnalyticsPage() {
                     ) : (
                       <>
                         <Typography variant="h3" className="text-2xl font-bold text-foreground">
-                          {stats?.companies?.totalCompanies || 0}
+                          {statsTyped?.companies?.totalCompanies || statsTyped?.totalCompanies || 0}
                         </Typography>
                         <Typography variant="muted" className="text-sm">
                           Entreprises actives
@@ -184,7 +188,7 @@ export default function AdminAnalyticsPage() {
                     ) : (
                       <>
                         <Typography variant="h3" className="text-2xl font-bold text-foreground">
-                          {stats?.jobs?.totalJobs || 0}
+                          {statsTyped?.jobs?.totalJobs || statsTyped?.totalJobs || 0}
                         </Typography>
                         <Typography variant="muted" className="text-sm">
                           Offres publiées
@@ -220,7 +224,7 @@ export default function AdminAnalyticsPage() {
                     ) : (
                       <>
                         <Typography variant="h3" className="text-2xl font-bold text-foreground">
-                          {stats?.applications?.totalApplications || 0}
+                          {statsTyped?.applications?.totalApplications || statsTyped?.totalApplications || 0}
                         </Typography>
                         <Typography variant="muted" className="text-sm">
                           Candidatures reçues
@@ -269,7 +273,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <Typography variant="h4" className="font-bold text-green-600">
-                      {stats?.recentActivity?.newUsers || 0}
+                      {statsTyped?.recentActivity?.newUsers || statsTyped?.newUsers24h || 0}
                     </Typography>
                   </div>
                   
@@ -286,7 +290,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <Typography variant="h4" className="font-bold text-blue-600">
-                      {stats?.recentActivity?.newCompanies || 0}
+                      {statsTyped?.recentActivity?.newCompanies || statsTyped?.newCompanies24h || 0}
                     </Typography>
                   </div>
                   
@@ -303,7 +307,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <Typography variant="h4" className="font-bold text-purple-600">
-                      {stats?.recentActivity?.newJobs || 0}
+                      {statsTyped?.recentActivity?.newJobs || statsTyped?.newJobs24h || 0}
                     </Typography>
                   </div>
                   
@@ -320,7 +324,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <Typography variant="h4" className="font-bold text-orange-600">
-                      {stats?.recentActivity?.newApplications || 0}
+                      {statsTyped?.recentActivity?.newApplications || statsTyped?.newApplications24h || 0}
                     </Typography>
                   </div>
                 </div>
@@ -410,9 +414,11 @@ export default function AdminAnalyticsPage() {
                     <Zap className="h-8 w-8 text-green-600" />
                   </div>
                   <Typography variant="h4" className="font-bold text-2xl text-green-600 mb-2">
-                    {stats?.applications?.totalApplications && stats?.users?.totalUsers 
-                      ? Math.round((stats.applications.totalApplications / stats.users.totalUsers) * 100) 
-                      : 0}%
+                    {statsTyped?.applications?.totalApplications && statsTyped?.users?.totalUsers 
+                      ? Math.round((statsTyped.applications.totalApplications / statsTyped.users.totalUsers) * 100) 
+                      : (statsTyped?.totalApplications && statsTyped?.totalUsers
+                        ? Math.round((statsTyped.totalApplications / statsTyped.totalUsers) * 100)
+                        : 0)}%
                   </Typography>
                   <Typography variant="muted" className="text-sm">
                     Taux de candidature moyen
@@ -424,9 +430,11 @@ export default function AdminAnalyticsPage() {
                     <Calendar className="h-8 w-8 text-blue-600" />
                   </div>
                   <Typography variant="h4" className="font-bold text-2xl text-blue-600 mb-2">
-                    {stats?.jobs?.totalJobs && stats?.companies?.totalCompanies 
-                      ? Math.round(stats.jobs.totalJobs / stats.companies.totalCompanies) 
-                      : 0}
+                    {statsTyped?.jobs?.totalJobs && statsTyped?.companies?.totalCompanies 
+                      ? Math.round(statsTyped.jobs.totalJobs / statsTyped.companies.totalCompanies) 
+                      : (statsTyped?.totalJobs && statsTyped?.totalCompanies
+                        ? Math.round(statsTyped.totalJobs / statsTyped.totalCompanies)
+                        : 0)}
                   </Typography>
                   <Typography variant="muted" className="text-sm">
                     Offres par entreprise
@@ -438,9 +446,11 @@ export default function AdminAnalyticsPage() {
                     <DollarSign className="h-8 w-8 text-purple-600" />
                   </div>
                   <Typography variant="h4" className="font-bold text-2xl text-purple-600 mb-2">
-                    {stats?.users?.totalUsers && stats?.companies?.totalCompanies 
-                      ? Math.round(stats.users.totalUsers / stats.companies.totalCompanies) 
-                      : 0}
+                    {statsTyped?.users?.totalUsers && statsTyped?.companies?.totalCompanies 
+                      ? Math.round(statsTyped.users.totalUsers / statsTyped.companies.totalCompanies)
+                      : (statsTyped?.totalUsers && statsTyped?.totalCompanies
+                        ? Math.round(statsTyped.totalUsers / statsTyped.totalCompanies)
+                        : 0)}
                   </Typography>
                   <Typography variant="muted" className="text-sm">
                     Utilisateurs par entreprise

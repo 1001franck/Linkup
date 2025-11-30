@@ -197,18 +197,18 @@ const Header: React.FC<HeaderProps> = ({
                       {profilePicture ? (
                         <img
                           src={profilePicture}
-                          alt={`${user.firstname} ${user.lastname}`}
+                          alt={('id_user' in user) ? `${user.firstname} ${user.lastname}` : user.name}
                           className="h-6 w-6 rounded-full object-cover"
                         />
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center">
                           <span className="text-white text-xs font-medium">
-                            {user.firstname.charAt(0)}{user.lastname.charAt(0)}
+                            {('id_user' in user) ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}` : user.name.charAt(0)}
                           </span>
                         </div>
                       )}
                       <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {user.firstname}
+                        {('id_user' in user) ? user.firstname : user.name}
                       </span>
                       <ChevronDown className="h-3 w-3 text-slate-500" />
                     </Button>
@@ -222,22 +222,22 @@ const Header: React.FC<HeaderProps> = ({
                             {profilePicture ? (
                               <img
                                 src={profilePicture}
-                                alt={`${user.firstname} ${user.lastname}`}
+                                alt={('id_user' in user) ? `${user.firstname} ${user.lastname}` : user.name}
                                 className="h-10 w-10 rounded-full object-cover"
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center">
                                 <span className="text-white text-sm font-medium">
-                                  {user.firstname.charAt(0)}{user.lastname.charAt(0)}
+                                  {('id_user' in user) ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}` : user.name.charAt(0)}
                                 </span>
                               </div>
                             )}
                             <div>
                               <p className="text-sm font-medium text-slate-900 dark:text-white">
-                                {user.firstname} {user.lastname}
+                                {('id_user' in user) ? `${user.firstname} ${user.lastname}` : user.name}
                               </p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {user.email}
+                                {('id_user' in user) ? user.email : user.recruiter_mail}
                               </p>
                             </div>
                           </div>

@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useProfileCompletion } from "@/hooks/use-profile-completion";
 import { useUploadFile } from "@/hooks/use-api";
 import { useProfilePictureContext } from "@/contexts/ProfilePictureContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   User, 
   MapPin, 
@@ -58,7 +59,9 @@ export default function CompleteProfileV2Page() {
   });
   
   const { toast } = useToast();
-  const { completion, updateProfile, isLoading, user } = useProfileCompletion();
+  const { completion, updateProfile } = useProfileCompletion();
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
   const { profilePicture, setProfilePicture } = useProfilePictureContext();
   const uploadFile = useUploadFile();
   
@@ -181,13 +184,11 @@ export default function CompleteProfileV2Page() {
     
     try {
       await updateProfile({
-        bio_pro: formData.bio,
+        bio: formData.bio,
         description: formData.description,
         skills: formData.skills,
         job_title: formData.job_title,
         experience_level: formData.experience_level,
-        city: formData.city,
-        country: formData.country,
         website: formData.website,
         portfolio_link: formData.portfolio_link,
         linkedin_link: formData.linkedin_link
@@ -474,7 +475,7 @@ export default function CompleteProfileV2Page() {
           </div>
           
           <Typography variant="muted" className="text-sm">
-            Étape {currentStep} sur {steps.length} • {completion.essentialPercentage}% complété
+            Étape {currentStep} sur {steps.length} • {completion.percentage}% complété
           </Typography>
         </div>
         

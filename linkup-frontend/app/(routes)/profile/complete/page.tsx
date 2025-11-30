@@ -54,7 +54,7 @@ function CompleteProfileContent() {
   
   // MODIFICATION FRONTEND: Hook pour supprimer la photo de profil (défini localement)
   const deleteProfilePicture = useMutation(
-    () => apiClient.deleteProfilePicture(),
+    async () => await apiClient.deleteProfilePicture(),
     {
       showToast: true,
     }
@@ -168,19 +168,20 @@ function CompleteProfileContent() {
 
       console.log('✅ Upload réussi:', result);
 
-      if (result?.data?.publicUrl) {
-        console.log('🖼️ URL publique:', result.data.publicUrl);
+      const resultTyped = result as any;
+      if (resultTyped?.data?.publicUrl) {
+        console.log('🖼️ URL publique:', resultTyped.data.publicUrl);
         
         // Mettre à jour le contexte global immédiatement
-        setProfilePicture(result.data.publicUrl);
+        setProfilePicture(resultTyped.data.publicUrl);
         setFormData(prev => ({
           ...prev,
-          profile_picture: result.data.publicUrl
+          profile_picture: resultTyped.data.publicUrl
         }));
 
         // Mettre à jour le profil dans le hook
         updateProfile({
-          profile_picture: result.data.publicUrl
+          profile_picture: resultTyped.data.publicUrl
         });
 
         toast({
@@ -206,7 +207,7 @@ function CompleteProfileContent() {
   // MODIFICATION FRONTEND: Fonction pour supprimer la photo de profil
   const handleDeleteProfilePicture = async () => {
     try {
-      const result = await deleteProfilePicture.mutate();
+      const result = await deleteProfilePicture.mutate(undefined as any);
       
       // Mettre à jour le contexte pour supprimer la photo
       setProfilePicture(null);
@@ -223,7 +224,8 @@ function CompleteProfileContent() {
       });
       
       // Vérifier le message de réponse
-      const message = result?.data?.message || "Photo supprimée avec succès";
+      const resultTyped = result as any;
+      const message = resultTyped?.data?.message || "Photo supprimée avec succès";
       
       toast({
         title: "Photo supprimée",

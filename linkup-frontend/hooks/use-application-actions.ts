@@ -166,9 +166,9 @@ export function useApplicationActions(
     actions,
     // État des mutations pour l'UI
     isLoading: {
-      withdraw: withdrawApplicationMutation.isPending,
-      archive: archiveApplicationMutation.isPending,
-      feedback: requestFeedbackMutation.isPending
+      withdraw: withdrawApplicationMutation.loading,
+      archive: archiveApplicationMutation.loading,
+      feedback: requestFeedbackMutation.loading
     }
   };
 }

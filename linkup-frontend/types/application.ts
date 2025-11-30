@@ -163,7 +163,7 @@ export interface ApplicationDisplayState {
 // ========================================
 
 export interface ApplicationUtils {
-  getStatusIcon: (status: ApplicationStatus) => JSX.Element;
+  getStatusIcon: (status: ApplicationStatus) => React.ReactElement;
   getStatusLabel: (status: ApplicationStatus) => string;
   getStatusColor: (status: ApplicationStatus) => string;
   getUrgencyColor: (urgency: UrgencyLevel) => string;

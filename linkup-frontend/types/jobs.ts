@@ -19,7 +19,7 @@ export interface Job {
     min: number;
     max: number;
     currency: string;
-  };
+  } | null;
   postedAt: string;
   description: string;
   requirements?: string[];
@@ -37,6 +37,12 @@ export interface Job {
   views?: number;
   skills?: string[];
   timeAgo?: string;
+  education?: string; // Formation requise
+  urgency?: string; // Urgence de l'offre
+  applications?: number; // Nombre de candidatures
+  contractType?: string; // Type de contrat (alias pour type)
+  salaryRange?: string; // Plage de salaire formatée
+  publishedAt?: string; // Date de publication (alias pour postedAt)
 }
 
 export interface Company {
@@ -88,6 +94,8 @@ export interface JobInteractionsActions {
   shareJob: (job: Job) => Promise<void>;
   isSaved: (jobId: number) => boolean;
   isApplied: (jobId: number) => boolean;
+  isWithdrawn: (jobId: number) => boolean;
+  canApply: (jobId: number) => boolean;
 }
 
 // ========================================

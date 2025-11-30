@@ -8,11 +8,11 @@ import rateLimit from 'express-rate-limit';
 /**
  * Rate limiter général pour toutes les routes
  * Limite à 100 requêtes par 15 minutes par IP
- * En développement, limites plus élevées pour éviter les blocages
+ * En développement, limites réduites pour tester le comportement réel (250 au lieu de 1000)
  */
 export const generalLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 1000 en dev, 100 en prod
+	max: process.env.NODE_ENV === 'production' ? 100 : 250, // 250 en dev (au lieu de 1000), 100 en prod
 	message: {
 		error: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard.',
 	},
@@ -24,11 +24,11 @@ export const generalLimiter = rateLimit({
  * Rate limiter strict pour les routes d'authentification (login, signup)
  * Limite à 10 tentatives par 2 minutes par IP pour les inscriptions
  * Protection contre les attaques par force brute tout en permettant plusieurs tentatives
- * En développement, limites plus élevées pour éviter les blocages
+ * En développement, limites réduites pour tester le comportement réel (30 au lieu de 100)
  */
 export const authLimiter = rateLimit({
 	windowMs: 2 * 60 * 1000, // 2 minutes
-	max: process.env.NODE_ENV === 'production' ? 10 : 100, // 100 en dev, 10 en prod
+	max: process.env.NODE_ENV === 'production' ? 10 : 30, // 30 en dev (au lieu de 100), 10 en prod
 	message: {
 		error: 'Trop de tentatives. Veuillez réessayer dans 2 minutes.',
 	},

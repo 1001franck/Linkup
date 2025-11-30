@@ -18,8 +18,13 @@ export function CompanyLogoProvider({ children }: { children: React.ReactNode })
 
   // Mettre à jour le logo depuis les données de l'entreprise
   useEffect(() => {
-    if (isAuthenticated && user && 'logo' in user) {
-      setLogo(user.logo || null);
+    if (isAuthenticated && user) {
+      const userWithLogo = user as any;
+      if ('logo' in userWithLogo && userWithLogo.logo) {
+        setLogo(userWithLogo.logo);
+      } else {
+        setLogo(null);
+      }
     } else {
       setLogo(null);
     }

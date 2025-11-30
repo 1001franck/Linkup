@@ -86,7 +86,8 @@ export async function requestPasswordResetMail(email) {
 export async function tokenUpdatePassword(token, newPassword) {
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		const hashed = await bcrypt.hash(newPassword, 10);
+		const { BCRYPT_SALT_ROUNDS } = await import('../utils/constants.js');
+		const hashed = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
 
 		// Vérifier le type de compte (user ou company)
 		if (decoded.type === 'company' && decoded.id_company) {

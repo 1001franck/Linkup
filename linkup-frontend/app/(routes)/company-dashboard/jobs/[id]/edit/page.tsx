@@ -81,10 +81,10 @@ export default function EditJobPage() {
       
       try {
         setIsLoading(true);
-        const response = await apiClient.getJob(params.id as string);
+        const response = await apiClient.getJob(Number(params.id));
         
         if (response.success && response.data) {
-          const job = response.data;
+          const job = response.data as any;
           setJobData(job);
           
           // Mapper les données de l'offre vers le formulaire
@@ -208,7 +208,7 @@ export default function EditJobPage() {
         formationRequired: formData.formationRequired
       };
 
-      const response = await apiClient.updateJob(params.id as string, jobData);
+      const response = await apiClient.updateJob(Number(params.id), jobData);
 
       if (response.success) {
         toast({

@@ -237,7 +237,7 @@ export default function AdminApplicationsPage() {
               <div className="space-y-4">
                 {applications && Array.isArray(applications) && applications.map((application, index) => (
                   <motion.div
-                    key={application.id_user && application.id_job_offer ? `${application.id_user}-${application.id_job_offer}` : index}
+                    key={(application as any).id_user && (application as any).id_job_offer ? `${(application as any).id_user}-${(application as any).id_job_offer}` : index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"

@@ -10,7 +10,7 @@ import {
 	getLocationSuggestions,
 } from '../services/jobStore.js';
 import { validatePagination } from '../middlewares/pagination.js';
-import { validateSortParams } from '../middlewares/security.js';
+import { validateSortParams, validateNumericId } from '../middlewares/security.js';
 import logger from '../utils/logger.js';
 const router = express.Router();
 
@@ -291,7 +291,7 @@ router.post('/', auth(), async (req, res) => {
  *   }
  * }
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateNumericId('id'), async (req, res) => {
 	try {
 		const job = await findById(req.params.id);
 		if (!job) return res.status(404).json({ error: 'Offre introuvable' });
@@ -306,7 +306,7 @@ router.get('/:id', async (req, res) => {
  * PUT /jobs/:id
  * Body: { title, description, location?, contractType?, salaryRange?, companyId?, skills? }
  */
-router.put('/:id', auth(), async (req, res) => {
+router.put('/:id', validateNumericId('id'), auth(), async (req, res) => {
 	try {
 		const job = await findById(req.params.id);
 		if (!job) return res.status(404).json({ error: 'Offre introuvable' });
@@ -331,7 +331,7 @@ router.put('/:id', auth(), async (req, res) => {
  * DELETE /jobs/:id
  * Body: { title, description, location?, contractType?, salaryRange?, companyId?, skills? }
  */
-router.delete('/:id', auth(), async (req, res) => {
+router.delete('/:id', validateNumericId('id'), auth(), async (req, res) => {
 	try {
 		const job = await findById(req.params.id);
 		if (!job) return res.status(404).json({ error: 'Offre introuvable' });

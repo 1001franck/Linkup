@@ -23,7 +23,7 @@ import { useDashboardRedirect } from "@/hooks/use-dashboard-redirect";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { CompanyCard } from "@/components/ui/company-card";
 import { useCompanyPagination } from "@/hooks/use-company-pagination";
-import { Company, CompanyFilter } from "@/types/company";
+import { Company, CompanyFilters } from "@/types/company";
 import { 
   Search, 
   MapPin,

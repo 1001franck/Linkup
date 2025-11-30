@@ -86,73 +86,40 @@ export function useProfileCompletion() {
   const updateUser = useUpdateUser();
   const { user: authUser, refreshUser, isAuthenticated } = useAuth();
 
-  // Charger les données du profil depuis localStorage
+  // Charger les données du profil depuis AuthContext uniquement (sécurisé)
+  // Suppression du fallback localStorage pour des raisons de sécurité
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (authUser && 'id_user' in authUser) {
       try {
-        // Récupérer les données utilisateur de base (inscription)
-        const savedUser = localStorage.getItem('user');
-        const savedProfile = localStorage.getItem('userProfile');
-        const savedSkills = localStorage.getItem('userSkills');
-        const profileCompleted = localStorage.getItem('profileCompleted') === 'true';
-        
-        let initialProfile: ProfileData = {};
-        
-        // Charger les données utilisateur de base si disponibles
-        if (savedUser) {
-          const userData = JSON.parse(savedUser);
-          initialProfile = {
-            firstName: userData.first_name,
-            lastName: userData.last_name,
-            email: userData.email,
-          };
-        }
-        
-        // Charger le profil étendu si disponible
-        if (savedProfile) {
-          const parsedProfile = JSON.parse(savedProfile);
-          initialProfile = { ...initialProfile, ...parsedProfile };
-        }
-        
-        // MODIFICATION FRONTEND: Charger les nouveaux champs depuis les données utilisateur connecté
-        if (authUser && 'id_user' in authUser) {
-          initialProfile = {
-            ...initialProfile,
-            // Champs existants
-            firstName: authUser.firstname,
-            lastName: authUser.lastname,
-            email: authUser.email,
-            phone: authUser.phone,
-            bio: authUser.bio_pro,
-            location: authUser.city && authUser.country ? `${authUser.city}, ${authUser.country}` : authUser.city || authUser.country || '',
-            website: authUser.website,
-            // NOUVEAUX CHAMPS de /profile/complete
-            description: authUser.description,
-            job_title: authUser.job_title,
-            experience_level: authUser.experience_level,
-            portfolio_link: authUser.portfolio_link,
-            linkedin_link: authUser.linkedin_link,
-            availability: authUser.availability
-          };
-        }
-        
-        // Charger les compétences si disponibles
-        if (savedSkills) {
-          const skills = JSON.parse(savedSkills);
-          initialProfile.skills = skills;
-        }
+        const initialProfile: ProfileData = {
+          // Champs de base
+          firstName: authUser.firstname || '',
+          lastName: authUser.lastname || '',
+          email: authUser.email || '',
+          phone: authUser.phone || '',
+          bio: authUser.bio_pro || '',
+          location: authUser.city && authUser.country ? `${authUser.city}, ${authUser.country}` : authUser.city || authUser.country || '',
+          website: authUser.website || '',
+          // Champs étendus
+          description: (authUser as any).description || '',
+          job_title: (authUser as any).job_title || '',
+          experience_level: (authUser as any).experience_level || '',
+          portfolio_link: (authUser as any).portfolio_link || '',
+          linkedin_link: (authUser as any).linkedin_link || '',
+          availability: (authUser as any).availability || '',
+          // Compétences (si disponibles dans authUser)
+          skills: Array.isArray((authUser as any).skills) ? (authUser as any).skills : ((authUser as any).skills ? String((authUser as any).skills).split(',').map(s => s.trim()) : [])
+        };
         
         setProfileData(initialProfile);
-        
-        // Marquer comme complété si c'est le cas
-        if (profileCompleted) {
-          setProfileData(prev => ({ ...prev, isCompleted: true }));
-        }
       } catch (error) {
         console.error('Erreur lors du chargement du profil:', error);
       }
+    } else if (!isAuthenticated) {
+      // Réinitialiser le profil si l'utilisateur n'est pas authentifié
+      setProfileData({});
     }
-  }, [authUser]);
+  }, [authUser, isAuthenticated]);
 
   // Calculer le pourcentage de complétion
   const calculateCompletion = (data: ProfileData): ProfileCompletion => {
@@ -259,47 +226,31 @@ export function useProfileCompletion() {
     // Mettre à jour l'état local immédiatement
     setProfileData(updatedData);
     
-    // Sauvegarder dans localStorage (pour compatibilité)
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('userProfile', JSON.stringify(updatedData));
-        
-        // Marquer comme complété si 100%
-        const newCompletion = calculateCompletion(updatedData);
-        if (newCompletion.isComplete) {
-          localStorage.setItem('profileCompleted', 'true');
-        }
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde du profil:', error);
-      }
-    }
-    
     // MODIFICATION FRONTEND: Sauvegarder en backend (en arrière-plan)
+    // Suppression du localStorage pour des raisons de sécurité
     // Ne pas attendre la réponse pour éviter les blocages
-    updateUser.mutate({
-      bio_pro: updatedData.bio,
-      description: updatedData.description,
-      skills: updatedData.skills,
-      job_title: updatedData.job_title,
-      experience_level: updatedData.experience_level,
-      availability: updatedData.availability,
-      portfolio_link: updatedData.portfolio_link,
-      linkedin_link: updatedData.linkedin_link,
-      website: updatedData.website,
-      // Extraire city et country de location si nécessaire
-      city: updatedData.location?.split(',')[0]?.trim() || '',
-      country: updatedData.location?.split(',')[1]?.trim() || ''
-    }, {
-      onSuccess: () => {
-        // MODIFICATION FRONTEND: Rafraîchir les données utilisateur après sauvegarde
-        refreshUser().catch((error) => {
-          console.error('❌ Erreur lors du rafraîchissement:', error);
-        });
-      },
-      onError: (error) => {
-        console.error('❌ Erreur sauvegarde backend:', error);
-      }
-    });
+    try {
+      await updateUser.mutate({
+        bio_pro: updatedData.bio,
+        description: updatedData.description,
+        skills: updatedData.skills,
+        job_title: updatedData.job_title,
+        experience_level: updatedData.experience_level,
+        availability: updatedData.availability,
+        portfolio_link: updatedData.portfolio_link,
+        linkedin_link: updatedData.linkedin_link,
+        website: updatedData.website,
+        // Extraire city et country de location si nécessaire
+        city: updatedData.location?.split(',')[0]?.trim() || '',
+        country: updatedData.location?.split(',')[1]?.trim() || ''
+      });
+      // MODIFICATION FRONTEND: Rafraîchir les données utilisateur après sauvegarde
+      refreshUser().catch((error) => {
+        console.error('❌ Erreur lors du rafraîchissement:', error);
+      });
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde backend:', error);
+    }
   };
 
   // Recalculer la complétion quand les données changent

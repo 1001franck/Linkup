@@ -1,8 +1,11 @@
 import supabase from '../database/db.js';
 import logger from '../utils/logger.js';
-import { calculateMatchingScore } from './matchingStore.js';
-
-const BUCKET = process.env.SUPABASE_BUCKET || 'user_files';
+import { sanitizeSearchParam } from '../utils/validators.js';
+import {
+	enrichApplicationsWithDocuments,
+	resolveExistingCVUrls,
+	calculateMatchingScores,
+} from './applicationHelpers.js';
 
 /**
  * Créer une nouvelle candidature
@@ -237,157 +240,16 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 
 		logger.debug(`[getApplicationsByCompany] ${data?.length || 0} candidatures récupérées`);
 
-		// Récupérer les documents manuellement pour toutes les candidatures
-		// (la relation n'est pas définie dans Supabase, donc on ne peut pas faire de JOIN)
+		// Enrichir les candidatures avec documents, CV et scores de matching
 		if (data && data.length > 0) {
-			try {
-				// Récupérer tous les documents pour toutes les candidatures en une seule requête
-				const userIds = [...new Set(data.map((app) => app.id_user))];
-				const jobIds = [...new Set(data.map((app) => app.id_job_offer))];
+			// 1. Récupérer et assigner les documents
+			await enrichApplicationsWithDocuments(data);
 
-				logger.debug(
-					`[getApplicationsByCompany] Récupération documents pour ${userIds.length} utilisateurs et ${jobIds.length} offres`
-				);
+			// 2. Résoudre les URLs des CV existants
+			await resolveExistingCVUrls(data);
 
-				const { data: allDocuments, error: docError } = await supabase
-					.from('application_documents')
-					.select('*')
-					.in('id_user', userIds)
-					.in('id_job_offer', jobIds);
-
-				if (!docError && allDocuments) {
-					// Grouper les documents par candidature (id_user + id_job_offer)
-					const documentsByApplication = {};
-					for (const doc of allDocuments) {
-						const key = `${doc.id_user}-${doc.id_job_offer}`;
-						if (!documentsByApplication[key]) {
-							documentsByApplication[key] = [];
-						}
-						documentsByApplication[key].push(doc);
-					}
-
-					// Assigner les documents à chaque candidature
-					for (const application of data) {
-						const key = `${application.id_user}-${application.id_job_offer}`;
-						application.application_documents = documentsByApplication[key] || [];
-						if (application.application_documents.length > 0) {
-							logger.debug(
-								`[getApplicationsByCompany] ${application.application_documents.length} documents assignés à la candidature ${key}`
-							);
-						}
-					}
-				} else {
-					logger.warn(`[getApplicationsByCompany] Erreur récupération documents:`, docError);
-					// Initialiser avec des tableaux vides
-					for (const application of data) {
-						application.application_documents = [];
-					}
-				}
-			} catch (docFetchError) {
-				logger.error(`[getApplicationsByCompany] Erreur récupération documents:`, docFetchError);
-				// Initialiser avec des tableaux vides
-				for (const application of data) {
-					application.application_documents = [];
-				}
-			}
-
-			// Résoudre les URLs des CV existants (file_url === 'existing_cv') pour toutes les candidatures
-			// Récupérer tous les CV existants en une seule requête pour optimiser
-			const usersWithExistingCV = [];
-			for (const application of data) {
-				if (application.application_documents && Array.isArray(application.application_documents)) {
-					for (const doc of application.application_documents) {
-						if (doc.document_type === 'cv' && doc.file_url === 'existing_cv') {
-							usersWithExistingCV.push(application.id_user);
-							break; // Un seul par candidature
-						}
-					}
-				}
-			}
-
-			// Récupérer tous les CV existants en une seule requête
-			if (usersWithExistingCV.length > 0) {
-				const uniqueUserIds = [...new Set(usersWithExistingCV)];
-				try {
-					const { data: userFiles, error: fileError } = await supabase
-						.from('user_files')
-						.select('id_user, file_url')
-						.in('id_user', uniqueUserIds)
-						.eq('file_type', 'cv')
-						.order('uploaded_at', { ascending: false });
-
-					if (!fileError && userFiles) {
-						// Créer un map pour accès rapide
-						const cvMap = {};
-						for (const file of userFiles) {
-							if (!cvMap[file.id_user]) {
-								// Construire l'URL publique depuis Supabase Storage
-								const { data: publicUrlData } = supabase.storage
-									.from(BUCKET)
-									.getPublicUrl(file.file_url);
-								cvMap[file.id_user] = publicUrlData.publicUrl;
-							}
-						}
-
-						// Assigner les URLs résolues
-						for (const application of data) {
-							if (
-								application.application_documents &&
-								Array.isArray(application.application_documents)
-							) {
-								for (const doc of application.application_documents) {
-									if (doc.document_type === 'cv' && doc.file_url === 'existing_cv') {
-										if (cvMap[application.id_user]) {
-											doc.file_url = cvMap[application.id_user];
-											logger.debug(
-												`[getApplicationsByCompany] URL CV existant résolue pour user ${application.id_user}: ${doc.file_url}`
-											);
-										} else {
-											logger.warn(
-												`[getApplicationsByCompany] CV existant non trouvé dans user_files pour user ${application.id_user}`
-											);
-											doc.file_url = null;
-										}
-									}
-								}
-							}
-						}
-					} else {
-						logger.warn(`[getApplicationsByCompany] Erreur récupération CV existants:`, fileError);
-					}
-				} catch (resolveError) {
-					logger.error(
-						`[getApplicationsByCompany] Erreur résolution URLs CV existants:`,
-						resolveError
-					);
-				}
-			}
-
-			// Calculer le score de matching pour chaque candidature en parallèle (optimisation N+1)
-			// Utiliser Promise.all pour exécuter tous les calculs en parallèle au lieu de séquentiellement
-			const matchingPromises = data.map(async (application) => {
-				if (application.user_ && application.job_offer) {
-					try {
-						const matchingResult = await calculateMatchingScore(
-							application.user_,
-							application.job_offer
-						);
-						application.matchScore = matchingResult.score || 50;
-					} catch (error) {
-						logger.error(
-							`[getApplicationsByCompany] Erreur calcul matching pour ${application.id_user}/${application.id_job_offer}:`,
-							error
-						);
-						application.matchScore = 50; // Score par défaut en cas d'erreur
-					}
-				} else {
-					application.matchScore = 50; // Score par défaut si données manquantes
-				}
-				return application;
-			});
-
-			// Attendre que tous les calculs soient terminés
-			await Promise.all(matchingPromises);
+			// 3. Calculer les scores de matching en parallèle
+			await calculateMatchingScores(data);
 
 			// Log pour déboguer la structure des documents
 			if (data.length > 0) {
@@ -564,9 +426,10 @@ export async function getAllApplications(options = {}) {
 
 		// Filtre de recherche
 		if (search) {
-			logger.debug('🔍 getAllApplications - Ajout du filtre de recherche:', search);
+			const sanitizedSearch = sanitizeSearchParam(search, 200);
+			logger.debug('🔍 getAllApplications - Ajout du filtre de recherche:', sanitizedSearch);
 			query = query.or(
-				`user_.firstname.ilike.%${search}%,user_.lastname.ilike.%${search}%,job_offer.title.ilike.%${search}%,job_offer.company.name.ilike.%${search}%`
+				`user_.firstname.ilike.%${sanitizedSearch}%,user_.lastname.ilike.%${sanitizedSearch}%,job_offer.title.ilike.%${sanitizedSearch}%,job_offer.company.name.ilike.%${sanitizedSearch}%`
 			);
 		}
 

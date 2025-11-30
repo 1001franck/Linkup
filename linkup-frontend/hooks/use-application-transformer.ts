@@ -15,10 +15,11 @@ export function useApplicationTransformer(savedJobs?: Set<number>) {
   // Fonction pour récupérer dynamiquement le nom de l'entreprise
   const fetchCompanyName = useCallback(async (companyId: number): Promise<string> => {
     try {
-      const response = await apiClient.request(`/companies/${companyId}`);
+      const response = await apiClient.publicRequest(`/companies/${companyId}`);
       
       // Gérer la structure imbriquée des données
-      const companyData = response.data?.data || response.data;
+      const responseData = response.data as any;
+      const companyData = responseData?.data || responseData;
       
       if (response.success && companyData?.name) {
         // Mettre à jour l'état avec le nom récupéré

@@ -12,6 +12,7 @@ import {
 } from '../services/companyStore.js';
 import { uploadCompanyLogoToSupabase } from '../services/userFilesStore.js';
 import { validatePagination } from '../middlewares/pagination.js';
+import { validateNumericId } from '../middlewares/security.js';
 import supabase from '../database/db.js';
 import logger from '../utils/logger.js';
 
@@ -90,7 +91,7 @@ router.get('/me', auth(), async (req, res) => {
 /**
  * GET /companies/:id
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateNumericId('id'), async (req, res) => {
 	try {
 		const company = await findById(req.params.id);
 		if (!company) {
@@ -133,7 +134,7 @@ router.post('/', auth(['company', 'admin']), async (req, res) => {
  * PUT /companies/:id (protégée)
  * Body: { name?, description?, website? }
  */
-router.put('/:id', auth(['company', 'admin']), async (req, res) => {
+router.put('/:id', validateNumericId('id'), auth(['company', 'admin']), async (req, res) => {
 	try {
 		const company = await findById(req.params.id);
 		if (!company) {
@@ -185,7 +186,7 @@ router.delete('/me', auth(), async (req, res) => {
 /**
  * DELETE /companies/:id (protégée - admin seulement)
  */
-router.delete('/:id', auth(['admin']), async (req, res) => {
+router.delete('/:id', validateNumericId('id'), auth(['admin']), async (req, res) => {
 	try {
 		const company = await findById(req.params.id);
 		if (!company) {
@@ -210,71 +211,77 @@ router.delete('/:id', auth(['admin']), async (req, res) => {
  * Header: Authorization (entreprise)
  * Form-Data: file (image)
  */
-router.post('/:id/logo', auth(['company']), upload.single('file'), async (req, res) => {
-	try {
-		logger.debug('🔍 POST /companies/:id/logo - Début');
-		logger.debug('🔍 Headers:', req.headers);
-		logger.debug('🔍 User:', req.user);
-		logger.debug(
-			'🔍 File:',
-			req.file
-				? { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype }
-				: 'Aucun fichier'
-		);
+router.post(
+	'/:id/logo',
+	validateNumericId('id'),
+	auth(['company']),
+	upload.single('file'),
+	async (req, res) => {
+		try {
+			logger.debug('🔍 POST /companies/:id/logo - Début');
+			logger.debug('🔍 Headers:', req.headers);
+			logger.debug('🔍 User:', req.user);
+			logger.debug(
+				'🔍 File:',
+				req.file
+					? { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype }
+					: 'Aucun fichier'
+			);
 
-		const companyId = parseInt(req.params.id);
-		const id_company = req.user.sub; // ID de l'entreprise connectée
+			const companyId = parseInt(req.params.id);
+			const id_company = req.user.sub; // ID de l'entreprise connectée
 
-		logger.debug('🔍 Company ID from params:', companyId);
-		logger.debug('🔍 Company ID from token:', id_company);
+			logger.debug('🔍 Company ID from params:', companyId);
+			logger.debug('🔍 Company ID from token:', id_company);
 
-		// Vérifier que l'entreprise peut modifier son propre logo
-		if (companyId !== id_company) {
-			logger.debug('❌ Accès refusé - IDs ne correspondent pas');
-			return res.status(403).json({ error: 'Accès refusé' });
+			// Vérifier que l'entreprise peut modifier son propre logo
+			if (companyId !== id_company) {
+				logger.debug('❌ Accès refusé - IDs ne correspondent pas');
+				return res.status(403).json({ error: 'Accès refusé' });
+			}
+
+			if (!req.file) {
+				logger.debug('❌ Aucun fichier fourni');
+				return res.status(400).json({ error: 'Fichier requis' });
+			}
+
+			// Vérifier que c'est une image
+			if (!req.file.mimetype.startsWith('image/')) {
+				logger.debug("❌ Fichier n'est pas une image:", req.file.mimetype);
+				return res.status(400).json({ error: 'Le fichier doit être une image' });
+			}
+
+			logger.debug('🔍 Upload vers Supabase...');
+			// Upload du fichier vers Supabase Storage
+			const result = await uploadCompanyLogoToSupabase(id_company, req.file);
+			logger.debug('✅ Upload réussi:', result);
+
+			logger.debug('🔍 Mise à jour base de données...');
+			// Mettre à jour la base de données avec l'URL du logo
+			const { error: updateError } = await supabase
+				.from('company')
+				.update({ logo: result.url })
+				.eq('id_company', id_company);
+
+			if (updateError) {
+				logger.error('❌ Erreur mise à jour logo:', updateError);
+				return res.status(500).json({ error: 'Erreur lors de la mise à jour du logo' });
+			}
+
+			logger.debug('✅ Logo mis à jour avec succès');
+			res.json({
+				success: true,
+				data: {
+					logo_url: result.url,
+					message: 'Logo mis à jour avec succès',
+				},
+			});
+		} catch (error) {
+			logger.error('❌ POST /companies/:id/logo error:', error);
+			res.status(500).json({ error: 'Erreur serveur' });
 		}
-
-		if (!req.file) {
-			logger.debug('❌ Aucun fichier fourni');
-			return res.status(400).json({ error: 'Fichier requis' });
-		}
-
-		// Vérifier que c'est une image
-		if (!req.file.mimetype.startsWith('image/')) {
-			logger.debug("❌ Fichier n'est pas une image:", req.file.mimetype);
-			return res.status(400).json({ error: 'Le fichier doit être une image' });
-		}
-
-		logger.debug('🔍 Upload vers Supabase...');
-		// Upload du fichier vers Supabase Storage
-		const result = await uploadCompanyLogoToSupabase(id_company, req.file);
-		logger.debug('✅ Upload réussi:', result);
-
-		logger.debug('🔍 Mise à jour base de données...');
-		// Mettre à jour la base de données avec l'URL du logo
-		const { error: updateError } = await supabase
-			.from('company')
-			.update({ logo: result.url })
-			.eq('id_company', id_company);
-
-		if (updateError) {
-			logger.error('❌ Erreur mise à jour logo:', updateError);
-			return res.status(500).json({ error: 'Erreur lors de la mise à jour du logo' });
-		}
-
-		logger.debug('✅ Logo mis à jour avec succès');
-		res.json({
-			success: true,
-			data: {
-				logo_url: result.url,
-				message: 'Logo mis à jour avec succès',
-			},
-		});
-	} catch (error) {
-		logger.error('❌ POST /companies/:id/logo error:', error);
-		res.status(500).json({ error: 'Erreur serveur' });
 	}
-});
+);
 
 /**
  * PUT /companies/me/password (protégée - entreprise seulement)

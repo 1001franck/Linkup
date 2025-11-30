@@ -55,15 +55,17 @@ export function useCompaniesPagination(
 
   // Transformer les données avec optimisation et debugging
   const companies = useMemo(() => {
-    if (!apiCompanies?.data?.data || !Array.isArray(apiCompanies.data.data)) {
+    const apiData = (apiCompanies as any)?.data;
+    const companiesData = apiData?.data || apiData;
+    if (!companiesData || !Array.isArray(companiesData)) {
       return [];
     }
     
-    const transformed = transformCompanies(apiCompanies.data.data);
+    const transformed = transformCompanies(companiesData);
     
     // Debug des statistiques de transformation en développement
     if (process.env.NODE_ENV === 'development') {
-      const stats = getTransformationStats(apiCompanies.data.data, transformed); // ✅ CORRECTION
+      const stats = getTransformationStats(companiesData, transformed); // ✅ CORRECTION
       if (stats.failed > 0 || stats.invalid > 0) {
         // Log conditionnel - Next.js supprimera automatiquement en production
         if (typeof window !== 'undefined') {
@@ -73,11 +75,12 @@ export function useCompaniesPagination(
     }
     
     return transformed;
-  }, [apiCompanies?.data?.data, transformCompanies]); // ✅ CORRECTION
+  }, [(apiCompanies as any)?.data, transformCompanies]); // ✅ CORRECTION
 
   // Calculer la pagination
   const pagination = useMemo((): CompaniesPaginationState => {
-    const totalItems = apiCompanies?.data?.pagination?.total || 0; // ✅ CORRECTION
+    const apiData = (apiCompanies as any)?.data;
+    const totalItems = apiData?.pagination?.total || apiData?.total || 0; // ✅ CORRECTION
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
     return {
@@ -86,7 +89,7 @@ export function useCompaniesPagination(
       totalItems,
       totalPages
     };
-  }, [apiCompanies?.data?.total, currentPage, itemsPerPage]);
+  }, [(apiCompanies as any)?.data, currentPage, itemsPerPage]);
 
   // Actions de pagination
   const actions: CompaniesPaginationActions = {

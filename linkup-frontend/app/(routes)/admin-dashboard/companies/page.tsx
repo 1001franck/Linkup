@@ -236,7 +236,7 @@ export default function AdminCompaniesPage() {
               <div className="space-y-4">
                 {companies && Array.isArray(companies) && companies.map((company, index) => (
                   <motion.div
-                    key={company.id_company || company.id || index}
+                    key={(company as any).id_company || company.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -438,7 +438,7 @@ function EditCompanyDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (company) {
-      onSubmit(company.id_company || company.id, formData);
+      onSubmit((company as any).id_company || company.id, formData);
     }
   };
 
@@ -526,7 +526,7 @@ function DeleteCompanyDialog({
 }) {
   const handleConfirm = () => {
     if (company) {
-      onConfirm(company.id_company || company.id);
+      onConfirm((company as any).id_company || company.id);
     }
   };
 

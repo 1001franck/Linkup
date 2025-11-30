@@ -305,3 +305,33 @@ export function validatePasswordReset(newPassword) {
 		};
 	}
 }
+
+/**
+ * Sanitize un paramètre de recherche pour éviter les injections SQL
+ * Échappe les caractères spéciaux utilisés par PostgREST/Supabase (%, _)
+ * et limite la longueur pour éviter les attaques DoS
+ * @param {string} searchParam - Paramètre de recherche à sanitizer
+ * @param {number} maxLength - Longueur maximale (défaut: 200)
+ * @returns {string} - Paramètre sanitizé
+ */
+export function sanitizeSearchParam(searchParam, maxLength = 200) {
+	if (!searchParam || typeof searchParam !== 'string') {
+		return '';
+	}
+
+	// Trim et limiter la longueur
+	let sanitized = searchParam.trim().slice(0, maxLength);
+
+	// Échapper les caractères spéciaux PostgREST/Supabase
+	// % et _ sont des wildcards dans LIKE/ILIKE, il faut les échapper avec \
+	sanitized = sanitized.replace(/[%_]/g, (match) => `\\${match}`);
+
+	// Supprimer les caractères de contrôle dangereux
+	// eslint-disable-next-line no-control-regex
+	sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+	// Supprimer les caractères qui pourraient causer des problèmes
+	sanitized = sanitized.replace(/[<>'"\\]/g, '');
+
+	return sanitized;
+}

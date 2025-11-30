@@ -32,6 +32,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { User, Company } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
+import logger from '@/lib/logger';
 
 // ========================================
 // INTERFACES TYPESCRIPT
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Utiliser Promise.allSettled pour appeler les deux endpoints en parallèle
         // Cela évite les appels séquentiels qui peuvent déclencher le rate limiting
+        // Les erreurs 401/404 sont attendues si l'utilisateur n'est pas connecté
         const [userResult, companyResult] = await Promise.allSettled([
           apiClient.getCurrentUser(),
           apiClient.getCurrentCompany()
@@ -92,16 +94,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Vérifier d'abord si c'est un utilisateur
         if (userResult.status === 'fulfilled' && userResult.value.success && userResult.value.data) {
-          const userData = userResult.value.data;
+          const userData = userResult.value.data as User;
           const userRole = userData.role;
           
           if (userRole === 'admin') {
-            const adminUser = { ...userData, role: 'admin' };
+            const adminUser: User = { ...userData, role: 'admin' };
             setUser(adminUser);
           } else if (userRole === 'company') {
             // Pour les entreprises, utiliser les données de l'entreprise si disponibles
             if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-              setUser(companyResult.value.data);
+              setUser(companyResult.value.data as Company);
             } else {
               // Fallback sur les données utilisateur si l'entreprise n'est pas disponible
               setUser(userData);
@@ -113,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } 
         // Sinon, vérifier si c'est une entreprise
         else if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-          setUser(companyResult.value.data);
+          setUser(companyResult.value.data as Company);
         } 
         // Aucun utilisateur connecté
         else {
@@ -151,11 +153,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const userResponse = await apiClient.getCurrentUser();
           if (userResponse.success && userResponse.data) {
-            setUser(userResponse.data);
+            const userData = userResponse.data as User;
+            setUser(userData);
             
             toast({
               title: 'Connexion réussie',
-              description: `Bienvenue ${userResponse.data.firstname || 'utilisateur'} !`,
+              description: `Bienvenue ${userData.firstname || 'utilisateur'} !`,
               variant: 'default',
             });
             
@@ -210,14 +213,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const response = await apiClient.loginCompany({ recruiter_mail, password });
       
-      if (response.success && response.data?.token) {
+      if (response.success && response.data) {
+        const responseData = response.data as any;
         // Utiliser les données entreprise de la réponse de connexion
-        if (response.data.company) {
-          setUser(response.data.company);
+        if (responseData.company) {
+          setUser(responseData.company as Company);
           
           toast({
             title: 'Connexion réussie',
-            description: `Bienvenue ${response.data.company.name || 'entreprise'} !`,
+            description: `Bienvenue ${responseData.company.name || 'entreprise'} !`,
             variant: 'default',
           });
           
@@ -227,11 +231,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const companyResponse = await apiClient.getCurrentCompany();
             if (companyResponse.success && companyResponse.data) {
-              setUser(companyResponse.data);
+              const companyData = companyResponse.data as Company;
+              setUser(companyData);
               
               toast({
                 title: 'Connexion réussie',
-                description: `Bienvenue ${companyResponse.data.name || 'entreprise'} !`,
+                description: `Bienvenue ${companyData.name || 'entreprise'} !`,
                 variant: 'default',
               });
               
@@ -241,6 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Erreur lors de la récupération des infos entreprise:', companyError);
           }
         }
+        return false;
       } else {
         toast({
           title: 'Erreur de connexion',
@@ -307,10 +313,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // ========================================
-      // NETTOYAGE DE L'ÉTAT
+      // NETTOYAGE DE L'ÉTAT ET LOCALSTORAGE
       // ========================================
       
       setUser(null);
+      
+      // Nettoyer toutes les données sensibles de localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          // Supprimer les données utilisateur sensibles
+          localStorage.removeItem('user');
+          localStorage.removeItem('userProfile');
+          localStorage.removeItem('userSkills');
+          localStorage.removeItem('profileCompleted');
+          // Nettoyer les autres données liées à l'utilisateur
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('favoriteResources_') || key.startsWith('viewedResources_'))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        } catch (error) {
+          console.error('Erreur lors du nettoyage de localStorage:', error);
+        }
+      }
       
       toast({
         title: 'Déconnexion',
@@ -366,14 +394,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Essayer d'abord avec utilisateur normal
       const userResponse = await apiClient.getCurrentUser();
       if (userResponse.success && userResponse.data) {
-        setUser(userResponse.data);
+        setUser(userResponse.data as User);
         return;
       }
       
       // Si échec, essayer avec entreprise
       const companyResponse = await apiClient.getCurrentCompany();
       if (companyResponse.success && companyResponse.data) {
-        setUser(companyResponse.data);
+        setUser(companyResponse.data as Company);
       }
     } catch (error) {
       logger.error('Erreur lors du rafraîchissement du profil:', error);

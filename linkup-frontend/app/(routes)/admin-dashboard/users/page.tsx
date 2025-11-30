@@ -280,7 +280,7 @@ export default function AdminUsersPage() {
                 <div className="space-y-4">
                   {users && Array.isArray(users) && users.map((user, index) => (
                     <motion.div
-                      key={user.id_user || user.id || index}
+                      key={(user as any).id_user || user.id || index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -510,7 +510,7 @@ function EditUserDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      onSubmit(user.id_user || user.id, formData);
+      onSubmit((user as any).id_user || user.id, formData);
     }
   };
 
@@ -604,7 +604,7 @@ function DeleteUserDialog({
 }) {
   const handleConfirm = () => {
     if (user) {
-      onConfirm(user.id_user || user.id);
+      onConfirm((user as any).id_user || user.id);
     }
   };
 
@@ -647,7 +647,7 @@ function ChangePasswordDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      onSubmit(user.id_user || user.id, password);
+      onSubmit((user as any).id_user || user.id, password);
     }
   };
 

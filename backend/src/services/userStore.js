@@ -1,12 +1,44 @@
 import supabase from '../database/db.js';
 import logger from '../utils/logger.js';
+import { sanitizeSearchParam } from '../utils/validators.js';
 
-// Find user by email
+// Find user by email (pour authentification - inclut password)
+async function findByEmailForAuth(email) {
+	const normalizedEmail = email.trim().toLowerCase();
+	logger.debug('[findByEmailForAuth] checking:', normalizedEmail);
+
+	// Sélectionner uniquement les champs nécessaires pour l'authentification
+	const { data, error } = await supabase
+		.from('user_')
+		.select('id_user, email, password, role, firstname, lastname, created_at')
+		.eq('email', normalizedEmail)
+		.single();
+
+	if (error && error.code !== 'PGRST116') {
+		logger.error('[findByEmailForAuth] error:', error);
+		return null;
+	}
+
+	return data;
+}
+
+/**
+ * Trouve un utilisateur par email (sans password - pour usage général)
+ * @param {string} email - Email de l'utilisateur
+ * @returns {Promise<Object|null>} Utilisateur trouvé ou null
+ */
 async function findByEmail(email) {
-	const e = email.trim().toLowerCase();
-	logger.debug('[findByEmail] checking:', e);
+	const normalizedEmail = email.trim().toLowerCase();
+	logger.debug('[findByEmail] checking:', normalizedEmail);
 
-	const { data, error } = await supabase.from('user_').select('*').eq('email', e).single();
+	// Sélectionner tous les champs sauf le password pour la sécurité
+	const { data, error } = await supabase
+		.from('user_')
+		.select(
+			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+		)
+		.eq('email', normalizedEmail)
+		.single();
 
 	if (error && error.code !== 'PGRST116') {
 		logger.error('[findByEmail] error:', error);
@@ -17,9 +49,20 @@ async function findByEmail(email) {
 	return data;
 }
 
-// Find user by id
+/**
+ * Trouve un utilisateur par ID (sans password - pour usage général)
+ * @param {number} id - ID de l'utilisateur
+ * @returns {Promise<Object|null>} Utilisateur trouvé ou null
+ */
 async function findById(id) {
-	const { data, error } = await supabase.from('user_').select('*').eq('id_user', id).single();
+	// Sélectionner tous les champs sauf le password pour la sécurité
+	const { data, error } = await supabase
+		.from('user_')
+		.select(
+			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+		)
+		.eq('id_user', id)
+		.single();
 
 	if (error && error.code !== 'PGRST116') {
 		logger.error('[findById] error:', error);
@@ -29,7 +72,21 @@ async function findById(id) {
 	return data;
 }
 
-// Create user
+/**
+ * Crée un nouvel utilisateur
+ * @param {Object} userData - Données de l'utilisateur
+ * @param {string} userData.email - Email de l'utilisateur
+ * @param {string} userData.password_hash - Hash du mot de passe
+ * @param {string} userData.firstname - Prénom
+ * @param {string} userData.lastname - Nom
+ * @param {string} [userData.role='user'] - Rôle de l'utilisateur
+ * @param {string} [userData.phone] - Téléphone
+ * @param {string} [userData.bio_pro] - Bio professionnelle
+ * @param {string} [userData.city] - Ville
+ * @param {string} [userData.country] - Pays
+ * @returns {Promise<Object>} Utilisateur créé
+ * @throws {Error} Si la création échoue
+ */
 async function createUser({
 	email,
 	password_hash,
@@ -75,17 +132,24 @@ async function createUser({
 	return data;
 }
 
-// NOTE: La création d'admin par défaut est gérée dans server.js
-// avec des variables d'environnement pour la sécurité
-// Get all users
+/**
+ * Récupère tous les utilisateurs avec pagination et recherche
+ * @param {Object} options - Options de pagination et recherche
+ * @param {number} [options.page=1] - Numéro de page
+ * @param {number} [options.limit=20] - Nombre d'éléments par page
+ * @param {string} [options.search] - Terme de recherche (nom, prénom, email)
+ * @returns {Promise<Object>} Objet contenant les données et la pagination
+ * @throws {Error} Si la récupération échoue
+ */
 async function getAllUsers({ page = 1, limit = 20, search = null } = {}) {
 	try {
 		let query = supabase.from('user_').select('*', { count: 'exact' });
 
 		// Recherche par nom, prénom ou email
 		if (search) {
+			const sanitizedSearch = sanitizeSearchParam(search, 200);
 			query = query.or(
-				`firstname.ilike.%${search}%,lastname.ilike.%${search}%,email.ilike.%${search}%`
+				`firstname.ilike.%${sanitizedSearch}%,lastname.ilike.%${sanitizedSearch}%,email.ilike.%${sanitizedSearch}%`
 			);
 		}
 
@@ -117,7 +181,13 @@ async function getAllUsers({ page = 1, limit = 20, search = null } = {}) {
 	}
 }
 
-// Update user
+/**
+ * Met à jour un utilisateur
+ * @param {number} id - ID de l'utilisateur
+ * @param {Object} updateData - Données à mettre à jour
+ * @returns {Promise<Object|null>} Utilisateur mis à jour ou null si aucune modification
+ * @throws {Error} Si la mise à jour échoue
+ */
 async function updateUser(id, updateData) {
 	try {
 		// MODIFICATION FRONTEND: Ajout de nouveaux champs pour la page settings ET profile/complete
@@ -167,7 +237,12 @@ async function updateUser(id, updateData) {
 	}
 }
 
-// Delete user
+/**
+ * Supprime un utilisateur
+ * @param {number} id - ID de l'utilisateur
+ * @returns {Promise<boolean>} True si la suppression a réussi
+ * @throws {Error} Si la suppression échoue
+ */
 async function deleteUser(id) {
 	try {
 		const { error } = await supabase.from('user_').delete().eq('id_user', id);
@@ -185,4 +260,12 @@ async function deleteUser(id) {
 }
 
 // Export
-export { findByEmail, findById, createUser, getAllUsers, updateUser, deleteUser };
+export {
+	findByEmail,
+	findByEmailForAuth,
+	findById,
+	createUser,
+	getAllUsers,
+	updateUser,
+	deleteUser,
+};

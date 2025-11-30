@@ -4,7 +4,9 @@
  */
 
 // Configuration des limites
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+import { MAX_FILE_SIZE_BYTES } from './constants.js';
+
+const MAX_FILE_SIZE = MAX_FILE_SIZE_BYTES;
 const ALLOWED_MIME_TYPES = {
 	'application/pdf': ['.pdf'],
 	'image/jpeg': ['.jpg', '.jpeg'],

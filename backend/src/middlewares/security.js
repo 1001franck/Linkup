@@ -4,37 +4,30 @@
  */
 
 import logger from '../utils/logger.js';
+import { sanitizeSearchParam } from '../utils/validators.js';
 
 /**
  * Valide et sanitize les paramètres de recherche pour éviter les injections
+ * Utilise la fonction centralisée de validators.js
  * @param {Object} req - Requête Express
  * @param {Object} res - Réponse Express
  * @param {Function} next - Next middleware
  */
+
 export function sanitizeSearchParams(req, res, next) {
-	// Sanitizer les paramètres de recherche dans query
+	// Sanitizer les paramètres de recherche dans query (limite de 200 caractères)
 	if (req.query.search) {
-		// Limiter la longueur et supprimer les caractères dangereux
-		req.query.search = String(req.query.search)
-			.trim()
-			.slice(0, 200) // Limite de 200 caractères
-			.replace(/[<>'"\\]/g, ''); // Supprimer les caractères dangereux
+		req.query.search = sanitizeSearchParam(req.query.search, 200);
 	}
 
 	if (req.query.q) {
-		req.query.q = String(req.query.q)
-			.trim()
-			.slice(0, 200)
-			.replace(/[<>'"\\]/g, '');
+		req.query.q = sanitizeSearchParam(req.query.q, 200);
 	}
 
-	// Sanitizer les autres paramètres de recherche
-	['location', 'industry', 'city', 'company'].forEach((param) => {
+	// Sanitizer les autres paramètres de recherche (limite de 100 caractères)
+	['location', 'industry', 'city', 'company', 'experience', 'education'].forEach((param) => {
 		if (req.query[param]) {
-			req.query[param] = String(req.query[param])
-				.trim()
-				.slice(0, 100)
-				.replace(/[<>'"\\]/g, '');
+			req.query[param] = sanitizeSearchParam(req.query[param], 100);
 		}
 	});
 

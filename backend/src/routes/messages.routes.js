@@ -7,6 +7,7 @@ import {
 	markAsRead,
 	deleteMessage,
 } from '../services/messageStore.js';
+import { validateNumericId } from '../middlewares/security.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -60,7 +61,7 @@ router.get('/conversations', auth(), async (req, res) => {
  * GET /messages/:userId (protégée)
  * Récupère les messages entre l'utilisateur connecté et un autre utilisateur
  */
-router.get('/:userId', auth(), async (req, res) => {
+router.get('/:userId', validateNumericId('userId'), auth(), async (req, res) => {
 	try {
 		const messages = await getMessagesBetweenUsers(req.user.sub, req.params.userId);
 		res.json({ data: messages });
@@ -74,7 +75,7 @@ router.get('/:userId', auth(), async (req, res) => {
  * PUT /messages/:messageId/read (protégée)
  * Marque un message comme lu
  */
-router.put('/:messageId/read', auth(), async (req, res) => {
+router.put('/:messageId/read', validateNumericId('messageId'), auth(), async (req, res) => {
 	try {
 		const message = await markAsRead(req.params.messageId, req.user.sub);
 		if (!message) {
@@ -92,7 +93,7 @@ router.put('/:messageId/read', auth(), async (req, res) => {
  * DELETE /messages/:messageId (protégée)
  * Supprime un message
  */
-router.delete('/:messageId', auth(), async (req, res) => {
+router.delete('/:messageId', validateNumericId('messageId'), auth(), async (req, res) => {
 	try {
 		const deleted = await deleteMessage(req.params.messageId, req.user.sub);
 		if (!deleted) {

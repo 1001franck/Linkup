@@ -20,10 +20,20 @@ export interface User {
   private_visibility?: boolean;
   created_at: string;
   role: string;
+  // Propriétés optionnelles pour le profil complet
+  description?: string;
+  job_title?: string;
+  experience_level?: string;
+  availability?: boolean;
+  portfolio_link?: string;
+  linkedin_link?: string;
+  profile_picture?: string;
+  skills?: string[];
 }
 
 export interface Company {
   Id_company: number;
+  id_company?: number; // Alias pour compatibilité
   name: string;
   description: string;
   website?: string;
@@ -37,6 +47,8 @@ export interface Company {
   city?: string;
   zip_code?: string;
   country?: string;
+  role?: string; // Pour compatibilité avec User
+  logo?: string; // Logo de l'entreprise
 }
 
 export interface JobOffer {

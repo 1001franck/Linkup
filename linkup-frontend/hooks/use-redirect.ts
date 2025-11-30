@@ -33,6 +33,7 @@
  */
 
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Hook pour la gestion des redirections
@@ -55,11 +56,12 @@ import { useRouter } from 'next/navigation';
  */
 export function useRedirect() {
   const router = useRouter();
+  const { user } = useAuth();
 
   /**
    * Redirige vers le dashboard approprié selon le rôle utilisateur
    * 
-   * @param userRole - Rôle utilisateur (optionnel, sera détecté automatiquement)
+   * @param userRole - Rôle utilisateur (optionnel, sera détecté automatiquement depuis AuthContext)
    * @param fallbackPath - Chemin de fallback (optionnel)
    * 
    * @example
@@ -78,20 +80,12 @@ export function useRedirect() {
     // ========================================
     // DÉTECTION DU RÔLE UTILISATEUR
     // ========================================
+    // Utiliser uniquement AuthContext pour des raisons de sécurité
+    // Suppression du fallback localStorage
     
     let role = userRole;
-    if (!role && typeof window !== 'undefined') {
-      try {
-        const userData = localStorage.getItem('user');
-        console.log('🐛 DEBUG: Données utilisateur dans redirectToDashboard:', userData);
-        if (userData) {
-          const user = JSON.parse(userData);
-          role = user.role;
-          console.log('🐛 DEBUG: Rôle extrait:', role);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la lecture du rôle utilisateur:', error);
-      }
+    if (!role && user && ('role' in user)) {
+      role = user.role;
     }
 
     // ========================================
@@ -105,8 +99,6 @@ export function useRedirect() {
       dashboardPath = '/company-dashboard';
     }
     const finalPath = fallbackPath || dashboardPath;
-    
-    console.log(`🐛 DEBUG: Redirection vers: ${finalPath} (rôle: ${role})`);
     
     // ========================================
     // EXÉCUTION DE LA REDIRECTION

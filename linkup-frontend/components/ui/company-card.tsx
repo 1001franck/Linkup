@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Company } from "@/types/company";
+import { MarketingCompany } from '@/lib/marketing-data';
 import { 
   SiGoogle, SiApple, SiMeta, SiSap, SiOracle, SiSalesforce, SiAdobe,
   SiNike, SiAdidas, SiSpotify, SiPaypal, SiStripe, SiNvidia, SiOpenai, SiShell
@@ -16,7 +16,7 @@ import {
 import { FaMicrosoft, FaBuilding, FaIndustry, FaBolt, FaOilCan } from "react-icons/fa";
 
 interface CompanyCardProps {
-  company: Company;
+  company: MarketingCompany;
   index: number;
   onFollow: (companyId: string) => void;
   onViewOffers: (companyId: string) => void;

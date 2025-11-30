@@ -7,6 +7,7 @@ import {
 } from '../services/matchingStore.js';
 import { findById } from '../services/userStore.js';
 import { findById as findJobById } from '../services/jobStore.js';
+import { validateNumericId } from '../middlewares/security.js';
 
 const router = express.Router();
 
@@ -84,7 +85,7 @@ router.get('/jobs', auth(), async (req, res) => {
  * GET /matching/jobs/:jobId/score
  * Calcule le score de matching pour une offre spécifique
  */
-router.get('/jobs/:jobId/score', auth(), async (req, res) => {
+router.get('/jobs/:jobId/score', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const userId = req.user.sub;
 		const jobId = req.params.jobId;
@@ -136,7 +137,7 @@ router.get('/jobs/:jobId/score', auth(), async (req, res) => {
  * Récupère les utilisateurs avec scores de matching pour une offre (pour les recruteurs)
  * Nécessite le rôle admin ou company
  */
-router.get('/users/:jobId', auth(), async (req, res) => {
+router.get('/users/:jobId', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const jobId = req.params.jobId;
 		const { limit = 20, minScore = 0 } = req.query;
@@ -194,7 +195,7 @@ router.get('/users/:jobId', auth(), async (req, res) => {
  * GET /matching/insights/:userId
  * Récupère des insights sur le matching pour un utilisateur
  */
-router.get('/insights/:userId', auth(), async (req, res) => {
+router.get('/insights/:userId', validateNumericId('userId'), auth(), async (req, res) => {
 	try {
 		const userId = req.params.userId;
 		const requestingUserId = req.user.sub;

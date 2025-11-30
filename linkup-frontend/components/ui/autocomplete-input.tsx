@@ -5,10 +5,9 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search, MapPin, Loader2 } from 'lucide-react';
-import { City, Country, State } from 'country-state-city';
 // Note: On utilise fetch directement car les endpoints de suggestions sont publics
 
 interface AutocompleteInputProps {
@@ -37,48 +36,63 @@ export function AutocompleteInput({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const suggestionsRef = useRef<HTMLDivElement>(null);
 	const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const abortRef = useRef<AbortController | null>(null);
+	const [cityDataset, setCityDataset] = useState<string[]>([]);
+	const cityDatasetLoaded = useRef(false);
 
-	// Liste complète des villes françaises et européennes depuis country-state-city
-	const allCities = useMemo(() => {
-		if (type !== 'location') return [];
-		
+	const loadCityDataset = useCallback(async () => {
+		if (cityDatasetLoaded.current) return;
+		cityDatasetLoaded.current = true;
+
 		try {
-			// Récupérer toutes les villes de France
+			const { City, Country } = await import('country-state-city');
 			const franceCities = City.getCitiesOfCountry('FR') || [];
-			
-			// Récupérer les villes des principaux pays européens
 			const europeanCountries = ['BE', 'CH', 'DE', 'ES', 'IT', 'NL', 'GB', 'PT', 'AT', 'IE'];
-			const europeanCities = europeanCountries.flatMap(countryCode => {
+			const europeanCities = europeanCountries.flatMap((countryCode) => {
 				const cities = City.getCitiesOfCountry(countryCode) || [];
-				return cities.map(city => {
-					// Pour les villes hors France, ajouter le pays si différent
+				return cities.map((city) => {
 					const countryName = Country.getCountryByCode(countryCode)?.name || '';
 					return countryCode === 'FR' ? city.name : `${city.name}${countryName ? `, ${countryName}` : ''}`;
 				});
 			});
-			
-			// Formater les villes françaises (juste le nom)
-			const franceCityNames = franceCities.map(city => city.name);
-			
-			// Combiner avec Remote et variantes
+
 			const formattedCities = [
-				"Remote", "Télétravail", "Hybride", "Télétravail partiel",
-				...franceCityNames,
-				...europeanCities
+				'Remote',
+				'Télétravail',
+				'Hybride',
+				'Télétravail partiel',
+				...franceCities.map((city) => city.name),
+				...europeanCities,
 			];
-			
-			// Dédupliquer
-			return [...new Set(formattedCities)];
+
+			setCityDataset([...new Set(formattedCities)]);
 		} catch (error) {
 			console.error('Erreur lors du chargement des villes:', error);
-			// Fallback: liste basique
-			return [
-				"Remote", "Télétravail", "Hybride",
-				"Paris", "Lyon", "Marseille", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier",
-				"Bordeaux", "Lille", "Rennes", "Reims", "Bruxelles", "Genève", "Luxembourg"
-			];
+			setCityDataset([
+				'Remote',
+				'Télétravail',
+				'Hybride',
+				'Paris',
+				'Lyon',
+				'Marseille',
+				'Toulouse',
+				'Nice',
+				'Nantes',
+				'Strasbourg',
+				'Montpellier',
+				'Bordeaux',
+				'Lille',
+				'Rennes',
+				'Reims',
+			]);
 		}
-	}, [type]);
+	}, []);
+
+	useEffect(() => {
+		if (type === 'location' && !cityDatasetLoaded.current) {
+			loadCityDataset();
+		}
+	}, [type, loadCityDataset]);
 
 	// Fonction pour récupérer les suggestions depuis l'API
 	const fetchSuggestions = useCallback(async (query: string) => {
@@ -90,16 +104,22 @@ export function AutocompleteInput({
 
 		setIsLoading(true);
 		try {
+			if (abortRef.current) {
+				abortRef.current.abort();
+			}
+			const controller = new AbortController();
+			abortRef.current = controller;
+
 			if (type === 'location') {
-				// Pour les localisations, on combine country-state-city (côté client) avec l'API backend
+				if (!cityDatasetLoaded.current && !cityDataset.length) {
+					await loadCityDataset();
+				}
 				const queryLower = query.toLowerCase();
 				
-				// Filtrer les villes depuis country-state-city
-				const cityMatches = allCities.filter(city => 
+				const cityMatches = cityDataset.filter(city => 
 					city.toLowerCase().includes(queryLower)
 				);
 				
-				// Récupérer aussi les localisations de la DB (pour les localisations personnalisées)
 				try {
 					const endpoint = `/jobs/suggestions/locations?q=${encodeURIComponent(query)}`;
 					const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -109,6 +129,7 @@ export function AutocompleteInput({
 						headers: {
 							'Content-Type': 'application/json',
 						},
+						signal: controller.signal,
 					});
 					
 					if (response.ok) {
@@ -138,11 +159,11 @@ export function AutocompleteInput({
 						}
 					}
 				} catch (apiError) {
-					// Si l'API échoue, on utilise quand même les villes du package
-					console.warn('Erreur API localisations (utilisation du package uniquement):', apiError);
+					if (!(apiError instanceof DOMException && apiError.name === 'AbortError')) {
+						console.warn('Erreur API localisations (utilisation du package uniquement):', apiError);
+					}
 				}
 				
-				// Fallback: utiliser uniquement les villes du package
 				const sorted = cityMatches.sort((a, b) => {
 					const aLower = a.toLowerCase();
 					const bLower = b.toLowerCase();
@@ -166,6 +187,7 @@ export function AutocompleteInput({
 					headers: {
 						'Content-Type': 'application/json',
 					},
+					signal: controller.signal,
 				});
 				
 				if (!response.ok) {
@@ -188,8 +210,9 @@ export function AutocompleteInput({
 			setShowSuggestions(false);
 		} finally {
 			setIsLoading(false);
+			abortRef.current = null;
 		}
-	}, [type, allCities]);
+	}, [type, cityDataset, loadCityDataset]);
 
 	// Debounce pour éviter trop de requêtes
 	useEffect(() => {
@@ -204,6 +227,10 @@ export function AutocompleteInput({
 		return () => {
 			if (debounceTimerRef.current) {
 				clearTimeout(debounceTimerRef.current);
+			}
+			if (abortRef.current) {
+				abortRef.current.abort();
+				abortRef.current = null;
 			}
 		};
 	}, [value, fetchSuggestions]);
@@ -224,6 +251,10 @@ export function AutocompleteInput({
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
+			if (abortRef.current) {
+				abortRef.current.abort();
+				abortRef.current = null;
+			}
 		};
 	}, []);
 

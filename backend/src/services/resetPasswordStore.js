@@ -43,7 +43,8 @@ async function updatePassword(userId, currentPassword, newPassword) {
 	}
 
 	// 2. Générer le nouveau hash bcrypt
-	const hash = await bcrypt.hash(newPassword, 10);
+	const { BCRYPT_SALT_ROUNDS } = await import('../utils/constants.js');
+	const hash = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
 
 	// 3. Mettre à jour la BDD via Supabase
 	const { error } = await supabase.from('user_').update({ password: hash }).eq('id_user', userId);

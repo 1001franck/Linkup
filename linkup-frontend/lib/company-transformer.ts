@@ -56,7 +56,9 @@ const determineLocation = (apiCompany: ApiCompany): string => {
 const determineFoundedYear = (apiCompany: ApiCompany): string => {
   // Priorité 1 : founded_year (champ renseigné par l'entreprise)
   if (apiCompany.founded_year) {
-    const year = parseInt(apiCompany.founded_year);
+    const year = typeof apiCompany.founded_year === 'string' 
+      ? parseInt(apiCompany.founded_year, 10) 
+      : apiCompany.founded_year;
     if (!isNaN(year) && year >= 1800) {
       return year.toString();
     }

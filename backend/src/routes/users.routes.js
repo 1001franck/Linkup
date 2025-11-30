@@ -3,6 +3,7 @@ import auth from '../middlewares/auth.js';
 import { findById, getAllUsers, updateUser, deleteUser } from '../services/userStore.js';
 import { getUserTrends, getUserDetailedStats } from '../services/userStatsStore.js';
 import { getProfilePicture } from '../services/userFilesStore.js';
+import { validateNumericId } from '../middlewares/security.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -194,7 +195,7 @@ router.get('/me/stats/detailed', auth(), async (req, res) => {
  * Récupère les tendances d'un utilisateur spécifique (pour les admins)
  * Header: Authorization: Bearer <token>
  */
-router.get('/:id/stats/trends', auth(), async (req, res) => {
+router.get('/:id/stats/trends', validateNumericId('id'), auth(), async (req, res) => {
 	try {
 		// Vérifier si l'utilisateur est admin ou s'il accède à ses propres stats
 		if (req.user.role !== 'admin' && req.user.sub !== parseInt(req.params.id)) {

@@ -3,22 +3,21 @@
  * Respect des principes SOLID, KISS et DRY
  */
 
-import { useState, useEffect } from "react";
-import { Company } from "@/types/company";
+import { useState, useEffect } from 'react';
 
-interface UseCompanyPaginationProps {
-  companies: Company[];
-  itemsPerPage?: number;
+interface UseCompanyPaginationProps<T> {
+	companies: T[];
+	itemsPerPage?: number;
 }
 
-interface UseCompanyPaginationReturn {
-  currentPage: number;
-  totalPages: number;
-  currentItems: Company[];
-  goToPage: (page: number) => void;
-  goToNext: () => void;
-  goToPrevious: () => void;
-  resetPagination: () => void;
+interface UseCompanyPaginationReturn<T> {
+	currentPage: number;
+	totalPages: number;
+	currentItems: T[];
+	goToPage: (page: number) => void;
+	goToNext: () => void;
+	goToPrevious: () => void;
+	resetPagination: () => void;
 }
 
 /**
@@ -26,51 +25,50 @@ interface UseCompanyPaginationReturn {
  * Single Responsibility: Gestion uniquement de la pagination
  * Open/Closed: Extensible via paramètres
  */
-export function useCompanyPagination({
-  companies,
-  itemsPerPage = 4
-}: UseCompanyPaginationProps): UseCompanyPaginationReturn {
-  const [currentPage, setCurrentPage] = useState(0);
-  
-  const totalPages = Math.ceil(companies.length / itemsPerPage);
-  const startIndex = currentPage * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = companies.slice(startIndex, endIndex);
+export function useCompanyPagination<T>({
+	companies,
+	itemsPerPage = 4,
+}: UseCompanyPaginationProps<T>): UseCompanyPaginationReturn<T> {
+	const [currentPage, setCurrentPage] = useState(0);
 
-  const goToPage = (page: number) => {
-    if (page >= 0 && page < totalPages) {
-      setCurrentPage(page);
-    }
-  };
+	const totalPages = Math.max(1, Math.ceil(companies.length / itemsPerPage));
+	const startIndex = currentPage * itemsPerPage;
+	const endIndex = startIndex + itemsPerPage;
+	const currentItems = companies.slice(startIndex, endIndex);
 
-  const goToNext = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
+	const goToPage = (page: number) => {
+		if (page >= 0 && page < totalPages) {
+			setCurrentPage(page);
+		}
+	};
 
-  const goToPrevious = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+	const goToNext = () => {
+		if (currentPage < totalPages - 1) {
+			setCurrentPage((prev) => prev + 1);
+		}
+	};
 
-  const resetPagination = () => {
-    setCurrentPage(0);
-  };
+	const goToPrevious = () => {
+		if (currentPage > 0) {
+			setCurrentPage((prev) => prev - 1);
+		}
+	};
 
-  // Réinitialiser la pagination quand la liste change
-  useEffect(() => {
-    resetPagination();
-  }, [companies.length]);
+	const resetPagination = () => {
+		setCurrentPage(0);
+	};
 
-  return {
-    currentPage,
-    totalPages,
-    currentItems,
-    goToPage,
-    goToNext,
-    goToPrevious,
-    resetPagination
-  };
+	useEffect(() => {
+		resetPagination();
+	}, [companies.length]);
+
+	return {
+		currentPage,
+		totalPages,
+		currentItems,
+		goToPage,
+		goToNext,
+		goToPrevious,
+		resetPagination,
+	};
 }

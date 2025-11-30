@@ -65,7 +65,7 @@ export default function RegisterPage() {
     // Gérer l'autocomplétion des villes
     if (field === "city" && typeof value === "string") {
       if (value.length >= 2 && formData.country) {
-        const cities = City.getCitiesOfCountry(formData.country);
+        const cities = City.getCitiesOfCountry(formData.country) || [];
         const filteredCities = cities
           .filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
           .map(city => city.name)

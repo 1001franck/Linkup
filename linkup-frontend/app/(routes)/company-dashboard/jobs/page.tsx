@@ -49,7 +49,7 @@ import {
 export default function CompanyJobsPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { user, isAuthenticated, authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +63,8 @@ export default function CompanyJobsPage() {
   } = useCompanyAllJobsManagement();
 
   // Utiliser les données API ou un tableau vide par défaut
-  const jobs = Array.isArray(apiJobs?.data) ? apiJobs.data : [];
+  const apiJobsData = apiJobs as any;
+  const jobs = Array.isArray(apiJobsData?.data) ? apiJobsData.data : [];
 
   const statusOptions = [
     { id: "all", label: "Tous les statuts", color: "bg-gray-100 text-gray-800" },
@@ -90,7 +91,7 @@ export default function CompanyJobsPage() {
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = jobs.filter((job: any) => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === "all" || job.status === selectedStatus;
@@ -189,7 +190,7 @@ export default function CompanyJobsPage() {
                         Offres actives
                       </Typography>
                       <Typography variant="h2" className="text-3xl font-bold text-foreground">
-                        {jobs.filter(job => job.status === 'active').length}
+                        {jobs.filter((job: any) => job.status === 'active').length}
                       </Typography>
                     </div>
                     <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
@@ -213,7 +214,7 @@ export default function CompanyJobsPage() {
                         Total candidatures
                       </Typography>
                       <Typography variant="h2" className="text-3xl font-bold text-foreground">
-                        {jobs.reduce((sum, job) => sum + job.applications, 0)}
+                        {jobs.reduce((sum: number, job: any) => sum + (job.applications || 0), 0)}
                       </Typography>
                     </div>
                     <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -238,7 +239,7 @@ export default function CompanyJobsPage() {
                         Offres urgentes
                       </Typography>
                       <Typography variant="h2" className="text-3xl font-bold text-foreground">
-                        {jobs.filter(job => job.urgent).length}
+                        {jobs.filter((job: any) => job.urgent).length}
                       </Typography>
                     </div>
                     <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
@@ -350,7 +351,7 @@ export default function CompanyJobsPage() {
             )}
 
             {/* Jobs List */}
-            {!jobsLoading && !jobsError && filteredJobs.length > 0 && paginatedJobs.map((job, index) => (
+            {!jobsLoading && !jobsError && filteredJobs.length > 0 && paginatedJobs.map((job: any, index: number) => (
               <motion.div
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}

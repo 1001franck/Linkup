@@ -267,7 +267,7 @@ export default function AdminJobsPage() {
               <div className="space-y-4">
                 {jobs && Array.isArray(jobs) && jobs.map((job, index) => (
                   <motion.div
-                    key={job.id_job_offer || job.id || index}
+                    key={(job as any).id_job_offer || job.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -298,7 +298,7 @@ export default function AdminJobsPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Publiée le {formatDate(job.published_at)}</span>
+                          <span>Publiée le {formatDate((job as any).published_at || job.created_at)}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -524,7 +524,7 @@ function EditJobDialog({
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined
       };
-      onSubmit(job.id_job_offer || job.id, jobData);
+      onSubmit((job as any).id_job_offer || job.id, jobData);
     }
   };
 
@@ -645,7 +645,7 @@ function DeleteJobDialog({
 }) {
   const handleConfirm = () => {
     if (job) {
-      onConfirm(job.id_job_offer || job.id);
+      onConfirm((job as any).id_job_offer || job.id);
     }
   };
 

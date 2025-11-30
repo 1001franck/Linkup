@@ -103,7 +103,8 @@ async function getRecentActivity() {
 async function changeUserPassword(userId, newPassword) {
 	try {
 		const bcrypt = await import('bcryptjs');
-		const password_hash = await bcrypt.hash(newPassword, 10);
+		const { BCRYPT_SALT_ROUNDS } = await import('../utils/constants.js');
+		const password_hash = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
 
 		const { data, error } = await supabase
 			.from('user_')

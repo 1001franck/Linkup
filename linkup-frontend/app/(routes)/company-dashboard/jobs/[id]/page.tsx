@@ -46,32 +46,33 @@ export default function CompanyJobDetailPage() {
   const { data: jobResponse, loading, error } = useJob(jobId ? Number(jobId) : null);
 
   // Transformer les données API vers le format attendu
-  const job = jobResponse?.data ? {
-    id: jobResponse.data.id_job_offer || jobResponse.data.id || Number(jobId),
-    title: jobResponse.data.title || "Titre non disponible",
-    company: jobResponse.data.company?.name || jobResponse.data.company || "Entreprise",
-    companyId: jobResponse.data.id_company || jobResponse.data.companyId || 0,
-    location: jobResponse.data.location || "Non spécifié",
-    type: jobResponse.data.contract_type || "Non spécifié",
-    contractType: jobResponse.data.contract_type || "Non spécifié",
-    remote: jobResponse.data.remote === "true" || jobResponse.data.remote === true || false,
-    salary: (jobResponse.data.salary_min || jobResponse.data.salary_max) ? {
-      min: jobResponse.data.salary_min || 0,
-      max: jobResponse.data.salary_max || 0,
+  const jobData = (jobResponse as any)?.data;
+  const job: Job | null = jobData ? {
+    id: jobData.id_job_offer || jobData.id || Number(jobId),
+    title: jobData.title || "Titre non disponible",
+    company: jobData.company?.name || jobData.company || "Entreprise",
+    companyId: jobData.id_company || jobData.companyId || 0,
+    location: jobData.location || "Non spécifié",
+    type: jobData.contract_type || "Non spécifié",
+    contractType: jobData.contract_type || "Non spécifié",
+    remote: jobData.remote === "true" || jobData.remote === true || false,
+    salary: (jobData.salary_min || jobData.salary_max) ? {
+      min: jobData.salary_min || 0,
+      max: jobData.salary_max || 0,
       currency: "EUR"
     } : null,
-    salaryRange: (jobResponse.data.salary_min && jobResponse.data.salary_max) 
-      ? `${jobResponse.data.salary_min}-${jobResponse.data.salary_max}k€`
-      : jobResponse.data.salary_min 
-        ? `${jobResponse.data.salary_min}k€+`
-        : jobResponse.data.salary_max
-          ? `Jusqu'à ${jobResponse.data.salary_max}k€`
+    salaryRange: (jobData.salary_min && jobData.salary_max) 
+      ? `${jobData.salary_min}-${jobData.salary_max}k€`
+      : jobData.salary_min 
+        ? `${jobData.salary_min}k€+`
+        : jobData.salary_max
+          ? `Jusqu'à ${jobData.salary_max}k€`
           : "Non spécifié",
-    postedAt: jobResponse.data.published_at || jobResponse.data.created_at || "",
-    publishedAt: jobResponse.data.published_at || jobResponse.data.created_at || "",
-    description: jobResponse.data.description || "Description non disponible",
+    postedAt: jobData.published_at || jobData.created_at || "",
+    publishedAt: jobData.published_at || jobData.created_at || "",
+    description: jobData.description || "Description non disponible",
     requirements: (() => {
-      const req = jobResponse.data.requirements;
+      const req = jobData.requirements;
       if (!req) return [];
       if (Array.isArray(req)) return req;
       if (typeof req === 'string') {
@@ -87,7 +88,7 @@ export default function CompanyJobDetailPage() {
       return [];
     })(),
     benefits: (() => {
-      const ben = jobResponse.data.benefits;
+      const ben = jobData.benefits;
       if (!ben) return [];
       if (Array.isArray(ben)) return ben;
       if (typeof ben === 'string') {
@@ -102,12 +103,12 @@ export default function CompanyJobDetailPage() {
       }
       return [];
     })(),
-    companyLogo: jobResponse.data.company?.logo || jobResponse.data.company_logo || null,
-    experience: jobResponse.data.experience || "Non spécifié",
-    education: jobResponse.data.education || jobResponse.data.formation_required || "Non spécifié",
-    urgency: jobResponse.data.urgency || jobResponse.data.urgent ? 'high' : 'low',
-    applications: jobResponse.data.applications_count || jobResponse.data.applications || 0,
-    views: jobResponse.data.views || 0,
+    companyLogo: jobData.company?.logo || jobData.company_logo || null,
+    experience: jobData.experience || "Non spécifié",
+    education: jobData.education || jobData.formation_required || "Non spécifié",
+    urgency: jobData.urgency || jobData.urgent ? 'high' : 'low',
+    applications: jobData.applications_count || jobData.applications || 0,
+    views: jobData.views || 0,
   } : null;
 
   const handleEdit = () => {

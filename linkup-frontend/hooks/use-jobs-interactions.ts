@@ -52,7 +52,8 @@ export function useJobsInteractions() {
     try {
       // Charger les sauvegardes depuis le backend
       // savedJobsData peut être un objet avec une propriété data ou directement un tableau
-      const savedJobs = savedJobsData?.data || savedJobsData;
+      const savedJobsDataTyped = savedJobsData as any;
+      const savedJobs = savedJobsDataTyped?.data || savedJobsDataTyped;
       if (savedJobs && Array.isArray(savedJobs)) {
         const savedJobIds = savedJobs.map((savedJob: any) => 
           savedJob.job_offer?.id_job_offer || savedJob.id_job_offer
@@ -63,7 +64,8 @@ export function useJobsInteractions() {
       
       // Charger les candidatures depuis le backend
       // applicationsData peut être un objet avec une propriété data ou directement un tableau
-      const applications = applicationsData?.data || applicationsData;
+      const applicationsDataTyped = applicationsData as any;
+      const applications = applicationsDataTyped?.data || applicationsDataTyped;
       if (applications && Array.isArray(applications)) {
         const appliedJobIds: number[] = [];
         const withdrawnJobIds: number[] = [];

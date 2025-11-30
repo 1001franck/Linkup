@@ -1,15 +1,20 @@
 import supabase from '../database/db.js';
 import bcrypt from 'bcryptjs';
 import logger from '../utils/logger.js';
+import { sanitizeSearchParam } from '../utils/validators.js';
+import { BCRYPT_SALT_ROUNDS } from '../utils/constants.js';
 
 /**
  * Trouve une entreprise par ID
  */
 async function findById(id_company) {
 	try {
+		// Sélectionner uniquement les champs nécessaires (sans password)
 		const { data, error } = await supabase
 			.from('company')
-			.select('*')
+			.select(
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+			)
 			.eq('id_company', id_company)
 			.single();
 
@@ -19,9 +24,9 @@ async function findById(id_company) {
 		}
 
 		return data || null;
-	} catch (err) {
-		logger.error('findById error:', err);
-		throw err;
+	} catch (error) {
+		logger.error('findById error:', error);
+		throw error;
 	}
 }
 
@@ -31,9 +36,12 @@ async function findById(id_company) {
 async function findByName(name) {
 	try {
 		const searchName = String(name).trim().toLowerCase();
+		// Sélectionner uniquement les champs nécessaires (sans password)
 		const { data, error } = await supabase
 			.from('company')
-			.select('*')
+			.select(
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+			)
 			.ilike('name', searchName)
 			.single();
 
@@ -43,9 +51,9 @@ async function findByName(name) {
 		}
 
 		return data || null;
-	} catch (err) {
-		logger.error('findByName error:', err);
-		throw err;
+	} catch (error) {
+		logger.error('findByName error:', error);
+		throw error;
 	}
 }
 
@@ -98,7 +106,7 @@ async function createCompany({
 		if (existingName) throw new Error('Une entreprise avec ce nom existe déjà.');
 
 		// Hash du mot de passe
-		const hashedPassword = await bcrypt.hash(String(password), 10);
+		const hashedPassword = await bcrypt.hash(String(password), BCRYPT_SALT_ROUNDS);
 
 		// Validation de l'année de fondation si fournie
 		let validatedFoundedYear = null;
@@ -146,7 +154,7 @@ async function createCompany({
  */
 async function verifyCompanyCredentials(recruiter_mail, password) {
 	try {
-		const company = await findByMail(recruiter_mail);
+		const company = await findByMailForAuth(recruiter_mail);
 		if (!company) return null;
 
 		const ok = await bcrypt.compare(String(password), company.password);
@@ -158,15 +166,16 @@ async function verifyCompanyCredentials(recruiter_mail, password) {
 }
 
 /**
- * Trouve une entreprise par l'email du recruteur
+ * Trouve une entreprise par l'email du recruteur (pour authentification - inclut password)
  */
-async function findByMail(recruiter_mail) {
+async function findByMailForAuth(recruiter_mail) {
 	try {
 		const searchMail = String(recruiter_mail).trim().toLowerCase();
 
+		// Sélectionner uniquement les champs nécessaires pour l'authentification
 		const { data, error } = await supabase
 			.from('company')
-			.select('*')
+			.select('id_company, name, recruiter_mail, password, role, created_at')
 			.ilike('recruiter_mail', searchMail)
 			.single();
 
@@ -176,9 +185,39 @@ async function findByMail(recruiter_mail) {
 		}
 
 		return data || null;
-	} catch (err) {
-		logger.error('findByRecruiterMail error:', err);
-		throw err;
+	} catch (error) {
+		logger.error('findByRecruiterMail error:', error);
+		throw error;
+	}
+}
+
+/**
+ * Trouve une entreprise par l'email du recruteur (sans password - pour usage général)
+ * @param {string} recruiter_mail - Email du recruteur
+ * @returns {Promise<Object|null>} Entreprise trouvée ou null
+ */
+async function findByMail(recruiter_mail) {
+	try {
+		const searchMail = String(recruiter_mail).trim().toLowerCase();
+
+		// Sélectionner uniquement les champs nécessaires (sans password)
+		const { data, error } = await supabase
+			.from('company')
+			.select(
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+			)
+			.ilike('recruiter_mail', searchMail)
+			.single();
+
+		if (error && error.code !== 'PGRST116') {
+			logger.error('findByRecruiterMail error:', error);
+			return null;
+		}
+
+		return data || null;
+	} catch (error) {
+		logger.error('findByRecruiterMail error:', error);
+		throw error;
 	}
 }
 
@@ -219,7 +258,7 @@ async function updateCompanyPassword(id_company, currentPassword, newPassword) {
 		}
 
 		// Hash du nouveau mot de passe
-		const hashedPassword = await bcrypt.hash(String(newPassword), 10);
+		const hashedPassword = await bcrypt.hash(String(newPassword), BCRYPT_SALT_ROUNDS);
 
 		// Mettre à jour dans la base de données
 		const { error } = await supabase
@@ -266,7 +305,7 @@ async function updateCompany(id_company, changes = {}) {
 				].includes(key)
 			) {
 				if (key === 'password') {
-					const hash = await bcrypt.hash(String(value), 10);
+					const hash = await bcrypt.hash(String(value), BCRYPT_SALT_ROUNDS);
 					updateData[key] = hash;
 				} else if (key === 'recruiter_mail') {
 					updateData[key] = value !== null ? String(value).trim().toLowerCase() : null;
@@ -359,28 +398,36 @@ async function getAllCompanies({
 		// 🔍 FILTRE DE RECHERCHE TEXTUELLE
 		// Recherche insensible à la casse sur le nom et la description
 		if (search) {
-			query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+			const sanitizedSearch = sanitizeSearchParam(search, 200);
+			query = query.or(`name.ilike.%${sanitizedSearch}%,description.ilike.%${sanitizedSearch}%`);
 		}
 
 		// 🏭 FILTRE PAR SECTEUR D'ACTIVITÉ
 		// Recherche insensible à la casse sur le champ industry
 		if (industry) {
-			query = query.ilike('industry', `%${industry}%`);
+			const sanitizedIndustry = sanitizeSearchParam(industry, 100);
+			query = query.ilike('industry', `%${sanitizedIndustry}%`);
 		}
 
 		// 🏙️ FILTRE PAR VILLE
 		// Recherche insensible à la casse sur le champ city
 		if (city) {
-			query = query.ilike('city', `%${city}%`);
+			const sanitizedCity = sanitizeSearchParam(city, 100);
+			query = query.ilike('city', `%${sanitizedCity}%`);
 		}
 
 		// ⚠️ OPTIMISATION PERFORMANCE: Limiter le nombre d'entreprises chargées
-		// Pour le tri par nombre d'offres, on doit charger les données
-		// Mais on limite à un maximum raisonnable pour éviter les problèmes de mémoire
-		const MAX_COMPANIES_TO_LOAD = 1000; // Maximum d'entreprises à charger pour le tri
+		// Au lieu de charger 1000 entreprises, on charge seulement ce qui est nécessaire pour la page demandée
+		// On charge un peu plus (3x la limite) pour avoir une marge pour le tri, mais beaucoup moins que 1000
+		const LOAD_MULTIPLIER = 3; // Multiplicateur pour avoir une marge de tri
+		const dynamicLimit = Math.min(limit * LOAD_MULTIPLIER, 200); // Max 200 au lieu de 1000
 
-		// 📊 EXÉCUTION DE LA REQUÊTE avec limite pour éviter de charger trop de données
-		const { data, error, count } = await query.limit(MAX_COMPANIES_TO_LOAD);
+		logger.debug(
+			`[getAllCompanies] Chargement optimisé: ${dynamicLimit} entreprises pour page ${page}, limite ${limit}`
+		);
+
+		// 📊 EXÉCUTION DE LA REQUÊTE avec limite dynamique optimisée
+		const { data, error, count } = await query.limit(dynamicLimit);
 
 		if (error) {
 			if (process.env.NODE_ENV !== 'production') {
@@ -404,7 +451,8 @@ async function getAllCompanies({
 		const paginatedData = enrichedData.slice(startIndex, endIndex);
 
 		// Ajuster le total si on a limité le chargement
-		const actualTotal = count && count > MAX_COMPANIES_TO_LOAD ? MAX_COMPANIES_TO_LOAD : count || 0;
+		// Si on a chargé moins que le total réel, on indique qu'il y a potentiellement plus de résultats
+		const actualTotal = count || 0;
 
 		return {
 			data: paginatedData,
@@ -432,6 +480,7 @@ export {
 	removeCompany,
 	getAllCompanies,
 	findByMail,
+	findByMailForAuth,
 	verifyCompanyPassword,
 	updateCompanyPassword,
 };

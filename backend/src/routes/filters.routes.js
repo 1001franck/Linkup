@@ -7,6 +7,7 @@ import {
 	updateFilter,
 	removeFilter,
 } from '../services/filterStore.js';
+import { validateNumericId } from '../middlewares/security.js';
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.get('/', async (_, res) => {
  * GET /filters/:id
  * Récupère un filtre par son ID
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateNumericId('id'), async (req, res) => {
 	const { id } = req.params;
 	try {
 		const filter = await findById(id);
@@ -69,7 +70,7 @@ router.post('/', auth(['admin']), async (req, res) => {
  * PUT /filters/:id (protégée - admin seulement)
  * Body: { filter_name }
  */
-router.put('/:id', auth(['admin']), async (req, res) => {
+router.put('/:id', validateNumericId('id'), auth(['admin']), async (req, res) => {
 	try {
 		const { id } = req.params;
 		const { filter_name } = req.body || {};
@@ -97,7 +98,7 @@ router.put('/:id', auth(['admin']), async (req, res) => {
 /**
  * DELETE /filters/:id (protégée - admin seulement)
  */
-router.delete('/:id', auth(['admin']), async (req, res) => {
+router.delete('/:id', validateNumericId('id'), auth(['admin']), async (req, res) => {
 	try {
 		const deleted = await removeFilter(req.params.id);
 		if (!deleted) {

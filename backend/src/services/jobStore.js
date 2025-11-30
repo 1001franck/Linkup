@@ -1,51 +1,7 @@
 import supabase from '../database/db.js';
 import logger from '../utils/logger.js';
-
-// Convert to number or null
-function numOrNull(v) {
-	const n = Number(v);
-	return Number.isFinite(n) ? n : null;
-}
-
-// Calcule le temps écoulé depuis publication
-function getTimeAgo(publishedAt) {
-	if (!publishedAt) return 'Date inconnue';
-
-	const now = new Date();
-	const publishDate = new Date(publishedAt);
-	const diffInMs = now - publishDate;
-
-	if (diffInMs < 0) return 'Dans le futur';
-
-	const diffInSeconds = Math.floor(diffInMs / 1000);
-	const diffInMinutes = Math.floor(diffInSeconds / 60);
-	const diffInHours = Math.floor(diffInMinutes / 60);
-	const diffInDays = Math.floor(diffInHours / 24);
-	const diffInWeeks = Math.floor(diffInDays / 7);
-	const diffInMonths = Math.floor(diffInDays / 30);
-
-	if (diffInSeconds < 60) {
-		return diffInSeconds <= 1 ? "À l'instant" : `Il y a ${diffInSeconds} secondes`;
-	}
-	if (diffInMinutes < 60) {
-		return diffInMinutes === 1 ? 'Il y a 1 minute' : `Il y a ${diffInMinutes} minutes`;
-	}
-	if (diffInHours < 24) {
-		return diffInHours === 1 ? 'Il y a 1 heure' : `Il y a ${diffInHours} heures`;
-	}
-	if (diffInDays < 7) {
-		return diffInDays === 1 ? 'Il y a 1 jour' : `Il y a ${diffInDays} jours`;
-	}
-	if (diffInDays < 30) {
-		return diffInWeeks === 1 ? 'Il y a 1 semaine' : `Il y a ${diffInWeeks} semaines`;
-	}
-	if (diffInDays < 365) {
-		return diffInMonths === 1 ? 'Il y a 1 mois' : `Il y a ${diffInMonths} mois`;
-	}
-
-	const diffInYears = Math.floor(diffInDays / 365);
-	return diffInYears === 1 ? 'Il y a 1 an' : `Il y a ${diffInYears} ans`;
-}
+import { sanitizeSearchParam } from '../utils/validators.js';
+import { numOrNull, getTimeAgo } from './jobUtils.js';
 
 // Create job
 async function createJob({
@@ -238,14 +194,16 @@ async function searchJobs({
 		{ count: 'exact' }
 	);
 
-	// Appliquer les filtres
+	// Appliquer les filtres (avec sanitization pour éviter les injections)
 	if (q) {
-		query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+		const sanitizedQ = sanitizeSearchParam(q, 200);
+		query = query.or(`title.ilike.%${sanitizedQ}%,description.ilike.%${sanitizedQ}%`);
 	}
 	if (location) {
 		// Recherche insensible à la casse et partielle pour la localisation
 		// Permet de trouver "Paris" même si la DB contient "Paris, France" ou "paris"
-		query = query.ilike('location', `%${location}%`);
+		const sanitizedLocation = sanitizeSearchParam(location, 100);
+		query = query.ilike('location', `%${sanitizedLocation}%`);
 	}
 	if (contractType) {
 		query = query.eq('contract_type', contractType);
@@ -254,10 +212,12 @@ async function searchJobs({
 		query = query.gte('salary_min', Number(minSalary));
 	}
 	if (experience) {
-		query = query.ilike('experience', `%${experience}%`);
+		const sanitizedExperience = sanitizeSearchParam(experience, 100);
+		query = query.ilike('experience', `%${sanitizedExperience}%`);
 	}
 	if (industry) {
-		query = query.ilike('industry', `%${industry}%`);
+		const sanitizedIndustry = sanitizeSearchParam(industry, 100);
+		query = query.ilike('industry', `%${sanitizedIndustry}%`);
 	}
 	if (workMode) {
 		// Pour le mode de travail, on peut filtrer sur remote ou d'autres champs
@@ -271,7 +231,8 @@ async function searchJobs({
 		}
 	}
 	if (education) {
-		query = query.ilike('formation_required', `%${education}%`);
+		const sanitizedEducation = sanitizeSearchParam(education, 100);
+		query = query.ilike('formation_required', `%${sanitizedEducation}%`);
 	}
 
 	// 🏢 FILTRE PAR ENTREPRISE
@@ -280,13 +241,14 @@ async function searchJobs({
 		logger.debug(`[searchJobs] Filtrage par entreprise: ${company} (type: ${typeof company})`);
 		// Si c'est un nombre, filtrer par ID d'entreprise
 		if (!isNaN(company)) {
-			const companyId = parseInt(company);
+			const companyId = parseInt(company, 10);
 			logger.debug(`[searchJobs] Filtrage par ID d'entreprise: ${companyId}`);
 			query = query.eq('id_company', companyId);
 		} else {
 			// Si c'est une chaîne, filtrer par nom d'entreprise via la jointure
-			logger.debug(`[searchJobs] Filtrage par nom d'entreprise: ${company}`);
-			query = query.eq('company.name', company);
+			const sanitizedCompany = sanitizeSearchParam(company, 200);
+			logger.debug(`[searchJobs] Filtrage par nom d'entreprise: ${sanitizedCompany}`);
+			query = query.eq('company.name', sanitizedCompany);
 		}
 	}
 
@@ -447,7 +409,8 @@ async function getAllJobs({ page = 1, limit = 20, search = null } = {}) {
 		);
 
 		if (search) {
-			query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+			const sanitizedSearch = sanitizeSearchParam(search, 200);
+			query = query.or(`title.ilike.%${sanitizedSearch}%,description.ilike.%${sanitizedSearch}%`);
 		}
 
 		query = query.order('published_at', { ascending: false }).range(offset, offset + limit - 1);
@@ -520,7 +483,8 @@ async function getJobTitleSuggestions(query = '') {
 
 		// Si un terme de recherche est fourni (minimum 2 caractères)
 		if (query && query.length >= 2) {
-			queryBuilder = queryBuilder.ilike('title', `%${query}%`);
+			const sanitizedQuery = sanitizeSearchParam(query, 200);
+			queryBuilder = queryBuilder.ilike('title', `%${sanitizedQuery}%`);
 		}
 
 		// Récupérer les titres uniques, limités à 10, triés par ordre alphabétique
@@ -729,7 +693,8 @@ async function getLocationSuggestions(query = '') {
 				.neq('location', '');
 
 			if (query && query.length >= 2) {
-				queryBuilder = queryBuilder.ilike('location', `%${query}%`);
+				const sanitizedQuery = sanitizeSearchParam(query, 100);
+				queryBuilder = queryBuilder.ilike('location', `%${sanitizedQuery}%`);
 			}
 
 			const { data, error } = await queryBuilder

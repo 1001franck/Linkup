@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BackButton } from "@/components/ui/back-button";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import { 
   Users, 
   Search, 
@@ -31,6 +33,7 @@ import {
 } from "lucide-react";
 
 function NetworkContent() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("connections");
 

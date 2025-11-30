@@ -145,7 +145,7 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
             {/* Développeurs - Placement stratégique et visible */}
             <div className="flex flex-col items-center md:items-start pt-4 border-t border-border/50">
               <Typography variant="small" className="text-muted-foreground text-sm mb-2 font-medium">
-                Développé avec ❤️ par
+                Développé par
               </Typography>
               <div className="flex flex-wrap justify-center md:justify-start gap-x-5 gap-y-2 text-sm text-foreground font-medium">
                 <span>Harel Franck FOTSI</span>

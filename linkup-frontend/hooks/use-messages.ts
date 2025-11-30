@@ -31,14 +31,14 @@ export interface Conversation {
 }
 
 export function useMessages() {
-  return useApi<Message[]>(() => apiClient.request('/messages/conversations', {
+  return useApi<Message[]>(() => apiClient.publicRequest('/messages/conversations', {
     method: 'GET',
   }));
 }
 
 export function useConversations(options?: { enabled?: boolean }) {
   return useApi<Conversation[]>(
-    () => apiClient.request('/messages/conversations', {
+    () => apiClient.publicRequest('/messages/conversations', {
       method: 'GET',
     }),
     [],
@@ -48,21 +48,21 @@ export function useConversations(options?: { enabled?: boolean }) {
 }
 
 export function useMessagesWithUser(userId: number) {
-  return useApi<Message[]>(() => apiClient.request(`/messages/${userId}`, {
+  return useApi<Message[]>(() => apiClient.publicRequest(`/messages/${userId}`, {
     method: 'GET',
   }));
 }
 
 // Hook pour envoyer un message
 export function useSendMessage() {
-  return useApi<Message>(() => apiClient.request('/messages', {
+  return useApi<Message>(() => apiClient.publicRequest('/messages', {
     method: 'POST',
   }));
 }
 
 // Hook pour marquer un message comme lu
 export function useMarkAsRead() {
-  return useApi<{ success: boolean }>(() => apiClient.request('/messages', {
+  return useApi<{ success: boolean }>(() => apiClient.publicRequest('/messages', {
     method: 'PUT',
   }));
 }

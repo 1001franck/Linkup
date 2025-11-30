@@ -8,6 +8,7 @@ import {
 	getProfilePicture,
 } from '../services/userFilesStore.js';
 import { validateFile } from '../utils/fileValidator.js';
+import { validateNumericId } from '../middlewares/security.js';
 import logger from '../utils/logger.js';
 import supabase from '../database/db.js';
 
@@ -183,7 +184,7 @@ router.delete('/profile-picture', auth(), async (req, res) => {
  * DELETE /user-files/:id
  * Header: Authorization
  */
-router.delete('/:id', auth(), async (req, res) => {
+router.delete('/:id', validateNumericId('id'), auth(), async (req, res) => {
 	try {
 		const id_user = req.user.sub; // Le JWT contient l'ID dans 'sub'
 		const id = req.params.id;

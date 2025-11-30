@@ -95,12 +95,12 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       // Étape 1: Upload du fichier vers Supabase Storage
       console.log('Début upload:', { fileName: selectedFile.name, fileType: selectedType, fileSize: selectedFile.size });
       
-      const uploadResult = await apiClient.uploadFile(selectedFile, selectedType);
+      const uploadResult = await apiClient.uploadFile(selectedFile, selectedType as 'pdf' | 'photo' | 'cv' | 'cover_letter');
       console.log('Upload réussi - Structure complète:', JSON.stringify(uploadResult, null, 2));
       
       // Le backend retourne { data: { record: insertData, publicUrl } }
       // L'API client wrappe dans { success: true, data: response }
-      const fileUrl = uploadResult.data?.data?.publicUrl;
+      const fileUrl = (uploadResult.data as any)?.data?.publicUrl || (uploadResult.data as any)?.publicUrl;
       console.log('URL extraite:', fileUrl);
       
       if (!fileUrl) {
@@ -138,12 +138,13 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       console.error('Erreur upload détaillée:', error);
       
       let errorMessage = "Impossible d'ajouter le document. Veuillez réessayer.";
+      const errorMsg = error instanceof Error ? error.message : String(error);
       
-      if (error.message.includes('Token manquant')) {
+      if (errorMsg.includes('Token manquant')) {
         errorMessage = "Session expirée. Veuillez vous reconnecter.";
-      } else if (error.message.includes('bucket')) {
+      } else if (errorMsg.includes('bucket')) {
         errorMessage = "Erreur de configuration serveur. Contactez l'administrateur.";
-      } else if (error.message.includes('500')) {
+      } else if (errorMsg.includes('500')) {
         errorMessage = "Erreur serveur. Vérifiez que le service de stockage est configuré.";
       }
       

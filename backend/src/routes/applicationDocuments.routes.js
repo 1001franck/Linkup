@@ -5,11 +5,12 @@ import {
 	getApplicationDocumentsForApplication,
 	deleteApplicationDocument,
 } from '../services/applicationDocumentsStore.js';
+import { validateNumericId } from '../middlewares/security.js';
 
 const router = express.Router();
 
 // Ajouter un document à une candidature
-router.post('/:jobId', auth(), async (req, res) => {
+router.post('/:jobId', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const { jobId } = req.params;
 		const { document_type, file_name, file_url } = req.body;
@@ -38,7 +39,7 @@ router.post('/:jobId', auth(), async (req, res) => {
 });
 
 // Récupérer les documents d'une candidature
-router.get('/:jobId', auth(), async (req, res) => {
+router.get('/:jobId', validateNumericId('jobId'), auth(), async (req, res) => {
 	try {
 		const { jobId } = req.params;
 		const userId = req.user.sub; // Le JWT contient l'ID dans 'sub'
@@ -52,7 +53,7 @@ router.get('/:jobId', auth(), async (req, res) => {
 });
 
 // Supprimer un document
-router.delete('/:documentId', auth(), async (req, res) => {
+router.delete('/:documentId', validateNumericId('documentId'), auth(), async (req, res) => {
 	try {
 		const { documentId } = req.params;
 		const userId = req.user.sub; // Le JWT contient l'ID dans 'sub'
