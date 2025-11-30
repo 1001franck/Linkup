@@ -17,7 +17,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CleanJobsHeader } from "@/components/jobs/clean-jobs-header";
 import { JobsList } from "@/components/jobs/jobs-list";
@@ -37,7 +37,7 @@ import { ApplicationModal } from "@/components/jobs/application-modal";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function JobsPage() {
+function JobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -372,5 +372,20 @@ export default function JobsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+          <Typography variant="muted">Chargement...</Typography>
+        </div>
+      </div>
+    }>
+      <JobsPageContent />
+    </Suspense>
   );
 }

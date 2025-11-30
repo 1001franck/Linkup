@@ -8,7 +8,7 @@
 
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Container } from "@/components/layout/container";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyDashboardStats, useCompanyRecentApplications, useCompanyActiveJobs, useCompanyUpcomingInterviews } from "@/hooks/use-api";
 import { BackendStatus } from "@/components/ui/backend-status";
 import { useSearchParams } from "next/navigation";
+import { Typography } from "@/components/ui/typography";
 import { apiClient } from "@/lib/api-client";
 import { CompanyDashboardHeader } from "@/components/company-dashboard/company-dashboard-header";
 import { CompanyDashboardStats } from "@/components/company-dashboard/company-dashboard-stats";
@@ -30,7 +31,7 @@ import {
   truncateCompanyName,
 } from "@/components/company-dashboard/company-dashboard-utils";
 
-export default function CompanyDashboardPage() {
+function CompanyDashboardPageContent() {
   const { toast } = useToast();
   const { user: company, isAuthenticated, isLoading: authLoading } = useAuth();
   const searchParams = useSearchParams();
@@ -345,5 +346,31 @@ export default function CompanyDashboardPage() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function CompanyDashboardPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+          <CompanyHeader />
+          <div className="pt-20 pb-16">
+            <Container>
+              <div className="py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+                    <Typography variant="muted">Chargement...</Typography>
+                  </div>
+                </div>
+              </div>
+            </Container>
+          </div>
+        </div>
+      </ProtectedRoute>
+    }>
+      <CompanyDashboardPageContent />
+    </Suspense>
   );
 }
