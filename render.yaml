@@ -8,9 +8,9 @@ services:
     env: node
     region: frankfurt
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
-    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
     envVars:
       - key: NODE_ENV
         value: production
