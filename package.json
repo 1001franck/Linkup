@@ -1,4 +1,11 @@
 {
+  "name": "linkup-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install"
+  },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "multer": "^2.0.2"
