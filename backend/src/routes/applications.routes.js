@@ -191,13 +191,30 @@ router.get('/job/:jobId', validateNumericId('jobId'), auth(), async (req, res) =
  */
 router.get('/company/:companyId', validateNumericId('companyId'), auth(), async (req, res) => {
 	try {
-		logger.debug(`[GET /applications/company/:companyId] Entreprise: ${req.params.companyId}`);
+		logger.debug('[GET /applications/company/:companyId] Début requête', {
+			companyId: req.params.companyId,
+			companyIdType: typeof req.params.companyId,
+			userRole: req.user?.role,
+			userId: req.user?.sub,
+		});
 
 		// Vérifier que l'utilisateur est bien l'entreprise concernée
-		if (req.user.role !== 'company' || req.user.sub !== parseInt(req.params.companyId)) {
-			logger.debug(
-				`[GET /applications/company/:companyId] Accès refusé - Role: ${req.user.role}, ID: ${req.user.sub}`
-			);
+		const requestedCompanyId = parseInt(req.params.companyId);
+		const userCompanyId = req.user.sub;
+
+		logger.debug('[GET /applications/company/:companyId] Vérification des permissions', {
+			requestedCompanyId,
+			userCompanyId,
+			userRole: req.user.role,
+			match: req.user.role === 'company' && userCompanyId === requestedCompanyId,
+		});
+
+		if (req.user.role !== 'company' || userCompanyId !== requestedCompanyId) {
+			logger.warn('[GET /applications/company/:companyId] Accès refusé', {
+				role: req.user.role,
+				userId: userCompanyId,
+				requestedId: requestedCompanyId,
+			});
 			return res.status(403).json({ error: 'Accès refusé' });
 		}
 
@@ -207,18 +224,43 @@ router.get('/company/:companyId', validateNumericId('companyId'), auth(), async 
 		if (status) filters.status = status;
 		if (jobId) filters.jobId = parseInt(jobId);
 
-		// Récupérer les candidatures
-		const applications = await getApplicationsByCompany(req.params.companyId, filters);
+		logger.debug('[GET /applications/company/:companyId] Filtres appliqués', {
+			filters,
+		});
 
-		logger.debug(
-			`[GET /applications/company/:companyId] ${applications.length} candidatures retournées`
-		);
+		// Récupérer les candidatures
+		logger.debug('[GET /applications/company/:companyId] Appel getApplicationsByCompany', {
+			companyId: requestedCompanyId,
+			filters,
+		});
+
+		const applications = await getApplicationsByCompany(requestedCompanyId, filters);
+
+		logger.debug('[GET /applications/company/:companyId] Candidatures récupérées', {
+			count: applications.length,
+			companyId: requestedCompanyId,
+		});
+
 		res.json({ data: applications });
 	} catch (error) {
-		logger.error('[GET /applications/company/:companyId] Erreur serveur:', error);
+		logger.error('[GET /applications/company/:companyId] Erreur serveur complète', {
+			error: error.message,
+			stack: error.stack,
+			errorName: error.name,
+			errorCode: error.code,
+			companyId: req.params.companyId,
+			userRole: req.user?.role,
+			userId: req.user?.sub,
+		});
+
+		const isDevelopment = process.env.NODE_ENV !== 'production';
 		res.status(500).json({
 			error: 'Erreur serveur',
-			...(process.env.NODE_ENV !== 'production' && { details: error.message }),
+			...(isDevelopment && {
+				details: error.message,
+				code: error.code,
+				stack: error.stack,
+			}),
 		});
 	}
 });

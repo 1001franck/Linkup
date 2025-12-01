@@ -172,26 +172,52 @@ export async function getApplicationsByJob(jobId) {
  */
 export async function getApplicationsByCompany(companyId, filters = {}) {
 	try {
-		logger.debug(`[getApplicationsByCompany] Début - Company: ${companyId}, Filters:`, filters);
+		logger.debug('[getApplicationsByCompany] Début', {
+			companyId,
+			companyIdType: typeof companyId,
+			filters,
+		});
+
+		// Convertir companyId en nombre si nécessaire
+		const numericCompanyId = typeof companyId === 'string' ? parseInt(companyId, 10) : companyId;
+		if (isNaN(numericCompanyId) || numericCompanyId < 1) {
+			logger.error('[getApplicationsByCompany] ID entreprise invalide', {
+				companyId,
+				numericCompanyId,
+			});
+			throw new Error(`ID entreprise invalide: ${companyId}`);
+		}
+
+		logger.debug("[getApplicationsByCompany] Étape 1: Récupération des offres d'emploi", {
+			companyId: numericCompanyId,
+		});
 
 		// D'abord récupérer les IDs des offres d'emploi de l'entreprise
 		const { data: companyJobs, error: jobsError } = await supabase
 			.from('job_offer')
 			.select('id_job_offer')
-			.eq('id_company', companyId);
+			.eq('id_company', numericCompanyId);
 
 		if (jobsError) {
-			logger.error(
-				'[getApplicationsByCompany] Erreur lors de la récupération des offres:',
-				jobsError
-			);
+			logger.error('[getApplicationsByCompany] Erreur lors de la récupération des offres', {
+				error: jobsError.message,
+				code: jobsError.code,
+				details: jobsError.details,
+				hint: jobsError.hint,
+				companyId: numericCompanyId,
+			});
 			throw jobsError;
 		}
 
+		logger.debug('[getApplicationsByCompany] Offres récupérées', {
+			count: companyJobs?.length || 0,
+			jobIds: companyJobs?.map((j) => j.id_job_offer) || [],
+		});
+
 		if (!companyJobs || companyJobs.length === 0) {
-			logger.debug(
-				`[getApplicationsByCompany] Aucune offre trouvée pour l'entreprise ${companyId}`
-			);
+			logger.debug("[getApplicationsByCompany] Aucune offre trouvée pour l'entreprise", {
+				companyId: numericCompanyId,
+			});
 			return [];
 		}
 
@@ -199,11 +225,18 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 
 		// Si un filtre jobId est spécifié, vérifier qu'il appartient à l'entreprise
 		if (filters.jobId && !jobIds.includes(filters.jobId)) {
-			logger.debug(
-				`[getApplicationsByCompany] L'offre ${filters.jobId} n'appartient pas à l'entreprise ${companyId}`
-			);
+			logger.debug("[getApplicationsByCompany] L'offre n'appartient pas à l'entreprise", {
+				jobId: filters.jobId,
+				companyId: numericCompanyId,
+				validJobIds: jobIds,
+			});
 			return [];
 		}
+
+		logger.debug('[getApplicationsByCompany] Étape 2: Construction de la requête candidatures', {
+			jobIds,
+			jobIdsCount: jobIds.length,
+		});
 
 		// Construire la requête pour récupérer les candidatures
 		let query = supabase
@@ -252,57 +285,100 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 		// Appliquer les filtres
 		if (filters.status) {
 			query = query.eq('status', filters.status);
-			logger.debug(`[getApplicationsByCompany] Filtre status appliqué: ${filters.status}`);
+			logger.debug('[getApplicationsByCompany] Filtre status appliqué', { status: filters.status });
 		}
 
 		if (filters.jobId) {
 			query = query.eq('id_job_offer', filters.jobId);
-			logger.debug(`[getApplicationsByCompany] Filtre jobId appliqué: ${filters.jobId}`);
+			logger.debug('[getApplicationsByCompany] Filtre jobId appliqué', { jobId: filters.jobId });
 		}
 
 		query = query.order('application_date', { ascending: false });
 
+		logger.debug('[getApplicationsByCompany] Étape 3: Exécution de la requête Supabase');
 		const { data, error } = await query;
 
 		if (error) {
-			logger.error('[getApplicationsByCompany] Erreur Supabase:', error);
+			logger.error(
+				'[getApplicationsByCompany] Erreur Supabase lors de la récupération des candidatures',
+				{
+					error: error.message,
+					code: error.code,
+					details: error.details,
+					hint: error.hint,
+					companyId: numericCompanyId,
+					jobIds,
+				}
+			);
 			throw error;
 		}
 
-		logger.debug(`[getApplicationsByCompany] ${data?.length || 0} candidatures récupérées`);
+		logger.debug('[getApplicationsByCompany] Candidatures récupérées', {
+			count: data?.length || 0,
+		});
 
 		// Enrichir les candidatures avec documents, CV et scores de matching
 		if (data && data.length > 0) {
-			// 1. Récupérer et assigner les documents
-			await enrichApplicationsWithDocuments(data);
+			logger.debug('[getApplicationsByCompany] Étape 4: Enrichissement des candidatures', {
+				count: data.length,
+			});
 
-			// 2. Résoudre les URLs des CV existants
-			await resolveExistingCVUrls(data);
+			try {
+				// 1. Récupérer et assigner les documents
+				logger.debug('[getApplicationsByCompany] Étape 4.1: Récupération des documents');
+				await enrichApplicationsWithDocuments(data);
+				logger.debug('[getApplicationsByCompany] Documents récupérés avec succès');
 
-			// 3. Calculer les scores de matching en parallèle
-			await calculateMatchingScores(data);
+				// 2. Résoudre les URLs des CV existants
+				logger.debug('[getApplicationsByCompany] Étape 4.2: Résolution des URLs CV');
+				await resolveExistingCVUrls(data);
+				logger.debug('[getApplicationsByCompany] URLs CV résolues avec succès');
 
-			// Log pour déboguer la structure des documents
-			if (data.length > 0) {
-				logger.debug(`[getApplicationsByCompany] Exemple de structure - Premier élément:`, {
-					id_user: data[0].id_user,
-					id_job_offer: data[0].id_job_offer,
-					matchScore: data[0].matchScore,
-					application_documents: data[0].application_documents,
-					user_: data[0].user_
-						? {
-								firstname: data[0].user_.firstname,
-								lastname: data[0].user_.lastname,
-								email: data[0].user_.email,
-							}
-						: null,
+				// 3. Calculer les scores de matching en parallèle
+				logger.debug('[getApplicationsByCompany] Étape 4.3: Calcul des scores de matching');
+				await calculateMatchingScores(data);
+				logger.debug('[getApplicationsByCompany] Scores de matching calculés avec succès');
+
+				// Log pour déboguer la structure des documents
+				if (data.length > 0) {
+					logger.debug('[getApplicationsByCompany] Exemple de structure - Premier élément', {
+						id_user: data[0].id_user,
+						id_job_offer: data[0].id_job_offer,
+						matchScore: data[0].matchScore,
+						hasDocuments: !!data[0].application_documents,
+						user_: data[0].user_
+							? {
+									firstname: data[0].user_.firstname,
+									lastname: data[0].user_.lastname,
+									email: data[0].user_.email,
+								}
+							: null,
+					});
+				}
+			} catch (enrichError) {
+				logger.error("[getApplicationsByCompany] Erreur lors de l'enrichissement", {
+					error: enrichError.message,
+					stack: enrichError.stack,
+					companyId: numericCompanyId,
 				});
+				// Ne pas throw, retourner les données même si l'enrichissement échoue
 			}
 		}
 
+		logger.debug('[getApplicationsByCompany] Succès - Retour des candidatures', {
+			count: data?.length || 0,
+		});
+
 		return data || [];
 	} catch (err) {
-		logger.error('[getApplicationsByCompany] Erreur:', err);
+		logger.error('[getApplicationsByCompany] Erreur complète', {
+			error: err.message,
+			stack: err.stack,
+			errorName: err.name,
+			errorCode: err.code,
+			companyId,
+			filters,
+		});
 		throw err;
 	}
 }
