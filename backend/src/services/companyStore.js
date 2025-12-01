@@ -175,9 +175,10 @@ async function findByMailForAuth(recruiter_mail) {
 	try {
 		// Sélectionner uniquement les champs nécessaires pour l'authentification
 		// Utiliser .eq() pour une correspondance exacte (pas .ilike() qui est pour les patterns)
+		// Note: La table company n'a pas de colonne 'role', le rôle sera ajouté dynamiquement dans le JWT
 		const { data, error } = await supabase
 			.from('company')
-			.select('id_company, name, recruiter_mail, password, role, created_at')
+			.select('id_company, name, recruiter_mail, password, created_at')
 			.eq('recruiter_mail', searchMail)
 			.single();
 
@@ -186,19 +187,22 @@ async function findByMailForAuth(recruiter_mail) {
 			// C'est un comportement attendu quand on cherche une entreprise qui n'existe pas
 			if (error.code === 'PGRST116') {
 				logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
-			} else {
-				logger.error(
-					{
-						code: error.code,
-						message: error.message,
-						details: error.details,
-						hint: error.hint,
-						recruiter_mail: searchMail,
-					},
-					'findByMailForAuth error'
-				);
+				return null;
 			}
-			return null;
+			// Pour les autres erreurs (ex: colonne inexistante), logger et lancer l'erreur
+			logger.error(
+				{
+					err: error,
+					code: error.code,
+					message: error.message,
+					details: error.details,
+					hint: error.hint,
+					recruiter_mail: searchMail,
+					stack: error.stack,
+				},
+				'findByMailForAuth error'
+			);
+			throw error;
 		}
 
 		return data || null;
@@ -208,6 +212,7 @@ async function findByMailForAuth(recruiter_mail) {
 			logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
 			return null;
 		}
+		// Pour les autres erreurs, logger et relancer
 		logger.error(
 			{
 				err: error,
