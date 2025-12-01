@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { isRevoked } from '../services/tokenRevokeStore.js';
+import logger from '../utils/logger.js';
 
 function auth(allowedRoles = null) {
 	return async (req, res, next) => {
@@ -9,6 +10,16 @@ function auth(allowedRoles = null) {
 			authHeader && authHeader.startsWith('Bearer ')
 				? authHeader.slice(7)
 				: req.cookies?.linkup_token; // Utiliser le bon nom de cookie
+
+		// Log pour déboguer (à retirer en production)
+		if (process.env.NODE_ENV !== 'production') {
+			logger.debug('[AUTH] Token check:', {
+				hasAuthHeader: !!authHeader,
+				hasCookie: !!req.cookies?.linkup_token,
+				cookieNames: req.cookies ? Object.keys(req.cookies) : [],
+				path: req.path,
+			});
+		}
 
 		if (!token) {
 			return res.status(401).json({ error: 'Token manquant' });

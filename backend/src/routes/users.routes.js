@@ -14,8 +14,12 @@ const router = express.Router();
  */
 router.get('/me', auth(), async (req, res) => {
 	try {
+		// Log pour déboguer
+		logger.debug('[GET /users/me] User ID from token:', req.user.sub);
+
 		const me = await findById(req.user.sub);
 		if (!me) {
+			logger.warn('[GET /users/me] Utilisateur non trouvé avec ID:', req.user.sub);
 			return res.status(404).json({ error: 'Utilisateur introuvable' });
 		}
 

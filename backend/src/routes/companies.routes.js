@@ -74,8 +74,12 @@ router.get('/', validatePagination({ defaultLimit: 20, maxLimit: 100 }), async (
  */
 router.get('/me', auth(), async (req, res) => {
 	try {
+		// Log pour déboguer
+		logger.debug('[GET /companies/me] Company ID from token:', req.user.sub);
+
 		const company = await findById(req.user.sub);
 		if (!company) {
+			logger.warn('[GET /companies/me] Entreprise non trouvée avec ID:', req.user.sub);
 			return res.status(404).json({ error: 'Entreprise introuvable' });
 		}
 
