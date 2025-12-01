@@ -64,38 +64,16 @@ function LoginContent() {
 
     try {
       let success = false;
-      let userType = 'user';
       
-      // Essayer d'abord la connexion utilisateur (sans afficher l'erreur 401)
-      try {
-        success = await login(formData.email, formData.password);
-        if (success) {
-          // Le rôle est déterminé depuis les données utilisateur récupérées
-          // Le cookie httpOnly est automatiquement géré par le backend
-          userType = 'user';
-        }
-      } catch (userError) {
-        // Erreur attendue si ce n'est pas un utilisateur, continuer
-        console.log('Tentative connexion utilisateur échouée, essai entreprise...');
-      }
+      // ✅ CORRECTION : Essayer d'abord la connexion utilisateur
+      // Si elle retourne true, c'est que la connexion backend a réussi (cookie défini)
+      // On ne doit PAS essayer la connexion entreprise dans ce cas
+      success = await login(formData.email, formData.password);
       
-      // Si échec utilisateur, essayer la connexion entreprise
-      if (!success) {
-        try {
-          success = await loginCompany(formData.email, formData.password);
-          if (success) {
-            userType = 'company';
-          }
-        } catch (companyError) {
-          // Erreur attendue si ce n'est pas une entreprise
-          console.log('Tentative connexion entreprise échouée');
-        }
-      }
-      
+      // ✅ CORRECTION : Si la connexion utilisateur a réussi, on s'arrête là
+      // Ne pas essayer la connexion entreprise car l'utilisateur est déjà connecté
       if (success) {
-        // Laisser le système de redirection automatique s'en charger
-        // Le hook useDashboardRedirect va détecter le rôle et rediriger correctement
-        console.log('✅ Connexion réussie, redirection automatique en cours...');
+        console.log('✅ Connexion candidat réussie, redirection en cours...');
         
         // Petite attente pour laisser le contexte se mettre à jour
         setTimeout(() => {
@@ -107,7 +85,36 @@ function LoginContent() {
             window.location.href = '/';
           }
         }, 100);
-      } else {
+        return; // ✅ CORRECTION : Sortir immédiatement, ne pas essayer entreprise
+      }
+      
+      // ❌ Si la connexion utilisateur a échoué (retourne false)
+      // Cela signifie que les identifiants sont incorrects pour un utilisateur
+      // On peut alors essayer la connexion entreprise
+      // MAIS seulement si on est sûr que ce n'est pas un utilisateur
+      console.log('Tentative connexion candidat échouée, essai entreprise...');
+      
+      try {
+        success = await loginCompany(formData.email, formData.password);
+        if (success) {
+          console.log('✅ Connexion entreprise réussie, redirection en cours...');
+          
+          setTimeout(() => {
+            const redirectTo = searchParams.get('redirect');
+            if (redirectTo) {
+              router.push(redirectTo);
+            } else {
+              window.location.href = '/';
+            }
+          }, 100);
+        }
+      } catch (companyError) {
+        // Erreur attendue si ce n'est pas une entreprise
+        console.log('Tentative connexion entreprise échouée');
+      }
+      
+      // Si aucune des deux connexions n'a réussi
+      if (!success) {
         setError("Email ou mot de passe incorrect");
       }
     } catch (error) {
