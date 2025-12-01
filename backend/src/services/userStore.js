@@ -41,10 +41,11 @@ async function findByEmail(email) {
 	logger.debug('[findByEmail] checking:', normalizedEmail);
 
 	// Sélectionner tous les champs sauf le password pour la sécurité
+	// Note: updated_at n'existe pas dans la table user_
 	const { data, error } = await supabase
 		.from('user_')
 		.select(
-			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
 		)
 		.eq('email', normalizedEmail)
 		.single();
@@ -87,10 +88,11 @@ async function findById(id) {
 	});
 
 	// Sélectionner tous les champs sauf le password pour la sécurité
+	// Note: updated_at n'existe pas dans la table user_
 	const { data, error } = await supabase
 		.from('user_')
 		.select(
-			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+			'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
 		)
 		.eq('id_user', id)
 		.single();

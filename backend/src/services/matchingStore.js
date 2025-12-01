@@ -157,7 +157,7 @@ export async function getMatchingJobs(userId, options = {}) {
 		const { data: user, error: userError } = await supabase
 			.from('user_')
 			.select(
-				'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+				'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
 			)
 			.eq('id_user', userId)
 			.single();
@@ -253,7 +253,7 @@ export async function getMatchingUsers(jobId, options = {}) {
 		const { data: users, error: usersError } = await supabase
 			.from('user_')
 			.select(
-				'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, updated_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
+				'id_user, email, firstname, lastname, phone, bio_pro, city, country, role, created_at, job_title, experience_level, skills, portfolio_link, linkedin_link, availability, description'
 			)
 			.eq('role', 'user')
 			.limit(options.limit || 100);

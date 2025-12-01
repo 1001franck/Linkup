@@ -18,10 +18,11 @@ async function findById(id_company) {
 		);
 
 		// Sélectionner uniquement les champs nécessaires (sans password)
+		// Note: updated_at n'existe pas dans la table company
 		const { data, error } = await supabase
 			.from('company')
 			.select(
-				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at'
 			)
 			.eq('id_company', id_company)
 			.single();
@@ -66,10 +67,11 @@ async function findByName(name) {
 	try {
 		const searchName = String(name).trim().toLowerCase();
 		// Sélectionner uniquement les champs nécessaires (sans password)
+		// Note: updated_at n'existe pas dans la table company
 		const { data, error } = await supabase
 			.from('company')
 			.select(
-				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at'
 			)
 			.ilike('name', searchName)
 			.single();
@@ -269,10 +271,11 @@ async function findByMail(recruiter_mail) {
 
 		// Sélectionner uniquement les champs nécessaires (sans password)
 		// Utiliser .eq() pour une correspondance exacte (pas .ilike() qui est pour les patterns)
+		// Note: updated_at n'existe pas dans la table company
 		const { data, error } = await supabase
 			.from('company')
 			.select(
-				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
+				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at'
 			)
 			.eq('recruiter_mail', searchMail)
 			.single();
