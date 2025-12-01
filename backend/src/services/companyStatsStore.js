@@ -214,7 +214,13 @@ async function getRecentApplications(id_company) {
  */
 async function getActiveJobs(id_company) {
 	try {
+		logger.debug('[getActiveJobs] Début', {
+			id_company,
+			id_companyType: typeof id_company,
+		});
+
 		// D'abord récupérer toutes les offres de l'entreprise
+		logger.debug('[getActiveJobs] Étape 1: Récupération des offres');
 		const { data: allJobs, error: jobsError } = await supabase
 			.from('job_offer')
 			.select(
@@ -233,65 +239,146 @@ async function getActiveJobs(id_company) {
 			.eq('id_company', id_company)
 			.order('published_at', { ascending: false });
 
-		if (jobsError) throw jobsError;
+		if (jobsError) {
+			logger.error('[getActiveJobs] Erreur lors de la récupération des offres', {
+				error: jobsError.message,
+				code: jobsError.code,
+				details: jobsError.details,
+				id_company,
+			});
+			throw jobsError;
+		}
+
+		logger.debug('[getActiveJobs] Offres récupérées', {
+			count: allJobs?.length || 0,
+		});
 
 		if (!allJobs || allJobs.length === 0) {
+			logger.debug('[getActiveJobs] Aucune offre trouvée');
 			return [];
 		}
 
 		const jobIds = allJobs.map((job) => job.id_job_offer);
 
 		// Récupérer les offres qui ont des candidats acceptés
+		logger.debug('[getActiveJobs] Étape 2: Récupération des candidatures acceptées', {
+			jobIdsCount: jobIds.length,
+		});
 		const { data: acceptedApplications, error: acceptedError } = await supabase
 			.from('apply')
 			.select('id_job_offer')
 			.in('id_job_offer', jobIds)
 			.eq('status', 'accepted');
 
-		if (acceptedError) throw acceptedError;
+		if (acceptedError) {
+			logger.error('[getActiveJobs] Erreur lors de la récupération des candidatures acceptées', {
+				error: acceptedError.message,
+				code: acceptedError.code,
+				details: acceptedError.details,
+				id_company,
+			});
+			throw acceptedError;
+		}
 
 		// Les offres avec des candidats acceptés
 		const jobsWithAcceptedCandidates = new Set(
 			(acceptedApplications || []).map((app) => app.id_job_offer)
 		);
 
+		logger.debug('[getActiveJobs] Candidatures acceptées identifiées', {
+			acceptedCount: jobsWithAcceptedCandidates.size,
+		});
+
 		// Filtrer pour ne garder que les offres actives (sans candidats acceptés)
 		const activeJobs = allJobs.filter((job) => !jobsWithAcceptedCandidates.has(job.id_job_offer));
+
+		logger.debug('[getActiveJobs] Offres actives filtrées', {
+			activeCount: activeJobs.length,
+		});
 
 		// Limiter à 6 offres maximum
 		const jobs = activeJobs.slice(0, 6);
 
+		logger.debug('[getActiveJobs] Étape 3: Calcul des statistiques pour chaque offre', {
+			jobsCount: jobs.length,
+		});
+
 		// Pour chaque offre, récupérer les statistiques
 		const jobsWithStats = await Promise.all(
-			(jobs || []).map(async (job) => {
-				// Compter les candidatures
-				const { count: applicationsCount } = await supabase
-					.from('apply')
-					.select('id_user', { count: 'exact', head: true })
-					.eq('id_job_offer', job.id_job_offer);
+			(jobs || []).map(async (job, index) => {
+				try {
+					logger.debug('[getActiveJobs] Calcul statistiques pour offre', {
+						index,
+						id_job_offer: job.id_job_offer,
+					});
 
-				// Transformer les données pour correspondre au format frontend
-				return {
-					id: job.id_job_offer,
-					title: job.title,
-					department: job.industry || 'Général',
-					location: job.location || 'Non spécifié',
-					type: job.contract_type || 'CDI',
-					salary:
-						job.salary_min && job.salary_max
-							? `${job.salary_min}-${job.salary_max}k€`
-							: 'Non spécifié',
-					applications: applicationsCount || 0,
-					postedDate: new Date(job.published_at).toLocaleDateString('fr-FR'),
-					status: 'active', // Toutes les offres sont actives par défaut
-					experience: job.experience || 'Non spécifié',
-				};
+					// Compter les candidatures
+					const { count: applicationsCount, error: countError } = await supabase
+						.from('apply')
+						.select('*', { count: 'exact', head: true })
+						.eq('id_job_offer', job.id_job_offer);
+
+					if (countError) {
+						logger.warn('[getActiveJobs] Erreur lors du comptage des candidatures', {
+							id_job_offer: job.id_job_offer,
+							error: countError.message,
+						});
+					}
+
+					// Transformer les données pour correspondre au format frontend
+					return {
+						id: job.id_job_offer,
+						title: job.title,
+						department: job.industry || 'Général',
+						location: job.location || 'Non spécifié',
+						type: job.contract_type || 'CDI',
+						salary:
+							job.salary_min && job.salary_max
+								? `${job.salary_min}-${job.salary_max}k€`
+								: 'Non spécifié',
+						applications: applicationsCount || 0,
+						postedDate: new Date(job.published_at).toLocaleDateString('fr-FR'),
+						status: 'active', // Toutes les offres sont actives par défaut
+						experience: job.experience || 'Non spécifié',
+					};
+				} catch (jobError) {
+					logger.error("[getActiveJobs] Erreur lors du traitement d'une offre", {
+						id_job_offer: job.id_job_offer,
+						error: jobError.message,
+						stack: jobError.stack,
+					});
+					// Retourner un objet minimal en cas d'erreur
+					return {
+						id: job.id_job_offer,
+						title: job.title || 'Titre non disponible',
+						department: job.industry || 'Général',
+						location: job.location || 'Non spécifié',
+						type: job.contract_type || 'CDI',
+						salary: 'Non spécifié',
+						applications: 0,
+						postedDate: job.published_at
+							? new Date(job.published_at).toLocaleDateString('fr-FR')
+							: 'Date non disponible',
+						status: 'active',
+						experience: job.experience || 'Non spécifié',
+					};
+				}
 			})
 		);
 
+		logger.debug('[getActiveJobs] Succès - Offres avec statistiques', {
+			count: jobsWithStats.length,
+		});
+
 		return jobsWithStats;
 	} catch (error) {
-		logger.error(`[getActiveJobs] Erreur pour l'entreprise ${id_company}:`, error);
+		logger.error('[getActiveJobs] Erreur complète', {
+			id_company,
+			error: error.message,
+			stack: error.stack,
+			errorName: error.name,
+			errorCode: error.code,
+		});
 		return [];
 	}
 }

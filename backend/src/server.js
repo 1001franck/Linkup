@@ -12,12 +12,26 @@ const PORT = env.PORT;
 
 // Gestion des erreurs non capturées (production-ready)
 process.on('uncaughtException', (error) => {
-	logger.error('❌ UNCAUGHT EXCEPTION - Arrêt du serveur:', error);
+	logger.error('UNCAUGHT EXCEPTION - Arrêt du serveur', {
+		message: error.message,
+		stack: error.stack,
+		name: error.name,
+		code: error.code,
+		details: error.details,
+		hint: error.hint,
+	});
 	process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-	logger.error('❌ UNHANDLED REJECTION - Promise rejetée:', reason);
+	logger.error('UNHANDLED REJECTION - Promise rejetée', {
+		reason: reason?.message || reason,
+		stack: reason?.stack,
+		name: reason?.name,
+		code: reason?.code,
+		details: reason?.details,
+		hint: reason?.hint,
+	});
 	// Ne pas arrêter le serveur pour les rejections non gérées, juste logger
 });
 

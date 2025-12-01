@@ -22,9 +22,15 @@ export function errorHandler(err, req, res, next) {
 		message: err.message,
 		stack: err.stack,
 		name: err.name,
+		code: err.code,
+		details: err.details,
+		hint: err.hint,
 		method: req.method,
 		path: req.path,
+		url: req.url,
 		ip: req.ip,
+		userId: req.user?.sub,
+		userRole: req.user?.role,
 	});
 
 	// Ne pas exposer les détails de l'erreur en production
