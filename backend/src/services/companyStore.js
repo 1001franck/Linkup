@@ -29,10 +29,14 @@ async function findById(id_company) {
 		if (error) {
 			if (error.code === 'PGRST116') {
 				// Pas d'entreprise trouvée - c'est normal
-				logger.debug('[findById Company] Aucune entreprise trouvée avec ID:', id_company);
+				logger.debug({
+					msg: '[findById Company] Aucune entreprise trouvée',
+					id_company,
+				});
 				return null;
 			}
-			logger.error('[findById Company] error:', {
+			logger.error({
+				msg: '[findById Company] error',
 				code: error.code,
 				message: error.message,
 				details: error.details,
@@ -43,7 +47,11 @@ async function findById(id_company) {
 			return null;
 		}
 
-		logger.debug('[findById Company] Entreprise trouvée:', data?.id_company, data?.name);
+		logger.debug({
+			msg: '[findById Company] Entreprise trouvée',
+			id_company: data?.id_company,
+			name: data?.name,
+		});
 		return data || null;
 	} catch (error) {
 		logger.error('[findById Company] Exception:', error);

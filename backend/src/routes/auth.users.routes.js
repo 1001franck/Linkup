@@ -165,7 +165,8 @@ router.post('/login', authLimiter, async (req, res) => {
 		}
 
 		// Log pour déboguer
-		logger.info('[LOGIN] Création token pour utilisateur:', {
+		logger.info({
+			msg: '[LOGIN] Création token pour utilisateur',
 			id_user: user.id_user,
 			email: user.email,
 			role: user.role,

@@ -84,7 +84,8 @@ router.post('/login', authLimiter, async (req, res) => {
 		}
 
 		// Log pour déboguer
-		logger.info('[LOGIN COMPANY] Création token pour entreprise:', {
+		logger.info({
+			msg: '[LOGIN COMPANY] Création token pour entreprise',
 			id_company: company.id_company,
 			recruiter_mail: company.recruiter_mail,
 			name: company.name,

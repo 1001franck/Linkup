@@ -80,7 +80,11 @@ async function findByEmail(email) {
  */
 async function findById(id) {
 	// Log pour déboguer
-	logger.debug('[findById] Recherche utilisateur avec ID:', id, 'Type:', typeof id);
+	logger.debug({
+		msg: '[findById] Recherche utilisateur',
+		id,
+		idType: typeof id,
+	});
 
 	// Sélectionner tous les champs sauf le password pour la sécurité
 	const { data, error } = await supabase
@@ -94,10 +98,11 @@ async function findById(id) {
 	if (error) {
 		if (error.code === 'PGRST116') {
 			// Pas d'utilisateur trouvé - c'est normal
-			logger.debug('[findById] Aucun utilisateur trouvé avec ID:', id);
+			logger.debug({ msg: '[findById] Aucun utilisateur trouvé', id });
 			return null;
 		}
-		logger.error('[findById] error:', {
+		logger.error({
+			msg: '[findById] error',
 			code: error.code,
 			message: error.message,
 			details: error.details,
@@ -108,7 +113,11 @@ async function findById(id) {
 		return null;
 	}
 
-	logger.debug('[findById] Utilisateur trouvé:', data?.id_user, data?.email);
+	logger.debug({
+		msg: '[findById] Utilisateur trouvé',
+		id_user: data?.id_user,
+		email: data?.email,
+	});
 	return data;
 }
 

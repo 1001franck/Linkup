@@ -16,23 +16,22 @@ router.get('/me', auth(), async (req, res) => {
 	try {
 		// Log pour déboguer
 		const userId = req.user.sub;
-		logger.info(
-			'[GET /users/me] User ID from token:',
+		logger.info({
+			msg: '[GET /users/me] User ID from token',
 			userId,
-			'Role:',
-			req.user.role,
-			'Email:',
-			req.user.email
-		);
+			role: req.user.role,
+			email: req.user.email,
+			userPayload: req.user,
+		});
 
 		const me = await findById(userId);
 		if (!me) {
-			logger.error(
-				'[GET /users/me] Utilisateur non trouvé avec ID:',
+			logger.error({
+				msg: '[GET /users/me] Utilisateur non trouvé',
 				userId,
-				'Token payload:',
-				req.user
-			);
+				userIdType: typeof userId,
+				tokenPayload: req.user,
+			});
 			return res.status(404).json({ error: `Utilisateur introuvable avec l'ID ${userId}` });
 		}
 

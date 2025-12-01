@@ -76,23 +76,22 @@ router.get('/me', auth(), async (req, res) => {
 	try {
 		// Log pour déboguer
 		const companyId = req.user.sub;
-		logger.info(
-			'[GET /companies/me] Company ID from token:',
+		logger.info({
+			msg: '[GET /companies/me] Company ID from token',
 			companyId,
-			'Role:',
-			req.user.role,
-			'Email:',
-			req.user.recruiter_mail
-		);
+			role: req.user.role,
+			recruiter_mail: req.user.recruiter_mail,
+			userPayload: req.user,
+		});
 
 		const company = await findById(companyId);
 		if (!company) {
-			logger.error(
-				'[GET /companies/me] Entreprise non trouvée avec ID:',
+			logger.error({
+				msg: '[GET /companies/me] Entreprise non trouvée',
 				companyId,
-				'Token payload:',
-				req.user
-			);
+				companyIdType: typeof companyId,
+				tokenPayload: req.user,
+			});
 			return res.status(404).json({ error: `Entreprise introuvable avec l'ID ${companyId}` });
 		}
 
