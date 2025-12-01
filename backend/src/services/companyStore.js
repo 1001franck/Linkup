@@ -169,9 +169,10 @@ async function verifyCompanyCredentials(recruiter_mail, password) {
  * Trouve une entreprise par l'email du recruteur (pour authentification - inclut password)
  */
 async function findByMailForAuth(recruiter_mail) {
-	try {
-		const searchMail = String(recruiter_mail).trim().toLowerCase();
+	// Normaliser l'email avant le try pour qu'il soit accessible dans le catch
+	const searchMail = String(recruiter_mail).trim().toLowerCase();
 
+	try {
 		// Sélectionner uniquement les champs nécessaires pour l'authentification
 		// Utiliser .eq() pour une correspondance exacte (pas .ilike() qui est pour les patterns)
 		const { data, error } = await supabase
@@ -186,7 +187,13 @@ async function findByMailForAuth(recruiter_mail) {
 			if (error.code === 'PGRST116') {
 				logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
 			} else {
-				logger.error('findByMailForAuth error:', error);
+				logger.error('findByMailForAuth error:', {
+					code: error.code,
+					message: error.message,
+					details: error.details,
+					hint: error.hint,
+					recruiter_mail: searchMail,
+				});
 			}
 			return null;
 		}
@@ -198,7 +205,14 @@ async function findByMailForAuth(recruiter_mail) {
 			logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
 			return null;
 		}
-		logger.error('findByMailForAuth error:', error);
+		logger.error('findByMailForAuth error (catch):', {
+			code: error.code,
+			message: error.message,
+			details: error.details,
+			hint: error.hint,
+			recruiter_mail: searchMail,
+			stack: error.stack,
+		});
 		throw error;
 	}
 }

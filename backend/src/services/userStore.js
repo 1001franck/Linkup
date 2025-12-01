@@ -15,7 +15,13 @@ async function findByEmailForAuth(email) {
 		.single();
 
 	if (error && error.code !== 'PGRST116') {
-		logger.error('[findByEmailForAuth] error:', error);
+		logger.error('[findByEmailForAuth] error:', {
+			code: error.code,
+			message: error.message,
+			details: error.details,
+			hint: error.hint,
+			email: normalizedEmail,
+		});
 		return null;
 	}
 
@@ -46,7 +52,13 @@ async function findByEmail(email) {
 		if (error.code === 'PGRST116') {
 			logger.debug('[findByEmail] Aucun utilisateur trouvé avec cet email');
 		} else {
-			logger.error('[findByEmail] error:', error);
+			logger.error('[findByEmail] error:', {
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				email: normalizedEmail,
+			});
 		}
 		return null;
 	}

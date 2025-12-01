@@ -125,7 +125,7 @@ const corsOptions = {
 		// - Production: https://linkup-phi.vercel.app
 		// - Previews: https://linkup-1kj3oafq2-1001francks-projects.vercel.app
 		// - Autres: https://*.vercel.app
-		if (origin.includes('.vercel.app')) {
+		if (origin && origin.includes('.vercel.app')) {
 			logger.debug(`[CORS] Origine Vercel autorisée: ${origin}`);
 			return callback(null, origin);
 		}
@@ -133,7 +133,8 @@ const corsOptions = {
 		// Rejeter les autres origines
 		logger.warn(
 			`[CORS] Origine non autorisée (prod): ${origin}. Origines autorisées:`,
-			allowedOrigins
+			allowedOrigins,
+			`Vercel check: ${origin && origin.includes('.vercel.app') ? 'match' : 'no match'}`
 		);
 		callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
 	},
