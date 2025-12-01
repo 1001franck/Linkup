@@ -1409,6 +1409,8 @@ export default function LinkUpHomePage() {
 
   // Si l'utilisateur est authentifié, rediriger vers le dashboard approprié
   useEffect(() => {
+    console.log('🔵 [HOME PAGE] useEffect déclenché:', { isLoading, isAuthenticated, hasUser: !!user, userEmail: user && ('email' in user ? user.email : user.recruiter_mail) });
+    
     if (!isLoading && isAuthenticated && user) {
       const userRole = 'role' in user ? user.role : null;
       let redirectPath = '/dashboard';
@@ -1419,7 +1421,10 @@ export default function LinkUpHomePage() {
         redirectPath = '/company-dashboard';
       }
       
+      console.log('🔵 [HOME PAGE] Redirection vers:', redirectPath);
       router.push(redirectPath);
+    } else {
+      console.log('🔵 [HOME PAGE] Pas de redirection - affichage page marketing');
     }
   }, [isLoading, isAuthenticated, user, router]);
 

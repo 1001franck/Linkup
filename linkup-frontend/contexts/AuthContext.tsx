@@ -85,11 +85,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Ne pas vérifier plusieurs fois
     if (hasCheckedAuth) {
+      console.log('🟡 [AUTH CHECK] Déjà vérifié, skip');
       return;
     }
 
+    console.log('🟡 [AUTH CHECK] Début vérification authentification');
+    
     const checkAuth = async () => {
       setHasCheckedAuth(true);
+      console.log('🟡 [AUTH CHECK] hasCheckedAuth = true');
       
       // Timeout pour éviter que l'application reste bloquée si le backend ne répond pas
       const timeoutId = setTimeout(() => {
@@ -114,6 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = userResult.value.data as User;
           const userRole = userData.role;
           
+          console.log('🟢 [AUTH CHECK] Utilisateur trouvé:', { email: userData.email, role: userRole });
+          
           if (userRole === 'admin') {
             const adminUser: User = { ...userData, role: 'admin' };
             setUser(adminUser);
@@ -132,10 +138,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } 
         // Sinon, vérifier si c'est une entreprise
         else if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
+          console.log('🟢 [AUTH CHECK] Entreprise trouvée:', { name: companyResult.value.data.name });
           setUser(companyResult.value.data as Company);
         } 
         // Aucun utilisateur connecté
         else {
+          console.log('🔴 [AUTH CHECK] Aucun utilisateur connecté');
           setUser(null);
         }
       } catch (error) {
@@ -267,10 +275,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Détecte automatiquement le type d'utilisateur pour utiliser la bonne route
    */
   const logout = async () => {
+    console.log('🔴 [LOGOUT] Début déconnexion');
+    console.log('🔴 [LOGOUT] État avant:', { user: user?.email || user?.recruiter_mail, isAuthenticated: !!user });
+    
     // Nettoyer l'état immédiatement
     setUser(null);
     setIsLoading(false);
     setHasCheckedAuth(false);
+    
+    console.log('🔴 [LOGOUT] État nettoyé:', { user: null, isAuthenticated: false, hasCheckedAuth: false });
     
     // Nettoyer localStorage
     if (typeof window !== 'undefined') {
@@ -279,24 +292,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('userProfile');
         localStorage.removeItem('userSkills');
         localStorage.removeItem('profileCompleted');
+        console.log('🔴 [LOGOUT] localStorage nettoyé');
       } catch (error) {
-        console.error('Erreur lors du nettoyage:', error);
+        console.error('🔴 [LOGOUT] Erreur lors du nettoyage:', error);
       }
     }
     
     // Appeler l'API de déconnexion (sans bloquer)
     try {
       const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
+      console.log('🔴 [LOGOUT] Appel API logout, isCompany:', isCompany);
+      
       if (isCompany) {
         await apiClient.logoutCompany();
       } else {
         await apiClient.logout();
       }
+      
+      console.log('🔴 [LOGOUT] API logout réussie');
     } catch (error) {
-      // Ignorer les erreurs, on déconnecte quand même
-      console.error('Erreur logout API:', error);
+      console.error('🔴 [LOGOUT] Erreur logout API:', error);
     }
     
+    console.log('🔴 [LOGOUT] Redirection vers /');
     // Rediriger immédiatement vers la page d'accueil
     window.location.href = '/';
   };

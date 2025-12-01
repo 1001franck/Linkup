@@ -138,9 +138,11 @@ class ApiClient {
    * Cette fonction appelle simplement l'endpoint logout
    */
   async logout(): Promise<void> {
-    await this.request('/auth/users/logout', {
+    console.log('🔴 [API] Appel logout utilisateur');
+    const response = await this.request('/auth/users/logout', {
       method: 'POST',
     });
+    console.log('🔴 [API] Réponse logout:', response);
     // Le cookie httpOnly sera supprimé par le backend via clearCookie()
   }
 

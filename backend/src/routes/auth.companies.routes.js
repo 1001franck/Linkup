@@ -181,13 +181,20 @@ router.post('/logout', auth(), async (req, res) => {
 			maxAge: 0, // Expiration immédiate = suppression du cookie
 		};
 
+		logger.info({
+			msg: '[LOGOUT COMPANY] Suppression cookie',
+			companyId: req.user?.sub,
+			isProduction,
+			hasToken: !!token,
+		});
+
 		// Définir le cookie avec expiration immédiate (suppression effective)
 		res.cookie('linkup_token', '', cookieOptions);
 
 		// Aussi essayer clearCookie pour être sûr (double méthode)
 		res.clearCookie('linkup_token', cookieOptions);
 
-		logger.info({ msg: '[LOGOUT COMPANY] Cookie supprimé', isProduction });
+		logger.info({ msg: '[LOGOUT COMPANY] Cookie supprimé avec succès' });
 		return res.json({ ok: true });
 	} catch (err) {
 		logger.error('Logout company error:', err);
