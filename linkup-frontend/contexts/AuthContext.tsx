@@ -89,6 +89,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // ✅ CORRECTION : Vérifier si une déconnexion est en cours
+    // Si oui, ne pas vérifier l'authentification pour éviter de réauthentifier
+    if (typeof window !== 'undefined') {
+      const isLoggingOut = sessionStorage.getItem('linkup_logging_out');
+      if (isLoggingOut === 'true') {
+        console.log('🔴 [AUTH CHECK] Déconnexion en cours, skip vérification');
+        setUser(null);
+        setIsLoading(false);
+        setHasCheckedAuth(true);
+        // Nettoyer le flag après un court délai
+        setTimeout(() => {
+          sessionStorage.removeItem('linkup_logging_out');
+        }, 1000);
+        return;
+      }
+    }
+
     console.log('🟡 [AUTH CHECK] Début vérification authentification');
     
     const checkAuth = async () => {
@@ -295,11 +312,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🔴 [LOGOUT] Début déconnexion');
     console.log('🔴 [LOGOUT] État avant:', { user: user?.email || user?.recruiter_mail, isAuthenticated: !!user });
     
+    // ✅ CORRECTION : Stocker le type d'utilisateur AVANT de nettoyer l'état
+    const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
+    console.log('🔴 [LOGOUT] Type utilisateur détecté:', isCompany ? 'company' : 'user');
+    
+    // ✅ CORRECTION : Marquer qu'une déconnexion est en cours dans sessionStorage
+    // Cela empêchera checkAuth() de réauthentifier après la redirection
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('linkup_logging_out', 'true');
+      console.log('🔴 [LOGOUT] Flag de déconnexion défini dans sessionStorage');
+    }
+    
     // Nettoyer l'état immédiatement
     setUser(null);
     setIsLoading(false);
-    // NE PAS remettre hasCheckedAuth à false - cela évitera que checkAuth() se relance après redirection
-    // On garde hasCheckedAuth = true pour empêcher une nouvelle vérification
     setHasCheckedAuth(true);
     
     console.log('🔴 [LOGOUT] État nettoyé:', { user: null, isAuthenticated: false, hasCheckedAuth: true });
@@ -319,7 +345,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Appeler l'API de déconnexion et attendre qu'elle se termine
     try {
-      const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
       console.log('🔴 [LOGOUT] Appel API logout, isCompany:', isCompany);
       
       if (isCompany) {

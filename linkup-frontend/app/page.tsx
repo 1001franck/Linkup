@@ -1411,6 +1411,15 @@ export default function LinkUpHomePage() {
   useEffect(() => {
     console.log('🔵 [HOME PAGE] useEffect déclenché:', { isLoading, isAuthenticated, hasUser: !!user, userEmail: user && ('email' in user ? user.email : user.recruiter_mail) });
     
+    // ✅ CORRECTION : Ne pas rediriger si une déconnexion est en cours
+    if (typeof window !== 'undefined') {
+      const isLoggingOut = sessionStorage.getItem('linkup_logging_out');
+      if (isLoggingOut === 'true') {
+        console.log('🔵 [HOME PAGE] Déconnexion en cours, pas de redirection');
+        return;
+      }
+    }
+    
     if (!isLoading && isAuthenticated && user) {
       const userRole = 'role' in user ? user.role : null;
       let redirectPath = '/dashboard';

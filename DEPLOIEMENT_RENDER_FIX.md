@@ -50,3 +50,4 @@ Après le déploiement, vérifiez les logs Render :
 2. **Manual Deploy** → "Clear build cache & deploy"
 3. Vérifier les logs de build pour voir où les dépendances sont installées
 
+

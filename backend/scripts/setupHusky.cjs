@@ -23,3 +23,4 @@ const result = spawnSync('npx', ['husky', 'install'], {
 process.exit(result.status ?? 0);
 
 
+
