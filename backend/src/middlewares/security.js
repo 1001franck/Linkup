@@ -41,7 +41,7 @@ export function sanitizeSearchParams(req, res, next) {
  */
 export function validateNumericId(paramName = 'id') {
 	return (req, res, next) => {
-		const id = req.params[paramName] || req.body[paramName] || req.query[paramName];
+		const id = req.params[paramName] || (req.body && req.body[paramName]) || req.query[paramName];
 
 		if (id !== undefined) {
 			const numId = parseInt(id, 10);
@@ -53,7 +53,7 @@ export function validateNumericId(paramName = 'id') {
 			}
 			// Remplacer par la valeur validée
 			if (req.params[paramName]) req.params[paramName] = numId;
-			if (req.body[paramName]) req.body[paramName] = numId;
+			if (req.body && req.body[paramName]) req.body[paramName] = numId;
 			if (req.query[paramName]) req.query[paramName] = numId;
 		}
 
