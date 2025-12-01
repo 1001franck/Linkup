@@ -75,12 +75,25 @@ router.get('/', validatePagination({ defaultLimit: 20, maxLimit: 100 }), async (
 router.get('/me', auth(), async (req, res) => {
 	try {
 		// Log pour déboguer
-		logger.debug('[GET /companies/me] Company ID from token:', req.user.sub);
+		const companyId = req.user.sub;
+		logger.info(
+			'[GET /companies/me] Company ID from token:',
+			companyId,
+			'Role:',
+			req.user.role,
+			'Email:',
+			req.user.recruiter_mail
+		);
 
-		const company = await findById(req.user.sub);
+		const company = await findById(companyId);
 		if (!company) {
-			logger.warn('[GET /companies/me] Entreprise non trouvée avec ID:', req.user.sub);
-			return res.status(404).json({ error: 'Entreprise introuvable' });
+			logger.error(
+				'[GET /companies/me] Entreprise non trouvée avec ID:',
+				companyId,
+				'Token payload:',
+				req.user
+			);
+			return res.status(404).json({ error: `Entreprise introuvable avec l'ID ${companyId}` });
 		}
 
 		// Ne renvoie pas le mot de passe

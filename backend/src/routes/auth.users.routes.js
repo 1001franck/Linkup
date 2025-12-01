@@ -164,6 +164,14 @@ router.post('/login', authLimiter, async (req, res) => {
 			return res.status(401).json({ error: 'Identifiants invalides' });
 		}
 
+		// Log pour déboguer
+		logger.info('[LOGIN] Création token pour utilisateur:', {
+			id_user: user.id_user,
+			email: user.email,
+			role: user.role,
+			id_type: typeof user.id_user,
+		});
+
 		// Sign JWT containing minimal claims
 		const token = jwt.sign(
 			{

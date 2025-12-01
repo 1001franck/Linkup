@@ -79,6 +79,9 @@ async function findByEmail(email) {
  * @returns {Promise<Object|null>} Utilisateur trouvé ou null
  */
 async function findById(id) {
+	// Log pour déboguer
+	logger.debug('[findById] Recherche utilisateur avec ID:', id, 'Type:', typeof id);
+
 	// Sélectionner tous les champs sauf le password pour la sécurité
 	const { data, error } = await supabase
 		.from('user_')
@@ -88,11 +91,24 @@ async function findById(id) {
 		.eq('id_user', id)
 		.single();
 
-	if (error && error.code !== 'PGRST116') {
-		logger.error('[findById] error:', error);
+	if (error) {
+		if (error.code === 'PGRST116') {
+			// Pas d'utilisateur trouvé - c'est normal
+			logger.debug('[findById] Aucun utilisateur trouvé avec ID:', id);
+			return null;
+		}
+		logger.error('[findById] error:', {
+			code: error.code,
+			message: error.message,
+			details: error.details,
+			hint: error.hint,
+			id,
+			idType: typeof id,
+		});
 		return null;
 	}
 
+	logger.debug('[findById] Utilisateur trouvé:', data?.id_user, data?.email);
 	return data;
 }
 

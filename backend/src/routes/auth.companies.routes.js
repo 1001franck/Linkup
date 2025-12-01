@@ -83,6 +83,14 @@ router.post('/login', authLimiter, async (req, res) => {
 			return res.status(401).json({ error: 'Identifiants invalides' });
 		}
 
+		// Log pour déboguer
+		logger.info('[LOGIN COMPANY] Création token pour entreprise:', {
+			id_company: company.id_company,
+			recruiter_mail: company.recruiter_mail,
+			name: company.name,
+			id_type: typeof company.id_company,
+		});
+
 		// Sign a token for the company account
 		const token = jwt.sign(
 			{

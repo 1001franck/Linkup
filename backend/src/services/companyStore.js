@@ -9,6 +9,14 @@ import { BCRYPT_SALT_ROUNDS } from '../utils/constants.js';
  */
 async function findById(id_company) {
 	try {
+		// Log pour déboguer
+		logger.debug(
+			'[findById Company] Recherche entreprise avec ID:',
+			id_company,
+			'Type:',
+			typeof id_company
+		);
+
 		// Sélectionner uniquement les champs nécessaires (sans password)
 		const { data, error } = await supabase
 			.from('company')
@@ -18,14 +26,27 @@ async function findById(id_company) {
 			.eq('id_company', id_company)
 			.single();
 
-		if (error && error.code !== 'PGRST116') {
-			logger.error('findById error:', error);
+		if (error) {
+			if (error.code === 'PGRST116') {
+				// Pas d'entreprise trouvée - c'est normal
+				logger.debug('[findById Company] Aucune entreprise trouvée avec ID:', id_company);
+				return null;
+			}
+			logger.error('[findById Company] error:', {
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				id: id_company,
+				idType: typeof id_company,
+			});
 			return null;
 		}
 
+		logger.debug('[findById Company] Entreprise trouvée:', data?.id_company, data?.name);
 		return data || null;
 	} catch (error) {
-		logger.error('findById error:', error);
+		logger.error('[findById Company] Exception:', error);
 		throw error;
 	}
 }

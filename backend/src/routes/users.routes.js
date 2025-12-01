@@ -15,12 +15,25 @@ const router = express.Router();
 router.get('/me', auth(), async (req, res) => {
 	try {
 		// Log pour déboguer
-		logger.debug('[GET /users/me] User ID from token:', req.user.sub);
+		const userId = req.user.sub;
+		logger.info(
+			'[GET /users/me] User ID from token:',
+			userId,
+			'Role:',
+			req.user.role,
+			'Email:',
+			req.user.email
+		);
 
-		const me = await findById(req.user.sub);
+		const me = await findById(userId);
 		if (!me) {
-			logger.warn('[GET /users/me] Utilisateur non trouvé avec ID:', req.user.sub);
-			return res.status(404).json({ error: 'Utilisateur introuvable' });
+			logger.error(
+				'[GET /users/me] Utilisateur non trouvé avec ID:',
+				userId,
+				'Token payload:',
+				req.user
+			);
+			return res.status(404).json({ error: `Utilisateur introuvable avec l'ID ${userId}` });
 		}
 
 		// Récupérer la photo de profil
