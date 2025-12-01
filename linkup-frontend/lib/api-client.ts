@@ -88,6 +88,28 @@ class ApiClient {
   }
 
   /**
+   * Fonction utilitaire pour récupérer le token CSRF depuis le cookie
+   * Le token CSRF est stocké dans un cookie non httpOnly pour permettre la lecture par JavaScript
+   * Format du cookie: csrf_token=value
+   */
+  private getCsrfToken(): string | null {
+    if (typeof document === 'undefined') return null;
+    
+    // Récupérer tous les cookies
+    const cookies = document.cookie.split(';');
+    
+    // Chercher le cookie csrf_token
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'csrf_token' && value) {
+        return decodeURIComponent(value);
+      }
+    }
+    
+    return null;
+  }
+
+  /**
    * Fonction utilitaire pour récupérer le token depuis les cookies httpOnly
    * Note: Les cookies httpOnly ne sont pas accessibles par JavaScript
    * Cette fonction est utilisée uniquement pour vérifier la présence du token
@@ -110,11 +132,53 @@ class ApiClient {
     // Déterminer si c'est un upload de fichier (FormData)
     const isFormData = options.body instanceof FormData;
     
+    // Déterminer si c'est une requête mutante nécessitant un token CSRF
+    const mutatingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+    const method = options.method || 'GET';
+    const isMutating = mutatingMethods.includes(method);
+    
+    // Récupérer le token CSRF pour les requêtes mutantes
+    let csrfToken = isMutating ? this.getCsrfToken() : null;
+    
+    // Si c'est une requête mutante et qu'on n'a pas de token, essayer de le récupérer
+    // en faisant une requête GET préalable (le backend génère le token à chaque requête)
+    if (isMutating && !csrfToken) {
+      try {
+        logger.debug('[CSRF] Token CSRF non disponible, récupération...');
+        // Faire une requête GET pour obtenir le token CSRF
+        // Le backend génère le token à chaque requête et le met dans le cookie
+        const preflightResponse = await fetch(`${this.baseURL}/health`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        // Le backend devrait avoir généré le token et l'avoir mis dans le cookie
+        // Essayer de le récupérer immédiatement
+        csrfToken = this.getCsrfToken();
+        
+        // Si toujours pas disponible, attendre un peu et réessayer
+        if (!csrfToken) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          csrfToken = this.getCsrfToken();
+        }
+        
+        if (csrfToken) {
+          logger.debug('[CSRF] Token CSRF récupéré avec succès');
+        } else {
+          logger.warn('[CSRF] Token CSRF toujours non disponible après prérequête');
+        }
+      } catch (error) {
+        logger.warn('[CSRF] Impossible de récupérer le token CSRF:', error);
+      }
+    }
+    
     const config: RequestInit = {
       credentials: 'include', // CRITIQUE: Inclure les cookies httpOnly automatiquement
       headers: {
         // Ne pas définir Content-Type pour FormData, laisser le navigateur le faire
         ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        // Ajouter le token CSRF pour les requêtes mutantes
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         ...options.headers,
       },
       ...options,
@@ -122,6 +186,19 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
+      
+      // Récupérer le token CSRF depuis le header de réponse si disponible
+      // Le backend envoie le token dans le header X-CSRF-Token à chaque requête
+      // Cela permet de mettre à jour le cookie pour les prochaines requêtes
+      const responseCsrfToken = response.headers.get('X-CSRF-Token');
+      if (responseCsrfToken && typeof document !== 'undefined') {
+        // Mettre à jour le cookie avec le token reçu (pour les prochaines requêtes)
+        const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+        const sameSite = isProduction ? 'Strict' : 'Lax';
+        const secure = isProduction ? '; Secure' : '';
+        document.cookie = `csrf_token=${responseCsrfToken}; path=/; max-age=${24 * 60 * 60}; SameSite=${sameSite}${secure}`;
+        logger.debug('[CSRF] Token CSRF mis à jour depuis le header de réponse');
+      }
       
       // Vérifier le Content-Type avant de parser
       const contentType = response.headers.get('content-type');
@@ -155,6 +232,87 @@ class ApiClient {
             logger.error(`[API Error] ${response.status} from ${sanitizedUrl}:`, sanitizedData);
           } else if (response.status >= 400) {
             logger.warn(`[API Warning] ${response.status} from ${sanitizedUrl}:`, sanitizedData);
+          }
+        }
+        
+        // Si c'est une erreur CSRF, essayer de récupérer le token et réessayer une fois
+        if (response.status === 403 && data.error && data.error.includes('CSRF')) {
+          logger.warn('[CSRF] Erreur CSRF détectée, tentative de récupération du token...');
+          
+          // Récupérer le token depuis le header de réponse
+          const responseCsrfToken = response.headers.get('X-CSRF-Token');
+          if (responseCsrfToken && typeof document !== 'undefined') {
+            const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+            const sameSite = isProduction ? 'Strict' : 'Lax';
+            const secure = isProduction ? '; Secure' : '';
+            document.cookie = `csrf_token=${responseCsrfToken}; path=/; max-age=${24 * 60 * 60}; SameSite=${sameSite}${secure}`;
+            
+            // Réessayer la requête avec le nouveau token
+            const retryConfig: RequestInit = {
+              ...config,
+              headers: {
+                ...config.headers,
+                'X-CSRF-Token': responseCsrfToken,
+              },
+            };
+            
+            try {
+              const retryResponse = await fetch(url, retryConfig);
+              const retryData = await retryResponse.json();
+              
+              if (retryResponse.ok) {
+                logger.debug('[CSRF] Requête réussie après récupération du token');
+                return {
+                  success: true,
+                  data: retryData.data || retryData,
+                };
+              }
+            } catch (retryError) {
+              logger.error('[CSRF] Erreur lors de la nouvelle tentative:', retryError);
+            }
+          }
+        }
+        
+        // Si c'est une erreur CSRF (403), essayer de récupérer le token et réessayer une fois
+        if (response.status === 403 && data.error && (data.error.includes('CSRF') || data.error.includes('csrf'))) {
+          logger.warn('[CSRF] Erreur CSRF détectée, tentative de récupération du token...');
+          
+          // Récupérer le token depuis le header de réponse
+          const responseCsrfToken = response.headers.get('X-CSRF-Token');
+          if (responseCsrfToken && typeof document !== 'undefined') {
+            const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+            const sameSite = isProduction ? 'Strict' : 'Lax';
+            const secure = isProduction ? '; Secure' : '';
+            document.cookie = `csrf_token=${responseCsrfToken}; path=/; max-age=${24 * 60 * 60}; SameSite=${sameSite}${secure}`;
+            
+            // Réessayer la requête avec le nouveau token
+            const retryConfig: RequestInit = {
+              ...config,
+              headers: {
+                ...config.headers,
+                'X-CSRF-Token': responseCsrfToken,
+              },
+            };
+            
+            try {
+              logger.debug('[CSRF] Nouvelle tentative avec le token récupéré...');
+              const retryResponse = await fetch(url, retryConfig);
+              const retryContentType = retryResponse.headers.get('content-type');
+              
+              if (retryContentType && retryContentType.includes('application/json')) {
+                const retryData = await retryResponse.json();
+                
+                if (retryResponse.ok) {
+                  logger.debug('[CSRF] Requête réussie après récupération du token');
+                  return {
+                    success: true,
+                    data: retryData.data || retryData,
+                  };
+                }
+              }
+            } catch (retryError) {
+              logger.error('[CSRF] Erreur lors de la nouvelle tentative:', retryError);
+            }
           }
         }
         
