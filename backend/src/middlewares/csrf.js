@@ -28,7 +28,9 @@ export function csrfTokenGenerator(req, res, next) {
 	res.cookie('csrf_token', token, {
 		httpOnly: false, // Doit être accessible par JavaScript pour le double submit
 		secure: isProduction, // HTTPS uniquement en production
-		sameSite: isProduction ? 'strict' : 'lax',
+		// En cross-origin, utiliser 'none' pour permettre l'envoi du cookie
+		// Mais seulement si secure est true (HTTPS)
+		sameSite: isProduction ? 'none' : 'lax',
 		maxAge: 24 * 60 * 60 * 1000, // 24 heures
 		path: '/',
 	});

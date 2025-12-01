@@ -175,6 +175,14 @@ class ApiClient {
       logger.debug('[CSRF] 🔵 Token manquant, récupération depuis le backend...');
       csrfToken = await this.fetchCsrfToken();
       logger.debug(`[CSRF] 🔵 Token après récupération: ${csrfToken ? '✅ Présent' : '❌ Absent'}`);
+      
+      // Si toujours pas de token après récupération, essayer une dernière fois
+      if (!csrfToken) {
+        logger.warn('[CSRF] ⚠️ Token toujours absent après récupération, nouvelle tentative...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Attendre un peu
+        csrfToken = await this.fetchCsrfToken();
+        logger.debug(`[CSRF] 🔵 Token après deuxième tentative: ${csrfToken ? '✅ Présent' : '❌ Absent'}`);
+      }
     }
     
     const config: RequestInit = {
@@ -199,18 +207,30 @@ class ApiClient {
 
     try {
       logger.debug(`[CSRF] 🔵 Envoi de la requête ${method} vers ${url}`);
+      if (isMutating) {
+        if (csrfToken) {
+          logger.debug(`[CSRF] 🔵 Token envoyé dans le header X-CSRF-Token: ${csrfToken.substring(0, 8)}...`);
+        } else {
+          logger.warn(`[CSRF] ⚠️ Aucun token CSRF envoyé dans le header pour la requête mutante !`);
+        }
+        // Vérifier si les cookies sont envoyés
+        logger.debug(`[CSRF] 🔵 Credentials: ${config.credentials}`);
+      }
+      
       const response = await fetch(url, config);
       
       logger.debug(`[CSRF] 🔵 Réponse reçue - Status: ${response.status}`);
       logger.debug(`[CSRF] 🔵 Headers de réponse disponibles:`, Array.from(response.headers.keys()));
       
       // Récupérer le token CSRF depuis le header de réponse si disponible
-      // Le backend envoie le token dans le header X-CSRF-Token à chaque requête
-      // Mettre à jour le token en mémoire pour les prochaines requêtes
+      // Le backend génère un nouveau token à chaque requête et le met dans le cookie ET le header
+      // On doit utiliser le token du header pour les prochaines requêtes
       const responseCsrfToken = response.headers.get('X-CSRF-Token');
       logger.debug(`[CSRF] 🔵 Token depuis header de réponse: ${responseCsrfToken ? '✅ Trouvé' : '❌ Non trouvé'}`);
       
       if (responseCsrfToken) {
+        // IMPORTANT: Le backend génère un nouveau token à chaque requête
+        // On doit toujours utiliser le dernier token reçu
         this.csrfToken = responseCsrfToken;
         logger.debug(`[CSRF] ✅ Token CSRF mis à jour depuis le header de réponse: ${responseCsrfToken.substring(0, 8)}...`);
       } else {
