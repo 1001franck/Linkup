@@ -23,7 +23,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
-import { BackendStatus } from "@/components/ui/backend-status";
 import { Country, City } from "country-state-city";
 import { 
   ArrowLeft, 
@@ -496,7 +495,6 @@ export default function CreateJobPage() {
         {/* Contenu principal avec padding pour le header fixe */}
         <div className="pt-20">
           <Container>
-            <BackendStatus />
             
             {/* Header de la page */}
             <div className="py-8">

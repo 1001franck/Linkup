@@ -22,7 +22,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useCompanyAllJobsManagement } from "@/hooks/use-api";
-import { BackendStatus } from "@/components/ui/backend-status";
 import CompanyHeader from "@/components/layout/company-header";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
@@ -154,7 +153,6 @@ export default function CompanyJobsPage() {
         {/* Contenu principal avec padding pour le header fixe */}
         <div className="pt-20 pb-16">
           <Container>
-            <BackendStatus />
           {/* Header */}
           <div className="py-8">
             <div className="flex items-center gap-4 mb-6">

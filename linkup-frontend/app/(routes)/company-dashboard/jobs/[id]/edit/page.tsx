@@ -22,7 +22,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
-import { BackendStatus } from "@/components/ui/backend-status";
 import { Country, City } from "country-state-city";
 import { 
   ArrowLeft, 

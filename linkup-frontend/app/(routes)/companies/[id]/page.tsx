@@ -74,18 +74,44 @@ export default function CompanyDetailsPage() {
         setLoading(true);
         setError(null);
         
+        console.log('🔍 [COMPANY DETAILS] Chargement entreprise ID:', companyId);
         const response = await apiClient.getCompany(companyId);
+        console.log('🔍 [COMPANY DETAILS] Réponse API complète:', response);
+        console.log('🔍 [COMPANY DETAILS] response.success:', response.success);
+        console.log('🔍 [COMPANY DETAILS] response.data:', response.data);
+        console.log('🔍 [COMPANY DETAILS] response.error:', response.error);
         
         if (response.success && response.data) {
-          // Le backend retourne { data: company }, donc response.data contient { data: company }
-          // ou directement company selon le format de l'API client
-          const companyData = (response.data as any).data || response.data;
-          setCompany(companyData);
+          // Le backend retourne { data: company }
+          // L'API client retourne { success: true, data: { data: company } }
+          // Donc response.data = { data: company }
+          // Et response.data.data = company
+          let companyData: CompanyDetails | null = null;
+          
+          if ((response.data as any).data) {
+            // Format: { data: { data: company } }
+            companyData = (response.data as any).data;
+            console.log('🔍 [COMPANY DETAILS] Format détecté: { data: { data: company } }');
+          } else if (response.data && typeof response.data === 'object' && 'id_company' in response.data) {
+            // Format: { data: company } (direct)
+            companyData = response.data as CompanyDetails;
+            console.log('🔍 [COMPANY DETAILS] Format détecté: { data: company } (direct)');
+          }
+          
+          console.log('🔍 [COMPANY DETAILS] Données entreprise extraites:', companyData);
+          
+          if (companyData && companyData.id_company) {
+            setCompany(companyData);
+          } else {
+            console.error('❌ [COMPANY DETAILS] Format de données invalide:', companyData);
+            setError("Format de données invalide reçu du serveur");
+          }
         } else {
+          console.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
           setError(response.error || "Entreprise non trouvée");
         }
       } catch (err: any) {
-        console.error("Erreur lors du chargement de l'entreprise:", err);
+        console.error("❌ [COMPANY DETAILS] Exception lors du chargement:", err);
         setError(err.message || "Erreur lors du chargement de l'entreprise");
         toast({
           title: "Erreur",
@@ -150,10 +176,17 @@ export default function CompanyDetailsPage() {
         <Container className="py-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-            <Typography variant="h3" className="mb-2">Entreprise non trouvée</Typography>
-            <Typography variant="muted" className="mb-6 text-center max-w-md">
+            <Typography variant="h3" className="mb-2">
+              {error?.includes('Erreur serveur') ? 'Erreur serveur' : 'Entreprise non trouvée'}
+            </Typography>
+            <Typography variant="muted" className="mb-2 text-center max-w-md">
               {error || "L'entreprise que vous recherchez n'existe pas ou a été supprimée."}
             </Typography>
+            {companyId && (
+              <Typography variant="muted" className="text-xs mb-6 text-center max-w-md opacity-70">
+                ID recherché: {companyId}
+              </Typography>
+            )}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => router.push('/companies')}>
                 Retour aux entreprises

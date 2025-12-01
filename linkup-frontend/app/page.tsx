@@ -18,6 +18,7 @@ import { Code, MessageSquare, Palette } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { CompanyCard } from "@/components/ui/company-card";
@@ -1420,6 +1421,7 @@ export default function LinkUpHomePage() {
       }
     }
     
+    // ✅ CORRECTION : Rediriger immédiatement si authentifié, sans attendre
     if (!isLoading && isAuthenticated && user) {
       const userRole = 'role' in user ? user.role : null;
       let redirectPath = '/dashboard';
@@ -1431,12 +1433,39 @@ export default function LinkUpHomePage() {
       }
       
       console.log('🔵 [HOME PAGE] Redirection vers:', redirectPath);
-      router.push(redirectPath);
+      // Utiliser replace au lieu de push pour éviter l'historique
+      router.replace(redirectPath);
     } else {
       console.log('🔵 [HOME PAGE] Pas de redirection - affichage page marketing');
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  // Afficher la page marketing
+  // ✅ CORRECTION : Afficher un loader pendant la vérification d'authentification
+  // pour éviter le flash de la landing page
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Typography variant="h4" className="mb-2">Chargement...</Typography>
+          <Typography variant="muted">Vérification de votre session</Typography>
+        </div>
+      </div>
+    );
+  }
+
+  // Si authentifié, ne rien afficher (la redirection va se faire)
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Typography variant="h4" className="mb-2">Redirection...</Typography>
+        </div>
+      </div>
+    );
+  }
+
+  // Afficher la page marketing seulement si non authentifié
   return <MarketingHomePage />;
 }

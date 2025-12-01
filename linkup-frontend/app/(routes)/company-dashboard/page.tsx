@@ -16,7 +16,6 @@ import { Toaster } from "@/components/ui/toaster";
 import CompanyHeader from "@/components/layout/company-header";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyDashboardStats, useCompanyRecentApplications, useCompanyActiveJobs, useCompanyUpcomingInterviews } from "@/hooks/use-api";
-import { BackendStatus } from "@/components/ui/backend-status";
 import { useSearchParams } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { apiClient } from "@/lib/api-client";
@@ -300,7 +299,6 @@ function CompanyDashboardPageContent() {
         <CompanyHeader />
         
         {/* Contenu principal avec padding pour le header fixe */}
-        <BackendStatus />
         <div className="pt-20">
           <Container>
             <CompanyDashboardHeader
