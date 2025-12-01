@@ -109,11 +109,35 @@ router.get('/me', auth(), async (req, res) => {
  */
 router.get('/:id', validateNumericId('id'), async (req, res) => {
 	try {
-		const company = await findById(req.params.id);
+		const companyId = req.params.id;
+		logger.debug('[GET /companies/:id] Début requête', {
+			id: companyId,
+			idType: typeof companyId,
+		});
+
+		const company = await findById(companyId);
+
+		logger.debug('[GET /companies/:id] Résultat findById', {
+			found: !!company,
+			hasId: company ? !!company.id_company : false,
+		});
+
 		if (!company) {
+			logger.warn('[GET /companies/:id] Entreprise non trouvée', {
+				id: companyId,
+			});
 			return res.status(404).json({ error: 'Entreprise introuvable' });
 		}
-		res.json({ data: company });
+
+		// Ne pas renvoyer le mot de passe si présent
+		const { password, ...companyData } = company;
+
+		logger.debug('[GET /companies/:id] Envoi réponse', {
+			id: companyData.id_company,
+			hasName: !!companyData.name,
+		});
+
+		res.json({ data: companyData });
 	} catch (error) {
 		logger.error('GET /companies/:id error:', {
 			error: error.message,
@@ -121,6 +145,7 @@ router.get('/:id', validateNumericId('id'), async (req, res) => {
 			id: req.params.id,
 			errorCode: error.code,
 			errorDetails: error.details,
+			errorName: error.name,
 		});
 
 		// En développement, retourner plus de détails sur l'erreur
@@ -130,6 +155,7 @@ router.get('/:id', validateNumericId('id'), async (req, res) => {
 			...(isDevelopment && {
 				details: error.message,
 				code: error.code,
+				stack: error.stack,
 			}),
 		});
 	}

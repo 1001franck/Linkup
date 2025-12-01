@@ -138,8 +138,15 @@ export default function CompanyDetailsPage() {
         } else {
           logger.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
           logger.error('❌ [COMPANY DETAILS] Response complète:', response);
-          // Ne pas exposer le message d'erreur exact à l'utilisateur
-          setError("Impossible de charger les informations de l'entreprise. Veuillez réessayer.");
+          
+          // Gérer les différents types d'erreurs
+          if (response.error?.includes('Erreur serveur') || response.error?.includes('500')) {
+            setError("Erreur serveur. L'entreprise existe peut-être mais le serveur rencontre un problème. Veuillez réessayer plus tard.");
+          } else if (response.error?.includes('introuvable') || response.error?.includes('404')) {
+            setError("Entreprise introuvable. Cette entreprise n'existe pas ou a été supprimée.");
+          } else {
+            setError("Impossible de charger les informations de l'entreprise. Veuillez réessayer.");
+          }
         }
       } catch (err: any) {
         logger.error("❌ [COMPANY DETAILS] Exception lors du chargement:", err);
