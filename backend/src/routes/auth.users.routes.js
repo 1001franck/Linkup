@@ -251,8 +251,14 @@ router.post('/logout', auth(), async (req, res) => {
 			logger.warn('[logout] Erreur lors de la révocation du token:', e);
 		});
 
-		// Nettoyer les cookies côté serveur
-		res.clearCookie('linkup_token');
+		// Nettoyer les cookies côté serveur avec les mêmes options que lors de la création
+		const isProduction = process.env.NODE_ENV === 'production';
+		res.clearCookie('linkup_token', {
+			httpOnly: true,
+			secure: isProduction,
+			sameSite: isProduction ? 'none' : 'lax',
+			path: '/',
+		});
 
 		return res.json({ ok: true });
 	} catch (err) {

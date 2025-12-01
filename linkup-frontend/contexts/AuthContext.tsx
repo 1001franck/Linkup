@@ -304,6 +304,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ========================================
       
       setUser(null);
+      setIsLoading(false);
+      setHasCheckedAuth(false); // ✅ CORRECTION : Réinitialiser pour forcer une nouvelle vérification
       
       // Nettoyer toutes les données sensibles de localStorage
       if (typeof window !== 'undefined') {
@@ -334,17 +336,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       // ========================================
-      // REDIRECTION
+      // REDIRECTION FORCÉE
       // ========================================
       
-      // Rediriger vers la page d'accueil
-      window.location.href = '/';
+      // ✅ CORRECTION : Utiliser window.location.replace() pour forcer le rechargement
+      // et empêcher le retour en arrière
+      window.location.replace('/');
       
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
       
       // En cas d'erreur, nettoyer l'état local
       setUser(null);
+      setIsLoading(false);
+      setHasCheckedAuth(false); // ✅ CORRECTION : Réinitialiser pour forcer une nouvelle vérification
       
       toast({
         title: 'Déconnexion',
@@ -352,7 +357,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         variant: 'default',
       });
       
-      window.location.href = '/';
+      // ✅ CORRECTION : Utiliser window.location.replace() pour forcer le rechargement
+      window.location.replace('/');
     }
   };
 

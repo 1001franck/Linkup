@@ -1421,6 +1421,12 @@ export default function LinkUpHomePage() {
     return () => clearTimeout(timeout);
   }, [isLoading]);
 
+  // ✅ CORRECTION : Ne pas rediriger si l'utilisateur n'est pas authentifié
+  // Si isAuthenticated est false, afficher directement la page marketing
+  if (!isLoading && !isAuthenticated) {
+    return <MarketingHomePage />;
+  }
+
   // Afficher un loader pendant la vérification de l'authentification ou la redirection
   // Mais seulement si on n'a pas forcé l'affichage
   if ((isLoading || isRedirecting) && !forceShow) {
