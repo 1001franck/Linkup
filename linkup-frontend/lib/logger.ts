@@ -3,7 +3,8 @@
  * Les logs ne s'affichent qu'en développement (NODE_ENV !== 'production')
  */
 
-const isProduction = process.env.NODE_ENV === 'production';
+// Utiliser typeof pour éviter les problèmes de build avec Next.js
+const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
 
 /**
  * Logger de base avec niveaux de log

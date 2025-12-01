@@ -160,7 +160,8 @@ class ApiClient {
         
         // Retourner directement les détails d'erreur au lieu de throw
         // Ne pas exposer les messages d'erreur techniques en production
-        const errorMessage = process.env.NODE_ENV === 'production'
+        const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+        const errorMessage = isProduction
           ? (response.status >= 500 ? 'Erreur serveur' : 'Une erreur est survenue')
           : (data.error || data.message || `HTTP error! status: ${response.status}`);
         
@@ -179,7 +180,8 @@ class ApiClient {
       const sanitizedUrl = this.sanitizeUrl(url);
       logger.error(`[API Error] Request failed for ${sanitizedUrl}:`, error);
       // Ne pas exposer le message d'erreur exact en production
-      const errorMessage = process.env.NODE_ENV === 'production'
+      const isProduction = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+      const errorMessage = isProduction
         ? 'Une erreur est survenue'
         : (error instanceof Error ? error.message : 'Une erreur est survenue');
       
