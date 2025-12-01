@@ -1,13 +1,13 @@
 /**
  * Page Jobs - Version Refactorisée
  * 
- * 🏗️ ARCHITECTURE :
+ * ARCHITECTURE :
  * - Séparation en composants plus petits
  * - Hooks personnalisés pour la logique métier
  * - Types TypeScript stricts
  * - Code modulaire et testable
  * 
- * 🎯 PRINCIPES SOLID :
+ * PRINCIPES SOLID :
  * - Single Responsibility : Chaque composant a une responsabilité unique
  * - Open/Closed : Extensible sans modification
  * - Liskov Substitution : Composants interchangeables

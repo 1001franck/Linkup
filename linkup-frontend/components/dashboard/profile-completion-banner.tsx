@@ -87,7 +87,7 @@ export function ProfileCompletionBanner({
           </div>
           <div>
             <Typography variant="h4" className="text-xl font-bold text-foreground mb-2">
-              Complétez votre profil ! 🎯
+              Complétez votre profil !
             </Typography>
             <div className="flex items-center space-x-2 mb-2">
               <Typography variant="muted" className="text-muted-foreground">

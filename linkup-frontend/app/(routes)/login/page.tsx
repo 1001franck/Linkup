@@ -148,15 +148,15 @@ function LoginContent() {
               <CardDescription>
                 {searchParams.get('email') ? (
                   <>
-                    🎉 Inscription réussie ! Entrez votre mot de passe pour vous connecter.
+                    Inscription réussie ! Entrez votre mot de passe pour vous connecter.
                   </>
                 ) : message === 'postuler' ? (
                   <>
-                    🔍 Trouvez le poste qui vous ressemble ! Connectez-vous pour postuler aux offres d'emploi.
+                    Trouvez le poste qui vous ressemble ! Connectez-vous pour postuler aux offres d'emploi.
                   </>
                 ) : message === 'explorer' ? (
                   <>
-                    🔍 Connectez-vous pour explorer une panoplie d'offres et trouver le poste qui vous ressemble !
+                    Connectez-vous pour explorer une panoplie d'offres et trouver le poste qui vous ressemble !
                   </>
                 ) : (
                   "Entrez vos identifiants pour accéder à votre compte"

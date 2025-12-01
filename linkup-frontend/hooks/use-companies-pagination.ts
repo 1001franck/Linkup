@@ -69,7 +69,7 @@ export function useCompaniesPagination(
       const stats = getTransformationStats(companiesData, transformed); // ✅ CORRECTION
       if (stats.failed > 0 || stats.invalid > 0) {
         // Log conditionnel - logger ne log que si NODE_ENV !== 'production'
-        logger.debug('📊 Statistiques de transformation des entreprises:', stats);
+        logger.debug('Statistiques de transformation des entreprises:', stats);
       }
     }
     

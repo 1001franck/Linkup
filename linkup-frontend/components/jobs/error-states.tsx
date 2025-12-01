@@ -130,7 +130,7 @@ export const NoResultsState = ({
             {!isAuthenticated && (
               <div className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/20 dark:to-blue-950/20 rounded-lg p-4 mt-4 border border-cyan-200 dark:border-cyan-800">
                 <Typography variant="small" className="font-semibold text-cyan-900 dark:text-cyan-100 mb-2">
-                  🔍 Connectez-vous pour explorer une panoplie d'offres !
+                  Connectez-vous pour explorer une panoplie d'offres !
                 </Typography>
                 <Typography variant="muted" className="text-sm text-cyan-700 dark:text-cyan-300 mb-4">
                   Accédez à des milliers d'opportunités personnalisées et trouvez le poste qui vous ressemble.

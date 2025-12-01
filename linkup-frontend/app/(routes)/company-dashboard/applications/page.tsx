@@ -64,8 +64,8 @@ function ApplicationsPageContent() {
   }, [searchParams]);
 
   // Récupérer les candidatures depuis l'API
-  // Pour les entreprises, l'ID est dans le JWT 'sub' field
-  const companyId = user && 'sub' in user ? user.sub : (user as any)?.id_company || 0;
+  // Pour les entreprises, l'ID est dans id_company
+  const companyId = user && 'id_company' in user ? (user as any).id_company : 0;
   
   const { data: apiApplications, loading: applicationsLoading, error: applicationsError, refetch: refetchApplications } = useCompanyApplications(
     companyId,

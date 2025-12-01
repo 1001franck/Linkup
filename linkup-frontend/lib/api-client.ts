@@ -617,11 +617,11 @@ class ApiClient {
   }) {
     const queryParams = new URLSearchParams();
     
-    // 📊 PARAMÈTRES DE PAGINATION
+    // PARAMÈTRES DE PAGINATION
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     
-    // 🔍 PARAMÈTRES DE FILTRAGE
+    // PARAMÈTRES DE FILTRAGE
     if (params?.search) queryParams.append('search', params.search);
     if (params?.industry) queryParams.append('industry', params.industry);  // ✅ NOUVEAU
     if (params?.city) queryParams.append('city', params.city);              // ✅ NOUVEAU

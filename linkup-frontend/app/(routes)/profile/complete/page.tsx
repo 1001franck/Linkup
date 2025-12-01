@@ -155,7 +155,7 @@ function CompleteProfileContent() {
     }
 
     try {
-      logger.debug('🚀 Début de l\'upload...');
+      logger.debug('Début de l\'upload...');
       toast({
         title: "Upload en cours...",
         description: "Votre photo est en cours d'upload",

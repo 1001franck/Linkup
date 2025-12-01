@@ -39,7 +39,7 @@ export function DashboardStats({
         <div className="col-span-2">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <Typography variant="muted" className="text-blue-600 dark:text-blue-400">
-              📊 Calcul des tendances en cours...
+              Calcul des tendances en cours...
             </Typography>
           </div>
         </div>

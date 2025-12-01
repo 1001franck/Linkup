@@ -130,9 +130,9 @@ export function CompanyLogoUpload({
           || serverResponse?.url
           || (response.data as any)?.logo_url;
         
-        console.log("🔍 URL extraite:", newLogoUrl);
-        console.log("🔍 Structure response.data:", response.data);
-        console.log("🔍 Structure serverResponse.data:", serverResponse?.data);
+        console.log("URL extraite:", newLogoUrl);
+        console.log("Structure response.data:", response.data);
+        console.log("Structure serverResponse.data:", serverResponse?.data);
         
         if (!newLogoUrl) {
           console.error("❌ Structure de réponse inattendue:", JSON.stringify(response, null, 2));

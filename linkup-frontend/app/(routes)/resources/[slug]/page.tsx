@@ -436,7 +436,7 @@ export default function ResourcePage() {
               {resource.content?.tips && (
                 <div className="bg-muted/50 rounded-2xl p-8 border border-border">
                   <h3 className="text-2xl font-bold mb-6 text-foreground">
-                    💡 Conseils pratiques
+                    Conseils pratiques
                   </h3>
                   <ul className="space-y-3">
                     {resource.content.tips.map((tip, index) => (

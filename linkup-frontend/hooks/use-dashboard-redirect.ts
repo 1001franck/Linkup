@@ -46,7 +46,7 @@ export function useDashboardRedirect() {
       } else if ('id_company' in user || 'Id_company' in user || 'recruiter_mail' in user || userRole === 'company') {
         // C'est une entreprise
         redirectPath = '/company-dashboard';
-        logger.debug('🏢 Redirection entreprise vers:', redirectPath);
+        logger.debug('Redirection entreprise vers:', redirectPath);
       } else if ('id_user' in user || userRole === 'user') {
         // C'est un utilisateur
         redirectPath = '/dashboard';

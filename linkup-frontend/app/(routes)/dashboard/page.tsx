@@ -184,12 +184,12 @@ function DashboardContent() {
   // STATISTIQUES DYNAMIQUES - IMPLÉMENTATION RÉELLE
   // ========================================
   // 
-  // 🎯 OBJECTIF : Utiliser les vraies données historiques depuis l'API
+  // OBJECTIF : Utiliser les vraies données historiques depuis l'API
   // ✅ BACKEND IMPLÉMENTÉ : Routes /users/me/stats/trends et /users/me/stats/detailed
   // ✅ SERVICE : userStatsStore.js avec calculs basés sur les données réelles
   // ✅ COMPARAISON : Semaine actuelle vs semaine précédente
   //
-  // 📊 DONNÉES RÉELLES : applications, messages, savedJobs avec pourcentages calculés
+  // DONNÉES RÉELLES : applications, messages, savedJobs avec pourcentages calculés
   // ========================================
 
   // Utiliser les tendances réelles de l'API ou fallback vers la simulation

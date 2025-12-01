@@ -174,8 +174,38 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 	try {
 		logger.debug(`[getApplicationsByCompany] Début - Company: ${companyId}, Filters:`, filters);
 
-		// Construire la requête SANS les documents (relation non définie dans Supabase)
-		// Les documents seront récupérés manuellement après
+		// D'abord récupérer les IDs des offres d'emploi de l'entreprise
+		const { data: companyJobs, error: jobsError } = await supabase
+			.from('job_offer')
+			.select('id_job_offer')
+			.eq('id_company', companyId);
+
+		if (jobsError) {
+			logger.error(
+				'[getApplicationsByCompany] Erreur lors de la récupération des offres:',
+				jobsError
+			);
+			throw jobsError;
+		}
+
+		if (!companyJobs || companyJobs.length === 0) {
+			logger.debug(
+				`[getApplicationsByCompany] Aucune offre trouvée pour l'entreprise ${companyId}`
+			);
+			return [];
+		}
+
+		const jobIds = companyJobs.map((job) => job.id_job_offer);
+
+		// Si un filtre jobId est spécifié, vérifier qu'il appartient à l'entreprise
+		if (filters.jobId && !jobIds.includes(filters.jobId)) {
+			logger.debug(
+				`[getApplicationsByCompany] L'offre ${filters.jobId} n'appartient pas à l'entreprise ${companyId}`
+			);
+			return [];
+		}
+
+		// Construire la requête pour récupérer les candidatures
 		let query = supabase
 			.from('apply')
 			.select(
@@ -209,6 +239,7 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 					salary_min,
 					salary_max,
 					requirements,
+					id_company,
 					company!inner(
 						id_company,
 						name
@@ -216,7 +247,7 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 				)
 			`
 			)
-			.eq('job_offer.company.id_company', companyId);
+			.in('id_job_offer', jobIds);
 
 		// Appliquer les filtres
 		if (filters.status) {

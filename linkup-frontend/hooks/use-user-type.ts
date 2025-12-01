@@ -3,29 +3,29 @@
  * HOOK USE USER TYPE - DÉTECTION DE RÔLE
  * ========================================
  * 
- * 🎯 OBJECTIF :
+ *  OBJECTIF :
  * Hook centralisé pour la détection du type d'utilisateur
  * Gestion des rôles : user, company, admin
  * Préparation pour l'intégration backend
  * 
- * 🏗️ ARCHITECTURE :
+ *  ARCHITECTURE :
  * - Single Responsibility : Détection unique du type utilisateur
  * - Open/Closed : Extensible pour nouveaux rôles
  * - Interface Segregation : Types spécifiques et optionnels
  * 
- * 🔐 FONCTIONNALITÉS :
+ *  FONCTIONNALITÉS :
  * - Détection automatique du rôle utilisateur
  * - Gestion des états de chargement
  * - Utilise uniquement AuthContext (sécurisé)
  * - Types TypeScript stricts
  * 
- * 🚀 INTÉGRATION BACKEND :
+ *  INTÉGRATION BACKEND :
  * - Récupération des données utilisateur via API
  * - Gestion des tokens d'authentification
  * - Synchronisation avec le backend
  * - Cache local pour les performances
  * 
- * 📱 UTILISATION :
+ *  UTILISATION :
  * - Détection de rôle dans les composants
  * - Logique de redirection conditionnelle
  * - Affichage conditionnel d'éléments UI

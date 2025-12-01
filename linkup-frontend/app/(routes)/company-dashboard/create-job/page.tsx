@@ -410,7 +410,7 @@ export default function CreateJobPage() {
 
       if (response.success && response.data) {
         toast({
-          title: "🎉 Offre publiée avec succès !",
+          title: "Offre publiée avec succès !",
           description: `Votre offre "${formData.title}" a été publiée et est maintenant visible par les candidats`,
           duration: 5000,
         });
