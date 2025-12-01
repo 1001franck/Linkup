@@ -22,6 +22,10 @@ router.post('/signup', authLimiter, async (req, res) => {
 		const validation = validateUserSignup(req.body);
 
 		if (!validation.valid) {
+			logger.warn('Signup validation failed:', {
+				errors: validation.errors,
+				body: { ...req.body, password: '[REDACTED]' }, // Ne pas logger le mot de passe
+			});
 			return res.status(400).json({
 				error: 'Données invalides',
 				details: validation.errors,

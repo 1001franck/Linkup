@@ -33,6 +33,10 @@ import healthRoutes from './routes/health.routes.js';
 
 const app = express();
 
+// Trust proxy pour Render (nécessaire pour express-rate-limit avec X-Forwarded-For)
+// Render utilise un reverse proxy, donc on doit faire confiance aux headers X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Désactiver le header X-Powered-By pour la sécurité
 app.disable('x-powered-by');
 
@@ -116,15 +120,12 @@ const corsOptions = {
 			return callback(null, origin);
 		}
 
-		// Autoriser les URLs de preview Vercel (format: https://*-*-*.vercel.app)
-		const vercelPreviewPattern = /^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app$/;
-		if (vercelPreviewPattern.test(origin)) {
-			logger.debug(`[CORS] Origine preview Vercel autorisée: ${origin}`);
-			return callback(null, origin);
-		}
-
-		// Autoriser aussi les sous-domaines vercel.app (pour les previews)
-		if (origin.endsWith('.vercel.app')) {
+		// Autoriser toutes les URLs Vercel (production + previews)
+		// Pattern flexible pour accepter tous les formats Vercel :
+		// - Production: https://linkup-phi.vercel.app
+		// - Previews: https://linkup-1kj3oafq2-1001francks-projects.vercel.app
+		// - Autres: https://*.vercel.app
+		if (origin.includes('.vercel.app')) {
 			logger.debug(`[CORS] Origine Vercel autorisée: ${origin}`);
 			return callback(null, origin);
 		}

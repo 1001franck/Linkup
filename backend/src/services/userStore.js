@@ -40,8 +40,14 @@ async function findByEmail(email) {
 		.eq('email', normalizedEmail)
 		.single();
 
-	if (error && error.code !== 'PGRST116') {
-		logger.error('[findByEmail] error:', error);
+	if (error) {
+		// Ne pas logger les erreurs "not found" (PGRST116) comme des erreurs critiques
+		// C'est un comportement attendu quand on cherche un utilisateur qui n'existe pas
+		if (error.code === 'PGRST116') {
+			logger.debug('[findByEmail] Aucun utilisateur trouvé avec cet email');
+		} else {
+			logger.error('[findByEmail] error:', error);
+		}
 		return null;
 	}
 
