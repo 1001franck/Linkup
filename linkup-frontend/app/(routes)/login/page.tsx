@@ -35,7 +35,7 @@ function LoginContent() {
   const isPasswordValid = formData.password.length > 0;
   const isFormValid = isEmailValid && isPasswordValid;
   
-  const { login, loginCompany } = useAuth();
+  const { login, loginCompany, refreshUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -67,9 +67,10 @@ function LoginContent() {
       const userSuccess = await login(formData.email, formData.password);
       
       if (userSuccess) {
-        // Connexion candidat réussie → redirection automatique
-        // Le useDashboardRedirect détectera le rôle et redirigera vers le bon dashboard
-        router.push('/');
+        // Connexion candidat réussie → recharger les infos utilisateur puis rediriger
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await refreshUser(); // Forcer le rechargement des infos utilisateur
+        router.push('/dashboard');
         return;
       }
       
@@ -77,8 +78,10 @@ function LoginContent() {
       const companySuccess = await loginCompany(formData.email, formData.password);
       
       if (companySuccess) {
-        // Connexion entreprise réussie → redirection automatique
-        router.push('/');
+        // Connexion entreprise réussie → recharger les infos puis rediriger
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await refreshUser(); // Forcer le rechargement des infos entreprise
+        router.push('/company-dashboard');
         return;
       }
       
