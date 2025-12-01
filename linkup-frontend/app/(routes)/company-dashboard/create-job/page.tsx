@@ -454,16 +454,15 @@ export default function CreateJobPage() {
         
         // Debug temporaire
         logger.debug('Validation étape 1:', {
-            title: titleValid,
-            location: locationValid,
-            contractType: contractTypeValid,
-            experience: experienceValid,
-            industry: industryValid,
-            requiredFieldsValid,
-            salaryValid,
-            final: requiredFieldsValid && salaryValid
-          });
-        }
+          title: titleValid,
+          location: locationValid,
+          contractType: contractTypeValid,
+          experience: experienceValid,
+          industry: industryValid,
+          requiredFieldsValid,
+          salaryValid,
+          final: requiredFieldsValid && salaryValid
+        });
         
         return requiredFieldsValid && salaryValid;
         
