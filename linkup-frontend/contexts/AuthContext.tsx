@@ -293,16 +293,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // APPEL DE LA BONNE ROUTE DE DÉCONNEXION
       // ========================================
       
+      // ✅ CORRECTION : Nettoyer l'état AVANT l'appel API pour éviter les vérifications
+      setUser(null);
+      setIsLoading(false);
+      
+      // Appeler l'API de déconnexion
       if (isCompany) {
         await apiClient.logoutCompany();
       } else {
         await apiClient.logout();
       }
       
+      // ✅ CORRECTION : Attendre un peu pour que le cookie soit supprimé côté navigateur
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // ========================================
       // NETTOYAGE DE L'ÉTAT ET LOCALSTORAGE
       // ========================================
       
+      // S'assurer que l'état est bien nettoyé
       setUser(null);
       setIsLoading(false);
       setHasCheckedAuth(false); // ✅ CORRECTION : Réinitialiser pour forcer une nouvelle vérification

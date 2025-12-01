@@ -251,15 +251,25 @@ router.post('/logout', auth(), async (req, res) => {
 			logger.warn('[logout] Erreur lors de la révocation du token:', e);
 		});
 
-		// Nettoyer les cookies côté serveur avec les mêmes options que lors de la création
+		// ✅ CORRECTION : Pour supprimer un cookie cross-origin (sameSite: 'none'),
+		// il faut définir le cookie avec maxAge: 0 au lieu de clearCookie
+		// clearCookie ne fonctionne pas toujours correctement en cross-origin
 		const isProduction = process.env.NODE_ENV === 'production';
-		res.clearCookie('linkup_token', {
+		const cookieOptions = {
 			httpOnly: true,
 			secure: isProduction,
 			sameSite: isProduction ? 'none' : 'lax',
 			path: '/',
-		});
+			maxAge: 0, // Expiration immédiate = suppression du cookie
+		};
 
+		// Définir le cookie avec expiration immédiate (suppression effective)
+		res.cookie('linkup_token', '', cookieOptions);
+
+		// Aussi essayer clearCookie pour être sûr (double méthode)
+		res.clearCookie('linkup_token', cookieOptions);
+
+		logger.info({ msg: '[LOGOUT] Cookie supprimé', isProduction });
 		return res.json({ ok: true });
 	} catch (err) {
 		logger.error('Logout error:', err);

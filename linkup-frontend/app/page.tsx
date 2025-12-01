@@ -1405,7 +1405,7 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
 
 // Composant principal qui choisit quelle page afficher
 export default function LinkUpHomePage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { isRedirecting } = useDashboardRedirect();
   const [forceShow, setForceShow] = useState(false);
 
@@ -1422,8 +1422,8 @@ export default function LinkUpHomePage() {
   }, [isLoading]);
 
   // ✅ CORRECTION : Ne pas rediriger si l'utilisateur n'est pas authentifié
-  // Si isAuthenticated est false, afficher directement la page marketing
-  if (!isLoading && !isAuthenticated) {
+  // Si isAuthenticated est false OU user est null, afficher directement la page marketing
+  if (!isLoading && (!isAuthenticated || !user)) {
     return <MarketingHomePage />;
   }
 
