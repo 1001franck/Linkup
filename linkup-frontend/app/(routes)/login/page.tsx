@@ -68,19 +68,21 @@ function LoginContent() {
       const userSuccess = await login(formData.email, formData.password);
       
       if (userSuccess) {
-        // Attendre que le cookie soit propagé
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Attendre que le cookie soit propagé et que l'état soit mis à jour
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Recharger les infos utilisateur
+        // Recharger les infos utilisateur pour s'assurer que l'état est à jour
         try {
           await refreshUser();
+          // Attendre un peu plus pour que l'état soit bien propagé
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (refreshError) {
           logger.error('Erreur lors du rechargement:', refreshError);
           // Continuer quand même, le useEffect dans AuthContext récupérera les infos
         }
         
-        // Rediriger vers le dashboard
-        window.location.href = '/dashboard';
+        // Utiliser router.push au lieu de window.location.href pour une meilleure intégration Next.js
+        router.push('/dashboard');
         return;
       }
       
@@ -88,18 +90,20 @@ function LoginContent() {
       const companySuccess = await loginCompany(formData.email, formData.password);
       
       if (companySuccess) {
-        // Attendre que le cookie soit propagé
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Attendre que le cookie soit propagé et que l'état soit mis à jour
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Recharger les infos entreprise
+        // Recharger les infos entreprise pour s'assurer que l'état est à jour
         try {
           await refreshUser();
+          // Attendre un peu plus pour que l'état soit bien propagé
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (refreshError) {
           logger.error('Erreur lors du rechargement:', refreshError);
         }
         
-        // Rediriger vers le dashboard entreprise
-        window.location.href = '/company-dashboard';
+        // Utiliser router.push au lieu de window.location.href pour une meilleure intégration Next.js
+        router.push('/company-dashboard');
         return;
       }
       
