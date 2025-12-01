@@ -142,7 +142,14 @@ const corsOptions = {
 	},
 	credentials: true, // Permettre les cookies
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-	allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+	allowedHeaders: [
+		'Content-Type',
+		'Authorization',
+		'X-Requested-With',
+		'Accept',
+		'Origin',
+		'X-CSRF-Token',
+	],
 	exposedHeaders: ['Content-Range', 'X-Content-Range', 'X-CSRF-Token'],
 	maxAge: 86400, // Cache preflight requests for 24 hours
 };
