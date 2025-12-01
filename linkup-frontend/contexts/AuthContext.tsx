@@ -103,19 +103,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }, 10000); // 10 secondes de timeout
 
       try {
-        // Utiliser Promise.allSettled pour appeler les deux endpoints en parallèle
-        // Cela évite les appels séquentiels qui peuvent déclencher le rate limiting
-        // Les erreurs 401/404 sont attendues si l'utilisateur n'est pas connecté
-        const [userResult, companyResult] = await Promise.allSettled([
-          apiClient.getCurrentUser(),
-          apiClient.getCurrentCompany()
-        ]);
-
+        // Essayer d'abord avec getCurrentUser() pour éviter les appels inutiles
+        // Si l'utilisateur est un 'user', on n'appellera pas getCurrentCompany()
+        const userResponse = await apiClient.getCurrentUser();
+        
         clearTimeout(timeoutId);
 
-        // Vérifier d'abord si c'est un utilisateur
-        if (userResult.status === 'fulfilled' && userResult.value.success && userResult.value.data) {
-          const userData = userResult.value.data as User;
+        // Si on a trouvé un utilisateur
+        if (userResponse.success && userResponse.data) {
+          const userData = userResponse.data as User;
           const userRole = userData.role;
           
           console.log('🟢 [AUTH CHECK] Utilisateur trouvé:', { email: userData.email, role: userRole });
@@ -124,27 +120,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const adminUser: User = { ...userData, role: 'admin' };
             setUser(adminUser);
           } else if (userRole === 'company') {
-            // Pour les entreprises, utiliser les données de l'entreprise si disponibles
-            if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-              setUser(companyResult.value.data as Company);
-            } else {
-              // Fallback sur les données utilisateur si l'entreprise n'est pas disponible
+            // Si le rôle est 'company', récupérer les données complètes de l'entreprise
+            try {
+              const companyResponse = await apiClient.getCurrentCompany();
+              if (companyResponse.success && companyResponse.data) {
+                console.log('🟢 [AUTH CHECK] Données entreprise récupérées');
+                setUser(companyResponse.data as Company);
+              } else {
+                // Fallback sur les données utilisateur si l'entreprise n'est pas disponible
+                setUser(userData);
+              }
+            } catch (companyError) {
+              // Si l'appel échoue, utiliser les données utilisateur
+              logger.debug('Impossible de récupérer les données entreprise, utilisation des données utilisateur');
               setUser(userData);
             }
           } else {
-            // Utilisateur normal
+            // Utilisateur normal - on s'arrête ici, pas besoin d'appeler getCurrentCompany()
             setUser(userData);
           }
         } 
-        // Sinon, vérifier si c'est une entreprise
-        else if (companyResult.status === 'fulfilled' && companyResult.value.success && companyResult.value.data) {
-          console.log('🟢 [AUTH CHECK] Entreprise trouvée:', { name: companyResult.value.data.name });
-          setUser(companyResult.value.data as Company);
-        } 
-        // Aucun utilisateur connecté
+        // Si getCurrentUser() a échoué (401/404), essayer getCurrentCompany()
         else {
-          console.log('🔴 [AUTH CHECK] Aucun utilisateur connecté');
-          setUser(null);
+          // Vérifier si c'est une erreur 401 (non autorisé) - cela signifie que le token est invalide/expiré
+          // Dans ce cas, ne pas essayer getCurrentCompany() car le token est invalide
+          const isUnauthorized = userResponse.error?.includes('401') || userResponse.error?.includes('Unauthorized');
+          
+          if (isUnauthorized) {
+            console.log('🔴 [AUTH CHECK] Token invalide/expiré (401), pas d\'appel à getCurrentCompany()');
+            setUser(null);
+          } else {
+            console.log('🟡 [AUTH CHECK] Pas d\'utilisateur, essai avec entreprise...');
+            const companyResponse = await apiClient.getCurrentCompany();
+            
+            if (companyResponse.success && companyResponse.data) {
+              console.log('🟢 [AUTH CHECK] Entreprise trouvée:', { name: companyResponse.data.name });
+              setUser(companyResponse.data as Company);
+            } else {
+              // Aucun utilisateur connecté
+              console.log('🔴 [AUTH CHECK] Aucun utilisateur connecté');
+              setUser(null);
+            }
+          }
         }
       } catch (error) {
         clearTimeout(timeoutId);
@@ -281,9 +298,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Nettoyer l'état immédiatement
     setUser(null);
     setIsLoading(false);
-    setHasCheckedAuth(false);
+    // NE PAS remettre hasCheckedAuth à false - cela évitera que checkAuth() se relance après redirection
+    // On garde hasCheckedAuth = true pour empêcher une nouvelle vérification
+    setHasCheckedAuth(true);
     
-    console.log('🔴 [LOGOUT] État nettoyé:', { user: null, isAuthenticated: false, hasCheckedAuth: false });
+    console.log('🔴 [LOGOUT] État nettoyé:', { user: null, isAuthenticated: false, hasCheckedAuth: true });
     
     // Nettoyer localStorage
     if (typeof window !== 'undefined') {
@@ -298,7 +317,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     
-    // Appeler l'API de déconnexion (sans bloquer)
+    // Appeler l'API de déconnexion et attendre qu'elle se termine
     try {
       const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
       console.log('🔴 [LOGOUT] Appel API logout, isCompany:', isCompany);
@@ -310,13 +329,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       console.log('🔴 [LOGOUT] API logout réussie');
+      
+      // Attendre un peu pour s'assurer que le cookie est bien supprimé côté serveur
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error('🔴 [LOGOUT] Erreur logout API:', error);
+      // Continuer quand même la déconnexion même si l'API échoue
     }
     
     console.log('🔴 [LOGOUT] Redirection vers /');
-    // Rediriger immédiatement vers la page d'accueil
-    window.location.href = '/';
+    // Utiliser window.location.replace() au lieu de href pour éviter l'historique
+    window.location.replace('/');
   };
 
   /**
@@ -344,7 +367,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Essayer d'abord avec utilisateur normal
       const userResponse = await apiClient.getCurrentUser();
       if (userResponse.success && userResponse.data) {
-        setUser(userResponse.data as User);
+        const userData = userResponse.data as User;
+        // Si c'est une entreprise, récupérer les données complètes
+        if (userData.role === 'company') {
+          try {
+            const companyResponse = await apiClient.getCurrentCompany();
+            if (companyResponse.success && companyResponse.data) {
+              setUser(companyResponse.data as Company);
+              return;
+            }
+          } catch (companyError) {
+            logger.debug('Impossible de récupérer les données entreprise lors du refresh');
+          }
+        }
+        setUser(userData);
         return;
       }
       
