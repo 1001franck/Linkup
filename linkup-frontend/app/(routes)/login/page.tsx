@@ -67,13 +67,30 @@ function LoginContent() {
     setIsLoading(true);
     setError("");
 
+    // Détecter si on est sur mobile
+    const isMobile = typeof window !== 'undefined' && (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      (window.innerWidth <= 768)
+    );
+    
+    if (isMobile) {
+      logger.debug('[LOGIN] 📱 Connexion depuis appareil mobile');
+      logger.debug('[LOGIN] 📱 User-Agent:', navigator.userAgent);
+      logger.debug('[LOGIN] 📱 Cookies avant login:', document.cookie);
+    }
+
     try {
       // Essayer d'abord la connexion candidat (sans afficher d'erreur si ça échoue)
       const userSuccess = await login(formData.email, formData.password);
       
+      if (isMobile) {
+        logger.debug('[LOGIN] 📱 Cookies après login utilisateur:', document.cookie);
+      }
+      
       if (userSuccess) {
-        // Attendre que le cookie soit propagé et que l'état soit mis à jour
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Sur mobile, attendre plus longtemps pour la propagation du cookie
+        const waitTime = isMobile ? 2000 : 1500;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         
         // Recharger les infos utilisateur pour s'assurer que l'état est à jour
         try {
@@ -94,9 +111,14 @@ function LoginContent() {
       // Si échec candidat, essayer entreprise (sans afficher d'erreur avant)
       const companySuccess = await loginCompany(formData.email, formData.password);
       
+      if (isMobile) {
+        logger.debug('[LOGIN] 📱 Cookies après login entreprise:', document.cookie);
+      }
+      
       if (companySuccess) {
-        // Attendre que le cookie soit propagé et que l'état soit mis à jour
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Sur mobile, attendre plus longtemps pour la propagation du cookie
+        const waitTime = isMobile ? 2000 : 1500;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         
         // Recharger les infos entreprise pour s'assurer que l'état est à jour
         try {
@@ -117,6 +139,9 @@ function LoginContent() {
       setError("Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.");
     } catch (error) {
       logger.error('Erreur de connexion:', error);
+      if (isMobile) {
+        logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
+      }
       setError("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
     } finally {
       setIsLoading(false);

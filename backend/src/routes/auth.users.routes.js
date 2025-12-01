@@ -186,16 +186,47 @@ router.post('/login', authLimiter, async (req, res) => {
 
 		// Définir les options de cookie sécurisées
 		const isProduction = process.env.NODE_ENV === 'production';
+		const userAgent = req.headers['user-agent'] || '';
+		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			userAgent
+		);
+
 		const cookieOptions = {
 			httpOnly: true, // Protection contre XSS - JavaScript ne peut pas accéder au cookie
-			secure: isProduction, // HTTPS uniquement en production
+			secure: isProduction, // HTTPS uniquement en production (OBLIGATOIRE pour SameSite: 'none')
 			sameSite: isProduction ? 'none' : 'lax', // 'none' en production pour cross-origin (Vercel -> Render), 'lax' en dev
 			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours en millisecondes
 			path: '/', // Cookie disponible sur tout le site
+			// Ne pas définir 'domain' pour permettre le cookie sur tous les sous-domaines
+			// Les navigateurs mobiles sont stricts avec les cookies cross-origin
 		};
+
+		// Log pour diagnostic mobile
+		if (isMobile) {
+			logger.info({
+				msg: '[LOGIN] Connexion depuis appareil mobile',
+				userAgent: userAgent.substring(0, 100),
+				isProduction,
+				cookieOptions: {
+					httpOnly: cookieOptions.httpOnly,
+					secure: cookieOptions.secure,
+					sameSite: cookieOptions.sameSite,
+					path: cookieOptions.path,
+				},
+				origin: req.headers.origin,
+			});
+		}
 
 		// Définir le cookie côté serveur (pour les requêtes futures)
 		res.cookie('linkup_token', token, cookieOptions);
+
+		// Log pour vérifier que le cookie est bien défini
+		logger.debug({
+			msg: '[LOGIN] Cookie défini',
+			hasToken: !!token,
+			isMobile,
+			cookieOptions,
+		});
 
 		return res.json({
 			message: 'Connexion réussie',

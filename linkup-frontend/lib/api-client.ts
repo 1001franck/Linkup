@@ -217,10 +217,31 @@ class ApiClient {
         logger.debug(`[CSRF] 🔵 Credentials: ${config.credentials}`);
       }
       
+      // Détecter si on est sur mobile
+      const isMobile = typeof window !== 'undefined' && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.innerWidth <= 768)
+      );
+      
+      if (isMobile) {
+        logger.debug('[API] 📱 Requête depuis appareil mobile détecté');
+        logger.debug('[API] 📱 User-Agent:', navigator.userAgent);
+        logger.debug('[API] 📱 Credentials:', config.credentials);
+      }
+      
       const response = await fetch(url, config);
       
       logger.debug(`[CSRF] 🔵 Réponse reçue - Status: ${response.status}`);
       logger.debug(`[CSRF] 🔵 Headers de réponse disponibles:`, Array.from(response.headers.keys()));
+      
+      // Vérifier si les cookies sont présents dans la réponse (pour mobile)
+      if (isMobile) {
+        const setCookieHeader = response.headers.get('Set-Cookie');
+        logger.debug('[API] 📱 Set-Cookie header:', setCookieHeader ? '✅ Présent' : '❌ Absent');
+        if (setCookieHeader) {
+          logger.debug('[API] 📱 Cookie reçu:', setCookieHeader.substring(0, 100) + '...');
+        }
+      }
       
       // Récupérer le token CSRF depuis le header de réponse si disponible
       // Le backend génère un nouveau token à chaque requête et le met dans le cookie ET le header
