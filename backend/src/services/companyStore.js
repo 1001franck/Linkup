@@ -26,13 +26,13 @@ async function findById(id_company) {
 
 		// Sélectionner uniquement les champs nécessaires (sans password)
 		// Note: updated_at n'existe pas dans la table company
+		// Utiliser maybeSingle() au lieu de single() pour éviter les erreurs si aucune ligne n'est trouvée
+		// Sélectionner tous les champs disponibles et laisser Supabase gérer les champs manquants
 		const { data, error } = await supabase
 			.from('company')
-			.select(
-				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at'
-			)
+			.select('*')
 			.eq('id_company', numericId)
-			.single();
+			.maybeSingle();
 
 		if (error) {
 			if (error.code === 'PGRST116') {

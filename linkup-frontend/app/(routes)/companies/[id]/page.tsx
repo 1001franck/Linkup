@@ -16,8 +16,6 @@ import { Typography } from "@/components/ui/typography";
 import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/ui/back-button";
 import { apiClient } from "@/lib/api-client";
-import { useToast } from "@/hooks/use-toast";
-import logger from "@/lib/logger";
 import { 
   Building2,
   MapPin,
@@ -56,7 +54,6 @@ interface CompanyDetails {
 export default function CompanyDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
   const [company, setCompany] = useState<CompanyDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,112 +62,37 @@ export default function CompanyDetailsPage() {
 
   useEffect(() => {
     if (!companyId || isNaN(companyId)) {
-      logger.error('❌ [COMPANY DETAILS] ID invalide:', companyId);
       setError("ID d'entreprise invalide");
       setLoading(false);
       return;
     }
-
-    let isMounted = true; // Flag pour éviter les mises à jour après démontage
 
     const fetchCompany = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        logger.debug('🔍 [COMPANY DETAILS] Chargement entreprise ID:', companyId);
-        logger.debug('🔍 [COMPANY DETAILS] Type de companyId:', typeof companyId);
-        
-        // Timeout de sécurité (10 secondes)
-        const timeoutId = setTimeout(() => {
-          if (isMounted) {
-            logger.error('❌ [COMPANY DETAILS] Timeout - La requête prend trop de temps');
-            setError("Le chargement prend trop de temps. Veuillez réessayer.");
-            setLoading(false);
-          }
-        }, 10000);
-        
         const response = await apiClient.getCompany(companyId);
-        clearTimeout(timeoutId);
-        
-        if (!isMounted) return; // Ne pas mettre à jour si le composant est démonté
-        
-        logger.debug('🔍 [COMPANY DETAILS] Réponse API complète:', response);
-        logger.debug('🔍 [COMPANY DETAILS] Réponse API:', { 
-          success: response.success,
-          hasData: !!response.data,
-          error: response.error,
-          dataType: typeof response.data,
-          dataKeys: response.data ? Object.keys(response.data) : []
-        });
         
         if (response.success && response.data) {
-          // Le backend retourne { data: company }
-          // L'API client retourne { success: true, data: { data: company } }
-          // Donc response.data = { data: company }
-          // Et response.data.data = company
-          let companyData: CompanyDetails | null = null;
-          
-          if ((response.data as any).data) {
-            // Format: { data: { data: company } }
-            companyData = (response.data as any).data;
-            logger.debug('🔍 [COMPANY DETAILS] Format détecté: { data: { data: company } }');
-          } else if (response.data && typeof response.data === 'object' && 'id_company' in response.data) {
-            // Format: { data: company } (direct)
-            companyData = response.data as CompanyDetails;
-            logger.debug('🔍 [COMPANY DETAILS] Format détecté: { data: company } (direct)');
-          }
-          
-          logger.debug('🔍 [COMPANY DETAILS] Données entreprise extraites:', {
-            id: companyData?.id_company,
-            hasName: !!companyData?.name,
-            hasDescription: !!companyData?.description
-          });
-          
+          const companyData = (response.data as any).data || response.data;
           if (companyData && companyData.id_company) {
-            setCompany(companyData);
-            logger.debug('✅ [COMPANY DETAILS] Entreprise chargée avec succès');
+            setCompany(companyData as CompanyDetails);
           } else {
-            logger.error('❌ [COMPANY DETAILS] Format de données invalide');
-            logger.error('❌ [COMPANY DETAILS] Response data:', response.data);
-            setError("Format de données invalide reçu du serveur");
+            setError("Données invalides");
           }
         } else {
-          logger.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
-          logger.error('❌ [COMPANY DETAILS] Response complète:', response);
-          
-          // Gérer les différents types d'erreurs
-          if (response.error?.includes('Erreur serveur') || response.error?.includes('500')) {
-            setError("Erreur serveur. L'entreprise existe peut-être mais le serveur rencontre un problème. Veuillez réessayer plus tard.");
-          } else if (response.error?.includes('introuvable') || response.error?.includes('404')) {
-            setError("Entreprise introuvable. Cette entreprise n'existe pas ou a été supprimée.");
-          } else {
-            setError("Impossible de charger les informations de l'entreprise. Veuillez réessayer.");
-          }
+          setError(response.error || "Impossible de charger l'entreprise");
         }
-      } catch (err: any) {
-        logger.error("❌ [COMPANY DETAILS] Exception lors du chargement:", err);
-        // Ne pas exposer le message d'erreur exact à l'utilisateur
-        setError("Erreur lors du chargement de l'entreprise. Veuillez réessayer.");
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les informations de l'entreprise",
-          variant: "destructive",
-        });
+      } catch (err) {
+        setError("Erreur lors du chargement");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     fetchCompany();
-    
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  }, [companyId, toast]);
+  }, [companyId]);
 
   const handleShare = () => {
     if (typeof window !== 'undefined' && company) {
@@ -180,16 +102,9 @@ export default function CompanyDetailsPage() {
           title: `${company.name} - LinkUp`,
           text: `Découvrez ${company.name} sur LinkUp`,
           url: url,
-        }).catch(() => {
-          // Fallback si l'utilisateur annule
-        });
+        }).catch(() => {});
       } else {
-        // Fallback: copier dans le presse-papiers
         navigator.clipboard.writeText(url);
-        toast({
-          title: "Lien copié",
-          description: "Le lien a été copié dans le presse-papiers",
-        });
       }
     }
   };

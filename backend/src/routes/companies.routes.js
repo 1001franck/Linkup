@@ -130,6 +130,16 @@ router.get('/:id', validateNumericId('id'), async (req, res) => {
 		}
 
 		// Ne pas renvoyer le mot de passe si présent
+		// Vérifier que company est un objet avant de destructurer
+		if (typeof company !== 'object' || company === null) {
+			logger.error('[GET /companies/:id] Format de données invalide', {
+				id: companyId,
+				companyType: typeof company,
+				companyValue: company,
+			});
+			return res.status(500).json({ error: 'Format de données invalide' });
+		}
+
 		const { password, ...companyData } = company;
 
 		logger.debug('[GET /companies/:id] Envoi réponse', {
