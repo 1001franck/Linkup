@@ -65,10 +65,13 @@ export default function CompanyDetailsPage() {
 
   useEffect(() => {
     if (!companyId || isNaN(companyId)) {
+      logger.error('❌ [COMPANY DETAILS] ID invalide:', companyId);
       setError("ID d'entreprise invalide");
       setLoading(false);
       return;
     }
+
+    let isMounted = true; // Flag pour éviter les mises à jour après démontage
 
     const fetchCompany = async () => {
       try {
@@ -76,11 +79,29 @@ export default function CompanyDetailsPage() {
         setError(null);
         
         logger.debug('🔍 [COMPANY DETAILS] Chargement entreprise ID:', companyId);
+        logger.debug('🔍 [COMPANY DETAILS] Type de companyId:', typeof companyId);
+        
+        // Timeout de sécurité (10 secondes)
+        const timeoutId = setTimeout(() => {
+          if (isMounted) {
+            logger.error('❌ [COMPANY DETAILS] Timeout - La requête prend trop de temps');
+            setError("Le chargement prend trop de temps. Veuillez réessayer.");
+            setLoading(false);
+          }
+        }, 10000);
+        
         const response = await apiClient.getCompany(companyId);
+        clearTimeout(timeoutId);
+        
+        if (!isMounted) return; // Ne pas mettre à jour si le composant est démonté
+        
+        logger.debug('🔍 [COMPANY DETAILS] Réponse API complète:', response);
         logger.debug('🔍 [COMPANY DETAILS] Réponse API:', { 
           success: response.success,
           hasData: !!response.data,
-          error: response.error 
+          error: response.error,
+          dataType: typeof response.data,
+          dataKeys: response.data ? Object.keys(response.data) : []
         });
         
         if (response.success && response.data) {
@@ -108,12 +129,15 @@ export default function CompanyDetailsPage() {
           
           if (companyData && companyData.id_company) {
             setCompany(companyData);
+            logger.debug('✅ [COMPANY DETAILS] Entreprise chargée avec succès');
           } else {
             logger.error('❌ [COMPANY DETAILS] Format de données invalide');
+            logger.error('❌ [COMPANY DETAILS] Response data:', response.data);
             setError("Format de données invalide reçu du serveur");
           }
         } else {
           logger.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
+          logger.error('❌ [COMPANY DETAILS] Response complète:', response);
           // Ne pas exposer le message d'erreur exact à l'utilisateur
           setError("Impossible de charger les informations de l'entreprise. Veuillez réessayer.");
         }
@@ -127,11 +151,18 @@ export default function CompanyDetailsPage() {
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchCompany();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [companyId, toast]);
 
   const handleShare = () => {
