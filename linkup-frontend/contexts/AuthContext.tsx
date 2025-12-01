@@ -77,12 +77,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false); // Protection contre les appels répétés
   const { toast } = useToast();
 
   // Vérifier l'authentification au chargement
   // Le cookie httpOnly est automatiquement envoyé par le navigateur
   useEffect(() => {
+    // Ne pas vérifier plusieurs fois
+    if (hasCheckedAuth) {
+      return;
+    }
+
     const checkAuth = async () => {
+      setHasCheckedAuth(true);
       try {
         // Utiliser Promise.allSettled pour appeler les deux endpoints en parallèle
         // Cela évite les appels séquentiels qui peuvent déclencher le rate limiting
@@ -130,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkAuth();
-  }, []);
+  }, [hasCheckedAuth]);
 
   /**
    * ========================================

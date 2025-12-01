@@ -15,64 +15,76 @@ export function useDashboardRedirect() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    const userRole = user && ('role' in user) ? user.role : null;
-    logger.debug('🔄 useDashboardRedirect - État:', { isLoading, isAuthenticated, isRedirecting, user: user ? { role: userRole, type: typeof user } : null });
+    // Ne pas exécuter si on est en train de charger ou si on a déjà redirigé
+    if (isLoading || isRedirecting) {
+      return;
+    }
+
+    // Ne pas exécuter si l'utilisateur n'est pas authentifié
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // Ne pas exécuter si on n'a pas d'utilisateur
+    if (!user) {
+      return;
+    }
+
+    setIsRedirecting(true);
     
-    if (!isLoading && isAuthenticated && !isRedirecting) {
-      setIsRedirecting(true);
+    const userRole = user && ('role' in user) ? user.role : null;
+    logger.debug('🔄 useDashboardRedirect - État:', { isLoading, isAuthenticated, user: user ? { role: userRole, type: typeof user } : null });
+    
+    // Fonction async pour déterminer le type d'utilisateur
+    const determineRedirect = async () => {
+      let redirectPath = '/dashboard'; // Par défaut pour les utilisateurs
       
-      // Fonction async pour déterminer le type d'utilisateur
-      const determineRedirect = async () => {
-        let redirectPath = '/dashboard'; // Par défaut pour les utilisateurs
-        
-        if (user) {
-          logger.debug('👤 Données utilisateur:', user);
-          // Vérifier le rôle depuis les données utilisateur
-          if (userRole === 'admin') {
-            redirectPath = '/admin-dashboard';
-            logger.debug('🛡️ Redirection admin vers:', redirectPath);
-          } else if ('id_company' in user || 'Id_company' in user || 'recruiter_mail' in user || userRole === 'company') {
-            // C'est une entreprise
-            redirectPath = '/company-dashboard';
-            logger.debug('🏢 Redirection entreprise vers:', redirectPath);
-          } else if ('id_user' in user || userRole === 'user') {
-            // C'est un utilisateur
-            redirectPath = '/dashboard';
-            logger.debug('👤 Redirection utilisateur vers:', redirectPath);
+      logger.debug('👤 Données utilisateur:', user);
+      // Vérifier le rôle depuis les données utilisateur
+      if (userRole === 'admin') {
+        redirectPath = '/admin-dashboard';
+        logger.debug('🛡️ Redirection admin vers:', redirectPath);
+      } else if ('id_company' in user || 'Id_company' in user || 'recruiter_mail' in user || userRole === 'company') {
+        // C'est une entreprise
+        redirectPath = '/company-dashboard';
+        logger.debug('🏢 Redirection entreprise vers:', redirectPath);
+      } else if ('id_user' in user || userRole === 'user') {
+        // C'est un utilisateur
+        redirectPath = '/dashboard';
+        logger.debug('👤 Redirection utilisateur vers:', redirectPath);
+      } else {
+        // Fallback: essayer de récupérer les infos utilisateur depuis l'API
+        // Le cookie httpOnly sera automatiquement envoyé
+        try {
+          const userResponse = await apiClient.getCurrentUser();
+          if (userResponse.success && userResponse.data) {
+            const userData = userResponse.data as any;
+            const userRoleFromApi = userData.role;
+            if (userRoleFromApi === 'admin') {
+              redirectPath = '/admin-dashboard';
+            } else if (userRoleFromApi === 'company') {
+              redirectPath = '/company-dashboard';
+            } else {
+              redirectPath = '/dashboard';
+            }
           } else {
-            // Fallback: essayer de récupérer les infos utilisateur depuis l'API
-            // Le cookie httpOnly sera automatiquement envoyé
-            try {
-              const userResponse = await apiClient.getCurrentUser();
-              if (userResponse.success && userResponse.data) {
-                const userData = userResponse.data as any;
-                const userRoleFromApi = userData.role;
-                if (userRoleFromApi === 'admin') {
-                  redirectPath = '/admin-dashboard';
-                } else if (userRoleFromApi === 'company') {
-                  redirectPath = '/company-dashboard';
-                } else {
-                  redirectPath = '/dashboard';
-                }
-              } else {
-                // Essayer entreprise si pas utilisateur
-                const companyResponse = await apiClient.getCurrentCompany();
-                if (companyResponse.success && companyResponse.data) {
-                  redirectPath = '/company-dashboard';
-                }
-              }
-            } catch (error) {
-              logger.debug('Impossible de déterminer le type d\'utilisateur, utilisation du dashboard par défaut');
-              redirectPath = '/dashboard'; // Fallback par défaut
+            // Essayer entreprise si pas utilisateur
+            const companyResponse = await apiClient.getCurrentCompany();
+            if (companyResponse.success && companyResponse.data) {
+              redirectPath = '/company-dashboard';
             }
           }
+        } catch (error) {
+          logger.debug('Impossible de déterminer le type d\'utilisateur, utilisation du dashboard par défaut');
+          redirectPath = '/dashboard'; // Fallback par défaut
         }
-        router.push(redirectPath);
-      };
+      }
       
-      determineRedirect();
-    }
-  }, [isAuthenticated, isLoading, user, router, isRedirecting]);
+      router.push(redirectPath);
+    };
+    
+    determineRedirect();
+  }, [isAuthenticated, isLoading, user, router]); // Retiré isRedirecting des dépendances pour éviter la boucle
 
   return { isRedirecting };
 }
