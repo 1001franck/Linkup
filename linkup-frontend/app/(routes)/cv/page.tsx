@@ -39,10 +39,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserCV } from "@/hooks/use-user-cv";
+import { useConfirm } from "@/hooks/use-confirm";
 
 function CVContent() {
   const { hasCV, cvInfo, isLoading, isUploading, uploadCV, deleteCV, downloadCV } = useUserCV();
   const { toast } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,8 +77,15 @@ function CVContent() {
     downloadCV();
   };
 
-  const handleDeleteCV = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer votre CV ? Cette action est irréversible.")) {
+  const handleDeleteCV = async () => {
+    const confirmed = await confirm({
+      title: "Supprimer le CV",
+      description: "Êtes-vous sûr de vouloir supprimer votre CV ? Cette action est irréversible.",
+      confirmText: "Supprimer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (confirmed) {
       deleteCV();
     }
   };
@@ -113,8 +122,10 @@ function CVContent() {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
+    <>
+      <ConfirmDialog />
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
         <Container className="py-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
@@ -356,8 +367,9 @@ function CVContent() {
           </div>
         </Container>
         <Toaster />
-      </div>
-    </ProtectedRoute>
+        </div>
+      </ProtectedRoute>
+    </>
   );
 }
 

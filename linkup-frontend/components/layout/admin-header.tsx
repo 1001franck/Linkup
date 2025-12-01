@@ -19,6 +19,7 @@ import { Typography } from "@/components/ui/typography";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserType } from "@/hooks/use-user-type";
+import { useConfirm } from "@/hooks/use-confirm";
 import { 
   Shield, 
   Users, 
@@ -74,6 +75,7 @@ export function AdminHeader() {
   const { user, logout } = useAuth();
   const { isAdmin } = useUserType();
   const { theme, setTheme } = useTheme();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   // Éviter l'erreur d'hydratation
   useEffect(() => {
@@ -81,9 +83,13 @@ export function AdminHeader() {
   }, []);
 
   const handleLogout = async () => {
-    const confirmed = window.confirm(
-      'Êtes-vous sûr de vouloir vous déconnecter ?'
-    );
+    const confirmed = await confirm({
+      title: "Déconnexion",
+      description: "Êtes-vous sûr de vouloir vous déconnecter ?",
+      confirmText: "Se déconnecter",
+      cancelText: "Annuler",
+      variant: "warning"
+    });
     if (confirmed) {
       await logout();
     }
@@ -101,7 +107,9 @@ export function AdminHeader() {
   }
 
   return (
-    <header className="bg-background/80 backdrop-blur-sm border-b sticky top-0 z-50">
+    <>
+      <ConfirmDialog />
+      <header className="bg-background/80 backdrop-blur-sm border-b sticky top-0 z-50">
       <Container>
         <div className="flex items-center justify-between h-16">
           {/* Logo et titre */}
@@ -227,6 +235,7 @@ export function AdminHeader() {
         )}
       </Container>
     </header>
+    </>
   );
 }
 

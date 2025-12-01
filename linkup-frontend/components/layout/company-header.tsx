@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Container } from "@/components/layout/container";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useCompanyLogoContext } from "@/contexts/CompanyLogoContext";
 import type { Company } from "@/types/api";
 
@@ -57,6 +58,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const { logo } = useCompanyLogoContext();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   // Éviter l'erreur d'hydratation
   React.useEffect(() => {
@@ -84,10 +86,14 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const handleLogout = () => {
-    const confirmed = window.confirm(
-      'Êtes-vous sûr de vouloir vous déconnecter ?'
-    );
+  const handleLogout = async () => {
+    const confirmed = await confirm({
+      title: "Déconnexion",
+      description: "Êtes-vous sûr de vouloir vous déconnecter ?",
+      confirmText: "Se déconnecter",
+      cancelText: "Annuler",
+      variant: "warning"
+    });
     if (confirmed) {
       logout();
       setIsUserMenuOpen(false);
@@ -99,7 +105,9 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
   const company = user as Company | null;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/40 dark:border-slate-800/40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
+    <>
+      <ConfirmDialog />
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/40 dark:border-slate-800/40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
       <Container>
         <div className="flex h-16 items-center justify-between">
           {/* Left Section: Logo LinkUp */}
@@ -292,6 +300,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
         )}
       </Container>
     </header>
+    </>
   );
 };
 
