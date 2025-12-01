@@ -51,6 +51,10 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  // Gérer le message personnalisé depuis l'URL
+  const redirectPath = searchParams.get('redirect');
+  const message = searchParams.get('message');
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -81,8 +85,9 @@ function LoginContent() {
           // Continuer quand même, le useEffect dans AuthContext récupérera les infos
         }
         
-        // Utiliser router.push au lieu de window.location.href pour une meilleure intégration Next.js
-        router.push('/dashboard');
+        // Rediriger vers la page demandée ou le dashboard par défaut
+        const redirectTo = redirectPath || '/dashboard';
+        router.push(redirectTo);
         return;
       }
       
@@ -102,8 +107,9 @@ function LoginContent() {
           logger.error('Erreur lors du rechargement:', refreshError);
         }
         
-        // Utiliser router.push au lieu de window.location.href pour une meilleure intégration Next.js
-        router.push('/company-dashboard');
+        // Rediriger vers la page demandée ou le dashboard entreprise par défaut
+        const redirectTo = redirectPath || '/company-dashboard';
+        router.push(redirectTo);
         return;
       }
       
@@ -143,6 +149,14 @@ function LoginContent() {
                 {searchParams.get('email') ? (
                   <>
                     🎉 Inscription réussie ! Entrez votre mot de passe pour vous connecter.
+                  </>
+                ) : message === 'postuler' ? (
+                  <>
+                    🔍 Trouvez le poste qui vous ressemble ! Connectez-vous pour postuler aux offres d'emploi.
+                  </>
+                ) : message === 'explorer' ? (
+                  <>
+                    🔍 Connectez-vous pour explorer une panoplie d'offres et trouver le poste qui vous ressemble !
                   </>
                 ) : (
                   "Entrez vos identifiants pour accéder à votre compte"

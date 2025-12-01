@@ -75,11 +75,11 @@ export const JobCard = memo<JobCardProps>(({
     if (!authLoading && !isAuthenticated) {
       toast({
         title: "Connexion requise",
-        description: "Veuillez vous connecter pour postuler à cette offre",
+        description: "Trouvez le poste qui vous ressemble ! Connectez-vous pour postuler à cette offre.",
         variant: "default"
       });
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/jobs';
-      router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/jobs';
+      router.push(`/login?redirect=${encodeURIComponent(currentPath)}&message=postuler`);
       return;
     }
     
