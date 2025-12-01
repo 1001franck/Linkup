@@ -90,6 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkAuth = async () => {
       setHasCheckedAuth(true);
+      
+      // Timeout pour éviter que l'application reste bloquée si le backend ne répond pas
+      const timeoutId = setTimeout(() => {
+        logger.warn('Timeout lors de la vérification de l\'authentification - backend non accessible');
+        setUser(null);
+        setIsLoading(false);
+      }, 10000); // 10 secondes de timeout
+
       try {
         // Utiliser Promise.allSettled pour appeler les deux endpoints en parallèle
         // Cela évite les appels séquentiels qui peuvent déclencher le rate limiting
@@ -98,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           apiClient.getCurrentUser(),
           apiClient.getCurrentCompany()
         ]);
+
+        clearTimeout(timeoutId);
 
         // Vérifier d'abord si c'est un utilisateur
         if (userResult.status === 'fulfilled' && userResult.value.success && userResult.value.data) {
@@ -129,7 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
       } catch (error) {
-        console.error('Erreur lors de la vérification de l\'authentification:', error);
+        clearTimeout(timeoutId);
+        logger.error('Erreur lors de la vérification de l\'authentification:', error);
         setUser(null);
       } finally {
         setIsLoading(false);

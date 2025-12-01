@@ -1407,9 +1407,23 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
 export default function LinkUpHomePage() {
   const { isAuthenticated, isLoading } = useAuth();
   const { isRedirecting } = useDashboardRedirect();
+  const [forceShow, setForceShow] = useState(false);
+
+  // Timeout de sécurité : après 15 secondes, forcer l'affichage même si isLoading est true
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Timeout de chargement - affichage forcé de la page');
+        setForceShow(true);
+      }
+    }, 15000); // 15 secondes
+
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
 
   // Afficher un loader pendant la vérification de l'authentification ou la redirection
-  if (isLoading || isRedirecting) {
+  // Mais seulement si on n'a pas forcé l'affichage
+  if ((isLoading || isRedirecting) && !forceShow) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-cyan-50/30">
         <div className="text-center">
@@ -1424,6 +1438,11 @@ export default function LinkUpHomePage() {
           <p className="text-slate-600 dark:text-slate-400">
             {isLoading ? 'Chargement...' : 'Redirection vers votre tableau de bord...'}
           </p>
+          {isLoading && (
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
+              Si le chargement prend trop de temps, vérifiez que le backend est accessible
+            </p>
+          )}
         </div>
       </div>
     );

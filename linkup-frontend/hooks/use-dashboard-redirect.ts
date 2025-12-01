@@ -55,9 +55,22 @@ export function useDashboardRedirect() {
       } else {
         // Fallback: essayer de récupérer les infos utilisateur depuis l'API
         // Le cookie httpOnly sera automatiquement envoyé
+        // Timeout pour éviter que l'application reste bloquée
         try {
-          const userResponse = await apiClient.getCurrentUser();
-          if (userResponse.success && userResponse.data) {
+          // Créer une fonction avec timeout
+          const fetchWithTimeout = async (promise: Promise<any>, timeoutMs: number) => {
+            const timeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+            );
+            return Promise.race([promise, timeout]);
+          };
+          
+          const userResponse = await fetchWithTimeout(
+            apiClient.getCurrentUser(),
+            5000
+          ) as any;
+          
+          if (userResponse && userResponse.success && userResponse.data) {
             const userData = userResponse.data as any;
             const userRoleFromApi = userData.role;
             if (userRoleFromApi === 'admin') {
@@ -69,8 +82,12 @@ export function useDashboardRedirect() {
             }
           } else {
             // Essayer entreprise si pas utilisateur
-            const companyResponse = await apiClient.getCurrentCompany();
-            if (companyResponse.success && companyResponse.data) {
+            const companyResponse = await fetchWithTimeout(
+              apiClient.getCurrentCompany(),
+              5000
+            ) as any;
+            
+            if (companyResponse && companyResponse.success && companyResponse.data) {
               redirectPath = '/company-dashboard';
             }
           }
