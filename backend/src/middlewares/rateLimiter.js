@@ -18,7 +18,8 @@ export const generalLimiter = rateLimit({
 	},
 	standardHeaders: true, // Retourne les headers RateLimit-* dans la réponse
 	legacyHeaders: false, // Désactive les headers X-RateLimit-*
-	trustProxy: true, // Faire confiance au proxy (Render, Vercel, etc.) pour l'IP réelle
+	// Note: trust proxy est configuré dans app.js via app.set('trust proxy', 1)
+	// express-rate-limit utilise automatiquement cette configuration d'Express
 });
 
 /**
@@ -37,7 +38,8 @@ export const authLimiter = rateLimit({
 	legacyHeaders: false,
 	skipSuccessfulRequests: true, // Ne pas compter les requêtes réussies (inscriptions réussies)
 	skipFailedRequests: false, // Compter les échecs pour protéger contre le spam
-	trustProxy: true, // Faire confiance au proxy (Render, Vercel, etc.) pour l'IP réelle
+	// Note: trust proxy est configuré dans app.js via app.set('trust proxy', 1)
+	// express-rate-limit utilise automatiquement cette configuration d'Express
 });
 
 /**
@@ -52,7 +54,8 @@ export const passwordResetLimiter = rateLimit({
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
-	trustProxy: true, // Faire confiance au proxy (Render, Vercel, etc.) pour l'IP réelle
+	// Note: trust proxy est configuré dans app.js via app.set('trust proxy', 1)
+	// express-rate-limit utilise automatiquement cette configuration d'Express
 });
 
 /**
@@ -67,5 +70,6 @@ export const uploadLimiter = rateLimit({
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
-	trustProxy: true, // Faire confiance au proxy (Render, Vercel, etc.) pour l'IP réelle
+	// Note: trust proxy est configuré dans app.js via app.set('trust proxy', 1)
+	// express-rate-limit utilise automatiquement cette configuration d'Express
 });
