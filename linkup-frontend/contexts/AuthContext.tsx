@@ -131,7 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = userResponse.data as User;
           const userRole = userData.role;
           
-          logger.debug('🟢 [AUTH CHECK] Utilisateur trouvé:', sanitizeUserData(userData));
+          logger.debug('🟢 [AUTH CHECK] Utilisateur trouvé:', {
+            id: userData.id_user,
+            role: userData.role,
+            hasEmail: !!userData.email
+          });
           
           if (userRole === 'admin') {
             const adminUser: User = { ...userData, role: 'admin' };
@@ -219,14 +223,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userResponse = await apiClient.getCurrentUser();
           if (userResponse.success && userResponse.data) {
             setUser(userResponse.data as User);
-            setIsAuthenticated(true);
             logger.debug('🟢 [LOGIN] Utilisateur connecté et état mis à jour');
           }
         } catch (userError) {
           // Si ça échoue, ce n'est pas grave, le useEffect récupérera les infos
           logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
-          // Mettre quand même isAuthenticated à true car le cookie est défini
-          setIsAuthenticated(true);
         }
         
         return true;
@@ -277,14 +278,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const companyResponse = await apiClient.getCurrentCompany();
           if (companyResponse.success && companyResponse.data) {
             setUser(companyResponse.data as Company);
-            setIsAuthenticated(true);
             logger.debug('🟢 [LOGIN COMPANY] Entreprise connectée et état mis à jour');
           }
         } catch (companyError) {
           // Si ça échoue, ce n'est pas grave, le useEffect récupérera les infos
           logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
-          // Mettre quand même isAuthenticated à true car le cookie est défini
-          setIsAuthenticated(true);
         }
         
         return true;
