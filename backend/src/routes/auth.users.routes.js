@@ -180,7 +180,7 @@ router.post('/login', authLimiter, async (req, res) => {
 		const cookieOptions = {
 			httpOnly: true, // Protection contre XSS - JavaScript ne peut pas accéder au cookie
 			secure: isProduction, // HTTPS uniquement en production
-			sameSite: isProduction ? 'strict' : 'lax', // 'lax' en dev pour permettre les redirections
+			sameSite: isProduction ? 'none' : 'lax', // 'none' en production pour cross-origin (Vercel -> Render), 'lax' en dev
 			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours en millisecondes
 			path: '/', // Cookie disponible sur tout le site
 		};

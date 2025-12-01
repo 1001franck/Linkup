@@ -166,21 +166,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Appeler le backend pour se connecter
       const response = await apiClient.loginUser({ email, password });
       
-      // Si la connexion réussit, le cookie est défini automatiquement
-      // Le useEffect dans AuthContext récupérera les infos utilisateur au prochain rendu
       if (response.success) {
-        toast({
-          title: 'Connexion réussie',
-          description: 'Redirection en cours...',
-          variant: 'default',
-        });
+        // Connexion réussie - le cookie est défini par le backend
+        // Essayer de récupérer les infos utilisateur immédiatement
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500)); // Attendre que le cookie soit propagé
+          const userResponse = await apiClient.getCurrentUser();
+          if (userResponse.success && userResponse.data) {
+            setUser(userResponse.data as User);
+          }
+        } catch (userError) {
+          // Si ça échoue, ce n'est pas grave, le useEffect récupérera les infos
+          logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
+        }
+        
         return true;
+      } else {
+        // Connexion échouée - afficher le message d'erreur du backend
+        const errorMessage = response.error || 'Email ou mot de passe incorrect';
+        toast({
+          title: 'Erreur de connexion',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return false;
       }
-      
-      // Connexion échouée
-      return false;
     } catch (error) {
       logger.error('Erreur lors de la connexion:', error);
+      toast({
+        title: 'Erreur de connexion',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
+        variant: 'destructive',
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -203,21 +220,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Appeler le backend pour se connecter
       const response = await apiClient.loginCompany({ recruiter_mail, password });
       
-      // Si la connexion réussit, le cookie est défini automatiquement
-      // Le useEffect dans AuthContext récupérera les infos entreprise au prochain rendu
       if (response.success) {
-        toast({
-          title: 'Connexion réussie',
-          description: 'Redirection en cours...',
-          variant: 'default',
-        });
+        // Connexion réussie - le cookie est défini par le backend
+        // Essayer de récupérer les infos entreprise immédiatement
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500)); // Attendre que le cookie soit propagé
+          const companyResponse = await apiClient.getCurrentCompany();
+          if (companyResponse.success && companyResponse.data) {
+            setUser(companyResponse.data as Company);
+          }
+        } catch (companyError) {
+          // Si ça échoue, ce n'est pas grave, le useEffect récupérera les infos
+          logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
+        }
+        
         return true;
+      } else {
+        // Connexion échouée - afficher le message d'erreur du backend
+        const errorMessage = response.error || 'Email ou mot de passe incorrect';
+        toast({
+          title: 'Erreur de connexion',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return false;
       }
-      
-      // Connexion échouée
-      return false;
     } catch (error) {
       logger.error('Erreur lors de la connexion entreprise:', error);
+      toast({
+        title: 'Erreur de connexion',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
+        variant: 'destructive',
+      });
       return false;
     } finally {
       setIsLoading(false);

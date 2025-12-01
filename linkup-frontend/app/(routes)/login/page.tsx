@@ -67,10 +67,19 @@ function LoginContent() {
       const userSuccess = await login(formData.email, formData.password);
       
       if (userSuccess) {
-        // Connexion candidat réussie → recharger les infos utilisateur puis rediriger
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await refreshUser(); // Forcer le rechargement des infos utilisateur
-        router.push('/dashboard');
+        // Attendre que le cookie soit propagé
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Recharger les infos utilisateur
+        try {
+          await refreshUser();
+        } catch (refreshError) {
+          console.error('Erreur lors du rechargement:', refreshError);
+          // Continuer quand même, le useEffect dans AuthContext récupérera les infos
+        }
+        
+        // Rediriger vers le dashboard
+        window.location.href = '/dashboard';
         return;
       }
       
@@ -78,18 +87,26 @@ function LoginContent() {
       const companySuccess = await loginCompany(formData.email, formData.password);
       
       if (companySuccess) {
-        // Connexion entreprise réussie → recharger les infos puis rediriger
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await refreshUser(); // Forcer le rechargement des infos entreprise
-        router.push('/company-dashboard');
+        // Attendre que le cookie soit propagé
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Recharger les infos entreprise
+        try {
+          await refreshUser();
+        } catch (refreshError) {
+          console.error('Erreur lors du rechargement:', refreshError);
+        }
+        
+        // Rediriger vers le dashboard entreprise
+        window.location.href = '/company-dashboard';
         return;
       }
       
-      // Aucune connexion n'a réussi
-      setError("Email ou mot de passe incorrect");
+      // Aucune connexion n'a réussi - afficher un message clair
+      setError("Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.");
     } catch (error) {
       console.error('Erreur de connexion:', error);
-      setError("Une erreur est survenue lors de la connexion");
+      setError("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }
