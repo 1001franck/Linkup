@@ -63,60 +63,27 @@ function LoginContent() {
     setError("");
 
     try {
-      let success = false;
+      // Essayer d'abord la connexion candidat
+      const userSuccess = await login(formData.email, formData.password);
       
-      // ✅ CORRECTION : Essayer d'abord la connexion utilisateur
-      // Si elle retourne true, c'est que la connexion backend a réussi (cookie défini)
-      // On ne doit PAS essayer la connexion entreprise dans ce cas
-      success = await login(formData.email, formData.password);
-      
-      // ✅ CORRECTION : Si la connexion utilisateur a réussi, on s'arrête là
-      // Ne pas essayer la connexion entreprise car l'utilisateur est déjà connecté
-      if (success) {
-        console.log('✅ Connexion candidat réussie, redirection en cours...');
-        
-        // Petite attente pour laisser le contexte se mettre à jour
-        setTimeout(() => {
-          const redirectTo = searchParams.get('redirect');
-          if (redirectTo) {
-            router.push(redirectTo);
-          } else {
-            // Redirection automatique via le système de redirection
-            window.location.href = '/';
-          }
-        }, 100);
-        return; // ✅ CORRECTION : Sortir immédiatement, ne pas essayer entreprise
+      if (userSuccess) {
+        // Connexion candidat réussie → redirection automatique
+        // Le useDashboardRedirect détectera le rôle et redirigera vers le bon dashboard
+        router.push('/');
+        return;
       }
       
-      // ❌ Si la connexion utilisateur a échoué (retourne false)
-      // Cela signifie que les identifiants sont incorrects pour un utilisateur
-      // On peut alors essayer la connexion entreprise
-      // MAIS seulement si on est sûr que ce n'est pas un utilisateur
-      console.log('Tentative connexion candidat échouée, essai entreprise...');
+      // Si échec candidat, essayer entreprise
+      const companySuccess = await loginCompany(formData.email, formData.password);
       
-      try {
-        success = await loginCompany(formData.email, formData.password);
-        if (success) {
-          console.log('✅ Connexion entreprise réussie, redirection en cours...');
-          
-          setTimeout(() => {
-            const redirectTo = searchParams.get('redirect');
-            if (redirectTo) {
-              router.push(redirectTo);
-            } else {
-              window.location.href = '/';
-            }
-          }, 100);
-        }
-      } catch (companyError) {
-        // Erreur attendue si ce n'est pas une entreprise
-        console.log('Tentative connexion entreprise échouée');
+      if (companySuccess) {
+        // Connexion entreprise réussie → redirection automatique
+        router.push('/');
+        return;
       }
       
-      // Si aucune des deux connexions n'a réussi
-      if (!success) {
-        setError("Email ou mot de passe incorrect");
-      }
+      // Aucune connexion n'a réussi
+      setError("Email ou mot de passe incorrect");
     } catch (error) {
       console.error('Erreur de connexion:', error);
       setError("Une erreur est survenue lors de la connexion");
