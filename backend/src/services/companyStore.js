@@ -179,14 +179,25 @@ async function findByMailForAuth(recruiter_mail) {
 			.ilike('recruiter_mail', searchMail)
 			.single();
 
-		if (error && error.code !== 'PGRST116') {
-			logger.error('findByRecruiterMail error:', error);
+		if (error) {
+			// Ne pas logger les erreurs "not found" (PGRST116) comme des erreurs critiques
+			// C'est un comportement attendu quand on cherche une entreprise qui n'existe pas
+			if (error.code === 'PGRST116') {
+				logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
+			} else {
+				logger.error('findByMailForAuth error:', error);
+			}
 			return null;
 		}
 
 		return data || null;
 	} catch (error) {
-		logger.error('findByRecruiterMail error:', error);
+		// Ne pas logger les erreurs "not found" comme des erreurs critiques
+		if (error.code === 'PGRST116') {
+			logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
+			return null;
+		}
+		logger.error('findByMailForAuth error:', error);
 		throw error;
 	}
 }
@@ -209,14 +220,25 @@ async function findByMail(recruiter_mail) {
 			.ilike('recruiter_mail', searchMail)
 			.single();
 
-		if (error && error.code !== 'PGRST116') {
-			logger.error('findByRecruiterMail error:', error);
+		if (error) {
+			// Ne pas logger les erreurs "not found" (PGRST116) comme des erreurs critiques
+			// C'est un comportement attendu quand on cherche une entreprise qui n'existe pas
+			if (error.code === 'PGRST116') {
+				logger.debug('findByMail: Aucune entreprise trouvée avec cet email');
+			} else {
+				logger.error('findByMail error:', error);
+			}
 			return null;
 		}
 
 		return data || null;
 	} catch (error) {
-		logger.error('findByRecruiterMail error:', error);
+		// Ne pas logger les erreurs "not found" comme des erreurs critiques
+		if (error.code === 'PGRST116') {
+			logger.debug('findByMail: Aucune entreprise trouvée avec cet email');
+			return null;
+		}
+		logger.error('findByMail error:', error);
 		throw error;
 	}
 }

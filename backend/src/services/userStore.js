@@ -125,7 +125,19 @@ async function createUser({
 	const { data, error } = await supabase.from('user_').insert(insertData).select().single();
 
 	if (error) {
-		logger.error('[createUser] error:', error);
+		logger.error('[createUser] Supabase error:', error);
+		logger.error('[createUser] Error details:', {
+			message: error.message,
+			code: error.code,
+			details: error.details,
+			hint: error.hint,
+		});
+		throw error;
+	}
+
+	if (!data) {
+		const error = new Error('Aucune donnée retournée après création utilisateur');
+		logger.error('[createUser] No data returned');
 		throw error;
 	}
 

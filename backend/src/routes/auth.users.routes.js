@@ -55,7 +55,26 @@ router.post('/signup', authLimiter, async (req, res) => {
 		});
 	} catch (error) {
 		logger.error('Signup error:', error);
-		return res.status(500).json({ error: 'Erreur serveur' });
+		logger.error('Signup error stack:', error.stack);
+		logger.error('Signup error details:', {
+			message: error.message,
+			code: error.code,
+			details: error.details,
+			hint: error.hint,
+		});
+
+		// En développement, retourner plus de détails
+		const errorMessage =
+			process.env.NODE_ENV === 'production' ? 'Erreur serveur' : error.message || 'Erreur serveur';
+
+		return res.status(500).json({
+			error: errorMessage,
+			...(process.env.NODE_ENV !== 'production' && {
+				details: error.details,
+				hint: error.hint,
+				code: error.code,
+			}),
+		});
 	}
 });
 

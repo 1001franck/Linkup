@@ -104,16 +104,37 @@ const corsOptions = {
 		}
 
 		// En production ou si FRONTEND_URL est défini, vérification stricte
-		if (!origin || allowedOrigins.includes(origin)) {
-			logger.debug(`[CORS] Origine autorisée (prod): ${origin}`);
-			callback(null, origin || '*');
-		} else {
-			logger.warn(
-				`[CORS] Origine non autorisée (prod): ${origin}. Origines autorisées:`,
-				allowedOrigins
-			);
-			callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
+		// Autoriser les requêtes sans origin (outils de test)
+		if (!origin) {
+			logger.debug('[CORS] Requête sans origin autorisée (prod - outils de test)');
+			return callback(null, '*');
 		}
+
+		// Vérifier si l'origine est dans la whitelist
+		if (allowedOrigins.includes(origin)) {
+			logger.debug(`[CORS] Origine autorisée (prod): ${origin}`);
+			return callback(null, origin);
+		}
+
+		// Autoriser les URLs de preview Vercel (format: https://*-*-*.vercel.app)
+		const vercelPreviewPattern = /^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app$/;
+		if (vercelPreviewPattern.test(origin)) {
+			logger.debug(`[CORS] Origine preview Vercel autorisée: ${origin}`);
+			return callback(null, origin);
+		}
+
+		// Autoriser aussi les sous-domaines vercel.app (pour les previews)
+		if (origin.endsWith('.vercel.app')) {
+			logger.debug(`[CORS] Origine Vercel autorisée: ${origin}`);
+			return callback(null, origin);
+		}
+
+		// Rejeter les autres origines
+		logger.warn(
+			`[CORS] Origine non autorisée (prod): ${origin}. Origines autorisées:`,
+			allowedOrigins
+		);
+		callback(new Error(`Non autorisé par CORS. Origine: ${origin}`));
 	},
 	credentials: true, // Permettre les cookies
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
