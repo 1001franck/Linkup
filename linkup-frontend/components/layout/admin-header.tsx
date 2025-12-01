@@ -81,7 +81,12 @@ export function AdminHeader() {
   }, []);
 
   const handleLogout = async () => {
-    await logout();
+    const confirmed = window.confirm(
+      'Êtes-vous sûr de vouloir vous déconnecter ?'
+    );
+    if (confirmed) {
+      await logout();
+    }
   };
 
   const isActive = (href: string) => {

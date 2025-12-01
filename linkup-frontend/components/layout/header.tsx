@@ -272,8 +272,13 @@ const Header: React.FC<HeaderProps> = ({
                           <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
                           <button
                             onClick={() => {
-                              logout();
-                              setIsUserMenuOpen(false);
+                              const confirmed = window.confirm(
+                                'Êtes-vous sûr de vouloir vous déconnecter ?'
+                              );
+                              if (confirmed) {
+                                logout();
+                                setIsUserMenuOpen(false);
+                              }
                             }}
                             className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
                           >

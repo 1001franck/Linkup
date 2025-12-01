@@ -85,8 +85,13 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({
   };
 
   const handleLogout = () => {
-    logout();
-    setIsUserMenuOpen(false);
+    const confirmed = window.confirm(
+      'Êtes-vous sûr de vouloir vous déconnecter ?'
+    );
+    if (confirmed) {
+      logout();
+      setIsUserMenuOpen(false);
+    }
   };
 
   // Vérifier si l'utilisateur est une entreprise

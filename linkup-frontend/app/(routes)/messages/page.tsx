@@ -33,7 +33,9 @@ import {
   Phone,
   Video,
   Archive,
-  Trash2
+  Trash2,
+  AlertCircle,
+  Construction
 } from "lucide-react";
 
 function MessagesContent() {
@@ -115,7 +117,24 @@ function MessagesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-cyan-900/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/20">
+      
+      {/* Banner "En cours de développement" */}
+      <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+        <Container>
+          <div className="flex items-center gap-3 py-3">
+            <Construction className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <div className="flex-1">
+              <Typography variant="small" className="font-semibold text-amber-900 dark:text-amber-100">
+                Page en cours de développement
+              </Typography>
+              <Typography variant="muted" className="text-sm text-amber-700 dark:text-amber-300">
+                Cette fonctionnalité est actuellement en développement. Certaines fonctionnalités peuvent ne pas être disponibles.
+              </Typography>
+            </div>
+          </div>
+        </Container>
+      </div>
       
       {/* Indicateurs de chargement et d'erreur */}
       {conversationsLoading && (
@@ -194,7 +213,7 @@ function MessagesContent() {
                       <div
                         className={`p-4 cursor-pointer transition-all duration-200 ${
                           selectedConversation === conversation.id
-                            ? "bg-cyan-50 dark:bg-cyan-900/20 border-r-2 border-cyan-500"
+                            ? "bg-primary/10 dark:bg-primary/20 border-r-2 border-primary"
                             : "hover:bg-slate-50 dark:hover:bg-slate-700/50"
                         }`}
                         onClick={() => setSelectedConversation(conversation.id)}
@@ -220,7 +239,7 @@ function MessagesContent() {
                               <div className="flex items-center space-x-2">
                                 <span className="text-xs text-slate-500">{conversation.time}</span>
                                 {conversation.unread > 0 && (
-                                  <Badge className="bg-cyan-500 text-white text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                                  <Badge className="bg-primary text-primary-foreground text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">
                                     {conversation.unread}
                                   </Badge>
                                 )}
@@ -316,14 +335,14 @@ function MessagesContent() {
                         )}
                         <div className={`rounded-2xl px-4 py-2 ${
                           message.isOwn 
-                            ? 'bg-gradient-to-r from-cyan-500 to-teal-600 text-white' 
+                            ? 'bg-primary text-primary-foreground' 
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'
                         }`}>
                           <Typography variant="small" className="text-sm">
                             {message.content}
                           </Typography>
                           <div className={`flex items-center justify-end mt-1 space-x-1 ${
-                            message.isOwn ? 'text-cyan-100' : 'text-slate-500'
+                            message.isOwn ? 'text-primary-foreground/80' : 'text-slate-500'
                           }`}>
                             <span className="text-xs">{message.time}</span>
                             {message.isOwn && (
@@ -375,7 +394,7 @@ function MessagesContent() {
                   <Button 
                     onClick={handleSendMessage}
                     disabled={!messageText.trim()}
-                    className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
