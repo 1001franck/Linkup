@@ -711,10 +711,12 @@ class ApiClient {
   }
 
   async logoutCompany() {
-    // Le backend supprime automatiquement le cookie httpOnly via clearCookie()
-    await this.request('/auth/companies/logout', {
+    console.log('🔴 [API] Appel logout entreprise');
+    const response = await this.request('/auth/companies/logout', {
       method: 'POST',
     });
+    console.log('🔴 [API] Réponse logout entreprise:', response);
+    return response;
   }
 
   // Mot de passe oublié
