@@ -19,7 +19,6 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDashboardRedirect } from "@/hooks/use-dashboard-redirect";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { CompanyCard } from "@/components/ui/company-card";
 import { useCompanyPagination } from "@/hooks/use-company-pagination";
@@ -1406,54 +1405,24 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
 // Composant principal qui choisit quelle page afficher
 export default function LinkUpHomePage() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const { isRedirecting } = useDashboardRedirect();
-  const [forceShow, setForceShow] = useState(false);
+  const router = useRouter();
 
-  // Timeout de sécurité : après 15 secondes, forcer l'affichage même si isLoading est true
+  // Si l'utilisateur est authentifié, rediriger vers le dashboard approprié
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn('Timeout de chargement - affichage forcé de la page');
-        setForceShow(true);
+    if (!isLoading && isAuthenticated && user) {
+      const userRole = 'role' in user ? user.role : null;
+      let redirectPath = '/dashboard';
+      
+      if (userRole === 'admin') {
+        redirectPath = '/admin-dashboard';
+      } else if ('id_company' in user || 'recruiter_mail' in user || userRole === 'company') {
+        redirectPath = '/company-dashboard';
       }
-    }, 15000); // 15 secondes
+      
+      router.push(redirectPath);
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
-
-  // ✅ CORRECTION : Ne pas rediriger si l'utilisateur n'est pas authentifié
-  // Si isAuthenticated est false OU user est null, afficher directement la page marketing
-  if (!isLoading && (!isAuthenticated || !user)) {
-    return <MarketingHomePage />;
-  }
-
-  // Afficher un loader pendant la vérification de l'authentification ou la redirection
-  // Mais seulement si on n'a pas forcé l'affichage
-  if ((isLoading || isRedirecting) && !forceShow) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-cyan-50/30">
-        <div className="text-center">
-          <div className="h-12 w-12 rounded-full bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center mx-auto mb-4">
-            <div className="h-6 w-6 text-cyan-600 animate-spin">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-          </div>
-          <p className="text-slate-600 dark:text-slate-400">
-            {isLoading ? 'Chargement...' : 'Redirection vers votre tableau de bord...'}
-          </p>
-          {isLoading && (
-            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
-              Si le chargement prend trop de temps, vérifiez que le backend est accessible
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Si l'utilisateur n'est pas authentifié, afficher la page marketing
+  // Afficher la page marketing
   return <MarketingHomePage />;
 }

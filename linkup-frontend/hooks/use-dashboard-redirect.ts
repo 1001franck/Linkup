@@ -33,7 +33,6 @@ export function useDashboardRedirect() {
     setIsRedirecting(true);
     
     const userRole = user && ('role' in user) ? user.role : null;
-    logger.debug('🔄 useDashboardRedirect - État:', { isLoading, isAuthenticated, user: user ? { role: userRole, type: typeof user } : null });
     
     // Fonction async pour déterminer le type d'utilisateur
     const determineRedirect = async () => {

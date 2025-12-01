@@ -267,108 +267,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Détecte automatiquement le type d'utilisateur pour utiliser la bonne route
    */
   const logout = async () => {
-    try {
-      // ========================================
-      // DÉTECTION DU TYPE D'UTILISATEUR
-      // ========================================
-      
-      let isCompany = false;
-      
-      if (user) {
-        // Vérifier si c'est une entreprise
-        isCompany = 'id_company' in user || 'recruiter_mail' in user;
-      } else {
-        // Si pas d'utilisateur, essayer de récupérer les infos entreprise pour détecter le type
-        try {
-          const companyResponse = await apiClient.getCurrentCompany();
-          if (companyResponse.success && companyResponse.data) {
-            isCompany = true;
-          }
-        } catch {
-          // Pas une entreprise, continuer avec la déconnexion utilisateur
-        }
+    // Nettoyer l'état immédiatement
+    setUser(null);
+    setIsLoading(false);
+    setHasCheckedAuth(false);
+    
+    // Nettoyer localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('user');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userSkills');
+        localStorage.removeItem('profileCompleted');
+      } catch (error) {
+        console.error('Erreur lors du nettoyage:', error);
       }
-      
-      // ========================================
-      // APPEL DE LA BONNE ROUTE DE DÉCONNEXION
-      // ========================================
-      
-      // ✅ CORRECTION : Nettoyer l'état AVANT l'appel API pour éviter les vérifications
-      setUser(null);
-      setIsLoading(false);
-      
-      // Appeler l'API de déconnexion
+    }
+    
+    // Appeler l'API de déconnexion (sans bloquer)
+    try {
+      const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
       if (isCompany) {
         await apiClient.logoutCompany();
       } else {
         await apiClient.logout();
       }
-      
-      // ✅ CORRECTION : Attendre un peu pour que le cookie soit supprimé côté navigateur
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // ========================================
-      // NETTOYAGE DE L'ÉTAT ET LOCALSTORAGE
-      // ========================================
-      
-      // S'assurer que l'état est bien nettoyé
-      setUser(null);
-      setIsLoading(false);
-      setHasCheckedAuth(false); // ✅ CORRECTION : Réinitialiser pour forcer une nouvelle vérification
-      
-      // Nettoyer toutes les données sensibles de localStorage
-      if (typeof window !== 'undefined') {
-        try {
-          // Supprimer les données utilisateur sensibles
-          localStorage.removeItem('user');
-          localStorage.removeItem('userProfile');
-          localStorage.removeItem('userSkills');
-          localStorage.removeItem('profileCompleted');
-          // Nettoyer les autres données liées à l'utilisateur
-          const keysToRemove: string[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.startsWith('favoriteResources_') || key.startsWith('viewedResources_'))) {
-              keysToRemove.push(key);
-            }
-          }
-          keysToRemove.forEach(key => localStorage.removeItem(key));
-        } catch (error) {
-          console.error('Erreur lors du nettoyage de localStorage:', error);
-        }
-      }
-      
-      toast({
-        title: 'Déconnexion',
-        description: 'Vous avez été déconnecté avec succès',
-        variant: 'default',
-      });
-      
-      // ========================================
-      // REDIRECTION FORCÉE
-      // ========================================
-      
-      // ✅ CORRECTION : Utiliser window.location.replace() pour forcer le rechargement
-      // et empêcher le retour en arrière
-      window.location.replace('/');
-      
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-      
-      // En cas d'erreur, nettoyer l'état local
-      setUser(null);
-      setIsLoading(false);
-      setHasCheckedAuth(false); // ✅ CORRECTION : Réinitialiser pour forcer une nouvelle vérification
-      
-      toast({
-        title: 'Déconnexion',
-        description: 'Vous avez été déconnecté (nettoyage local)',
-        variant: 'default',
-      });
-      
-      // ✅ CORRECTION : Utiliser window.location.replace() pour forcer le rechargement
-      window.location.replace('/');
+      // Ignorer les erreurs, on déconnecte quand même
+      console.error('Erreur logout API:', error);
     }
+    
+    // Rediriger immédiatement vers la page d'accueil
+    window.location.href = '/';
   };
 
   /**
