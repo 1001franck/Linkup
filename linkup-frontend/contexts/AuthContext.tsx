@@ -332,6 +332,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('userProfile');
         localStorage.removeItem('userSkills');
         localStorage.removeItem('profileCompleted');
+        localStorage.removeItem('linkup_auth_token'); // Supprimer le token mobile
         logger.debug(' [LOGOUT] localStorage nettoyé');
       } catch (error) {
         logger.error(' [LOGOUT] Erreur lors du nettoyage:', error);

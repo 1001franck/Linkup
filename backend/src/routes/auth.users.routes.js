@@ -220,15 +220,35 @@ router.post('/login', authLimiter, async (req, res) => {
 		// Définir le cookie côté serveur (pour les requêtes futures)
 		res.cookie('linkup_token', token, cookieOptions);
 
-		// Log pour vérifier que le cookie est bien défini
-		logger.debug({
-			msg: '[LOGIN] Cookie défini',
+		// Log pour vérifier que le cookie est bien défini (niveau info pour être visible en production)
+		logger.info({
+			msg: '[LOGIN] Cookie défini avec succès',
 			hasToken: !!token,
+			tokenLength: token ? token.length : 0,
 			isMobile,
-			cookieOptions,
+			cookieOptions: {
+				httpOnly: cookieOptions.httpOnly,
+				secure: cookieOptions.secure,
+				sameSite: cookieOptions.sameSite,
+				path: cookieOptions.path,
+				maxAge: cookieOptions.maxAge,
+			},
+			origin: req.headers.origin,
 		});
 
-		return res.json({
+		// Vérifier que le cookie est bien dans les headers de réponse
+		const setCookieHeader = res.getHeader('Set-Cookie');
+		if (isMobile) {
+			logger.info({
+				msg: '[LOGIN] Header Set-Cookie pour mobile',
+				hasSetCookie: !!setCookieHeader,
+				setCookiePreview: setCookieHeader ? String(setCookieHeader).substring(0, 150) : 'N/A',
+			});
+		}
+
+		// Pour mobile : retourner aussi le token dans la réponse JSON comme fallback
+		// Le frontend l'utilisera si les cookies ne fonctionnent pas
+		const responseData = {
 			message: 'Connexion réussie',
 			// Le token est stocké dans un cookie httpOnly, pas dans le body JSON (sécurité)
 			user: {
@@ -236,7 +256,17 @@ router.post('/login', authLimiter, async (req, res) => {
 				email: user.email,
 				role: user.role,
 			},
-		});
+		};
+
+		// Sur mobile, inclure le token dans la réponse pour fallback localStorage
+		if (isMobile) {
+			responseData.token = token;
+			logger.info({
+				msg: '[LOGIN] Token inclus dans la réponse JSON pour mobile (fallback)',
+			});
+		}
+
+		return res.json(responseData);
 	} catch (error) {
 		logger.error(
 			{

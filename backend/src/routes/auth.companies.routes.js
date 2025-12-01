@@ -140,23 +140,53 @@ router.post('/login', authLimiter, async (req, res) => {
 		// Définir le cookie côté serveur
 		res.cookie('linkup_token', token, cookieOptions);
 
-		// Log pour vérifier que le cookie est bien défini
-		logger.debug({
-			msg: '[LOGIN COMPANY] Cookie défini',
+		// Log pour vérifier que le cookie est bien défini (niveau info pour être visible en production)
+		logger.info({
+			msg: '[LOGIN COMPANY] Cookie défini avec succès',
 			hasToken: !!token,
+			tokenLength: token ? token.length : 0,
 			isMobile,
-			cookieOptions,
+			cookieOptions: {
+				httpOnly: cookieOptions.httpOnly,
+				secure: cookieOptions.secure,
+				sameSite: cookieOptions.sameSite,
+				path: cookieOptions.path,
+				maxAge: cookieOptions.maxAge,
+			},
+			origin: req.headers.origin,
 		});
 
-		res.json({
+		// Vérifier que le cookie est bien dans les headers de réponse
+		const setCookieHeader = res.getHeader('Set-Cookie');
+		if (isMobile) {
+			logger.info({
+				msg: '[LOGIN COMPANY] Header Set-Cookie pour mobile',
+				hasSetCookie: !!setCookieHeader,
+				setCookiePreview: setCookieHeader ? String(setCookieHeader).substring(0, 150) : 'N/A',
+			});
+		}
+
+		// Pour mobile : retourner aussi le token dans la réponse JSON comme fallback
+		// Le frontend l'utilisera si les cookies ne fonctionnent pas
+		const responseData = {
 			message: 'Connexion entreprise réussie',
-			// Le token est stocké dans un cookie httpOnly, pas dans le body JSON (sécurité)
+			// Le token est stocké dans un cookie httpOnly, mais aussi dans la réponse JSON pour mobile (fallback)
 			company: {
 				id: company.id_company,
 				name: company.name,
 				recruiter_mail: company.recruiter_mail,
 			},
-		});
+		};
+
+		// Sur mobile, inclure le token dans la réponse pour fallback localStorage
+		if (isMobile) {
+			responseData.token = token;
+			logger.info({
+				msg: '[LOGIN COMPANY] Token inclus dans la réponse JSON pour mobile (fallback)',
+			});
+		}
+
+		res.json(responseData);
 	} catch (error) {
 		logger.error(
 			{

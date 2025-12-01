@@ -3,8 +3,8 @@
  * Gère toutes les requêtes vers le backend
  * 
  * GESTION DES TOKENS :
- * - Les tokens sont stockés dans des cookies httpOnly par le backend
- * - Le frontend ne stocke JAMAIS le token (pas de js-cookie, pas de localStorage)
+ * - Les tokens sont stockés dans des cookies httpOnly par le backend (priorité)
+ * - Sur mobile, fallback vers localStorage + Authorization header si les cookies ne fonctionnent pas
  * - Les cookies sont automatiquement envoyés avec credentials: 'include'
  */
 
@@ -31,9 +31,49 @@ export interface PaginatedResponse<T> {
 class ApiClient {
   private baseURL: string;
   private csrfToken: string | null = null; // Stocker le token en mémoire
+  private readonly TOKEN_STORAGE_KEY = 'linkup_auth_token'; // Clé pour localStorage (fallback mobile)
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
+  }
+
+  /**
+   * Récupérer le token depuis localStorage (fallback pour mobile)
+   */
+  private getTokenFromStorage(): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(this.TOKEN_STORAGE_KEY);
+    } catch (error) {
+      logger.error('[API] Erreur lors de la récupération du token depuis localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Stocker le token dans localStorage (fallback pour mobile)
+   */
+  private setTokenInStorage(token: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(this.TOKEN_STORAGE_KEY, token);
+      logger.debug('[API] Token stocké dans localStorage (fallback mobile)');
+    } catch (error) {
+      logger.error('[API] Erreur lors du stockage du token dans localStorage:', error);
+    }
+  }
+
+  /**
+   * Supprimer le token de localStorage
+   */
+  private removeTokenFromStorage(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(this.TOKEN_STORAGE_KEY);
+      logger.debug('[API] Token supprimé de localStorage');
+    } catch (error) {
+      logger.error('[API] Erreur lors de la suppression du token de localStorage:', error);
+    }
   }
 
   /**
@@ -185,6 +225,10 @@ class ApiClient {
       }
     }
     
+    // Récupérer le token depuis localStorage (fallback pour mobile)
+    const storageToken = this.getTokenFromStorage();
+    const shouldUseStorageToken = !!storageToken;
+
     const config: RequestInit = {
       credentials: 'include', // CRITIQUE: Inclure les cookies httpOnly automatiquement
       headers: {
@@ -192,6 +236,8 @@ class ApiClient {
         ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         // Ajouter le token CSRF pour les requêtes mutantes
         ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        // Ajouter le token dans Authorization header si présent dans localStorage (fallback mobile)
+        ...(shouldUseStorageToken ? { 'Authorization': `Bearer ${storageToken}` } : {}),
         ...options.headers,
       },
       ...options,
@@ -492,6 +538,8 @@ class ApiClient {
     });
     logger.debug('🔴 [API] Réponse logout:', { success: response.success });
     // Le cookie httpOnly sera supprimé par le backend via clearCookie()
+    // Supprimer aussi le token de localStorage (fallback mobile)
+    this.removeTokenFromStorage();
   }
 
   /**
@@ -531,15 +579,18 @@ class ApiClient {
 
   async loginUser(credentials: { email: string; password: string }) {
     // Le backend définit automatiquement le cookie httpOnly 'linkup_token'
-    // Le token est aussi retourné dans la réponse mais n'est pas stocké côté frontend
-    // Le navigateur gère automatiquement le cookie httpOnly
-    const response = await this.request('/auth/users/login', {
+    // Sur mobile, le token est aussi retourné dans la réponse JSON pour fallback
+    const response = await this.request<{ token?: string }>('/auth/users/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
 
-    // Le cookie httpOnly est automatiquement défini par le backend
-    // Pas besoin de le stocker manuellement côté frontend
+    // Si le token est présent dans la réponse (mobile fallback), le stocker dans localStorage
+    if (response.data && 'token' in response.data && response.data.token) {
+      this.setTokenInStorage(response.data.token);
+      logger.debug('[API] Token stocké dans localStorage (fallback mobile)');
+    }
+
     return response;
   }
 
@@ -565,12 +616,18 @@ class ApiClient {
 
   async loginCompany(credentials: { recruiter_mail: string; password: string }) {
     // Le backend définit automatiquement le cookie httpOnly 'linkup_token'
-    const response = await this.request('/auth/companies/login', {
+    // Sur mobile, le token est aussi retourné dans la réponse JSON pour fallback
+    const response = await this.request<{ token?: string }>('/auth/companies/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
 
-    // Le cookie httpOnly est automatiquement défini par le backend
+    // Si le token est présent dans la réponse (mobile fallback), le stocker dans localStorage
+    if (response.data && 'token' in response.data && response.data.token) {
+      this.setTokenInStorage(response.data.token);
+      logger.debug('[API] Token stocké dans localStorage (fallback mobile)');
+    }
+
     return response;
   }
 
@@ -1056,6 +1113,8 @@ class ApiClient {
     await this.request('/auth/users/logout', {
       method: 'POST',
     });
+    // Supprimer aussi le token de localStorage (fallback mobile)
+    this.removeTokenFromStorage();
   }
 
   async logoutCompany() {
@@ -1064,6 +1123,8 @@ class ApiClient {
       method: 'POST',
     });
     logger.debug('🔴 [API] Réponse logout entreprise:', { success: response.success });
+    // Supprimer aussi le token de localStorage (fallback mobile)
+    this.removeTokenFromStorage();
     return response;
   }
 
