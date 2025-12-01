@@ -19,6 +19,7 @@ import { CompanyLogoUpload } from "@/components/companies/company-logo-upload";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
+import logger from "@/lib/logger";
 import { 
   Building2, 
   Save, 
@@ -95,7 +96,7 @@ export default function CompanyProfilePage() {
         throw new Error(response.error || "Erreur lors de la mise à jour");
       }
     } catch (error) {
-      console.error("Erreur mise à jour profil:", error);
+      logger.error("Erreur mise à jour profil:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le profil",

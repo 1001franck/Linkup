@@ -36,6 +36,58 @@ class ApiClient {
   }
 
   /**
+   * Sanitize une URL pour les logs (masque les paramètres sensibles)
+   */
+  private sanitizeUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // Masquer les paramètres de requête qui pourraient contenir des données sensibles
+      const params = urlObj.searchParams;
+      const sanitizedParams = new URLSearchParams();
+      
+      // Ne garder que les paramètres non sensibles
+      params.forEach((value, key) => {
+        const lowerKey = key.toLowerCase();
+        // Masquer les paramètres potentiellement sensibles
+        if (lowerKey.includes('token') || lowerKey.includes('password') || lowerKey.includes('secret') || lowerKey.includes('key')) {
+          sanitizedParams.append(key, '***');
+        } else {
+          sanitizedParams.append(key, value);
+        }
+      });
+      
+      urlObj.search = sanitizedParams.toString();
+      return urlObj.toString();
+    } catch {
+      // Si l'URL n'est pas valide, retourner une version masquée
+      return url.split('?')[0] + '?***';
+    }
+  }
+
+  /**
+   * Sanitize les données d'erreur pour les logs (masque les données sensibles)
+   */
+  private sanitizeErrorData(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+    
+    const sanitized: any = {};
+    const sensitiveKeys = ['password', 'token', 'secret', 'email', 'phone', 'address', 'credit_card', 'ssn'];
+    
+    for (const [key, value] of Object.entries(data)) {
+      const lowerKey = key.toLowerCase();
+      if (sensitiveKeys.some(sk => lowerKey.includes(sk))) {
+        sanitized[key] = '***';
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.sanitizeErrorData(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+    
+    return sanitized;
+  }
+
+  /**
    * Fonction utilitaire pour récupérer le token depuis les cookies httpOnly
    * Note: Les cookies httpOnly ne sont pas accessibles par JavaScript
    * Cette fonction est utilisée uniquement pour vérifier la présence du token
@@ -95,17 +147,26 @@ class ApiClient {
         
         if (!isAuthCheckEndpoint || !isAuthError) {
           // Logger uniquement les erreurs non liées à l'authentification
+          // Sanitizer l'URL et les données avant de logger
+          const sanitizedUrl = this.sanitizeUrl(url);
+          const sanitizedData = this.sanitizeErrorData(data);
+          
           if (response.status >= 500) {
-            logger.error(`[API Error] ${response.status} from ${url}:`, data);
+            logger.error(`[API Error] ${response.status} from ${sanitizedUrl}:`, sanitizedData);
           } else if (response.status >= 400) {
-            logger.warn(`[API Warning] ${response.status} from ${url}:`, data);
+            logger.warn(`[API Warning] ${response.status} from ${sanitizedUrl}:`, sanitizedData);
           }
         }
         
         // Retourner directement les détails d'erreur au lieu de throw
+        // Ne pas exposer les messages d'erreur techniques en production
+        const errorMessage = process.env.NODE_ENV === 'production'
+          ? (response.status >= 500 ? 'Erreur serveur' : 'Une erreur est survenue')
+          : (data.error || data.message || `HTTP error! status: ${response.status}`);
+        
         return {
           success: false,
-          error: data.error || data.message || `HTTP error! status: ${response.status}`,
+          error: errorMessage,
           details: data.details || [], // Inclure les détails de validation
         };
       }
@@ -115,10 +176,16 @@ class ApiClient {
         data: data,
       };
     } catch (error) {
-      logger.error(`[API Error] Request failed for ${url}:`, error);
+      const sanitizedUrl = this.sanitizeUrl(url);
+      logger.error(`[API Error] Request failed for ${sanitizedUrl}:`, error);
+      // Ne pas exposer le message d'erreur exact en production
+      const errorMessage = process.env.NODE_ENV === 'production'
+        ? 'Une erreur est survenue'
+        : (error instanceof Error ? error.message : 'Une erreur est survenue');
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Une erreur est survenue',
+        error: errorMessage,
         details: [],
       };
     }
@@ -138,11 +205,11 @@ class ApiClient {
    * Cette fonction appelle simplement l'endpoint logout
    */
   async logout(): Promise<void> {
-    console.log('🔴 [API] Appel logout utilisateur');
+    logger.debug('🔴 [API] Appel logout utilisateur');
     const response = await this.request('/auth/users/logout', {
       method: 'POST',
     });
-    console.log('🔴 [API] Réponse logout:', response);
+    logger.debug('🔴 [API] Réponse logout:', { success: response.success });
     // Le cookie httpOnly sera supprimé par le backend via clearCookie()
   }
 
@@ -711,11 +778,11 @@ class ApiClient {
   }
 
   async logoutCompany() {
-    console.log('🔴 [API] Appel logout entreprise');
+    logger.debug('🔴 [API] Appel logout entreprise');
     const response = await this.request('/auth/companies/logout', {
       method: 'POST',
     });
-    console.log('🔴 [API] Réponse logout entreprise:', response);
+    logger.debug('🔴 [API] Réponse logout entreprise:', { success: response.success });
     return response;
   }
 

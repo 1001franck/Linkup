@@ -312,13 +312,13 @@ const Header: React.FC<HeaderProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden h-9 w-9 hover:bg-gray-100"
+                className="lg:hidden h-9 w-9 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={toggleMobileMenu}
               >
                 {isMobileMenuOpen ? (
-                  <X className="h-5 w-5 text-gray-600" />
+                  <X className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                 ) : (
-                  <Menu className="h-5 w-5 text-gray-600" />
+                  <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                 )}
               </Button>
             </div>
@@ -327,7 +327,7 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200/40 bg-white/95 backdrop-blur-md">
+          <div className="lg:hidden border-t border-gray-200/40 dark:border-gray-800/40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
             <div className="py-4 space-y-4">
               {/* Mobile Search */}
               <div className="px-4">
@@ -335,7 +335,7 @@ const Header: React.FC<HeaderProps> = ({
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="Rechercher des emplois..."
-                     className="pl-10 h-10 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500/20 rounded-lg bg-white/80"
+                     className="pl-10 h-10 border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-primary/20 rounded-lg bg-white/80 dark:bg-slate-800/80"
                   />
                 </div>
               </div>
@@ -349,8 +349,8 @@ const Header: React.FC<HeaderProps> = ({
                     className={cn(
                       "block px-3 py-3 text-sm font-medium transition-all duration-300 rounded-lg",
                         pathname === item.href
-                          ? "text-cyan-600 bg-cyan-50 border-l-4 border-cyan-500"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          ? "text-primary bg-primary/10 dark:bg-primary/20 border-l-4 border-primary"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
                     )}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -361,11 +361,11 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* Mobile Auth Actions */}
               {!user && (
-                <div className="px-4 pt-4 border-t border-gray-200/40 space-y-2">
+                <div className="px-4 pt-4 border-t border-gray-200/40 dark:border-gray-800/40 space-y-2">
                   <Button 
                     variant="ghost" 
                     asChild
-                    className="w-full justify-start h-10 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    className="w-full justify-start h-10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                       Se connecter
@@ -373,7 +373,7 @@ const Header: React.FC<HeaderProps> = ({
                   </Button>
                     <Button 
                       asChild
-                      className="w-full h-10 bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white"
+                      className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
                         Créer un compte

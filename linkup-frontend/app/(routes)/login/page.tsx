@@ -19,6 +19,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, CheckCircle, XCircle } from "lucide
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GuestRoute } from "@/components/auth/GuestRoute";
+import logger from "@/lib/logger";
 
 function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -74,7 +75,7 @@ function LoginContent() {
         try {
           await refreshUser();
         } catch (refreshError) {
-          console.error('Erreur lors du rechargement:', refreshError);
+          logger.error('Erreur lors du rechargement:', refreshError);
           // Continuer quand même, le useEffect dans AuthContext récupérera les infos
         }
         
@@ -94,7 +95,7 @@ function LoginContent() {
         try {
           await refreshUser();
         } catch (refreshError) {
-          console.error('Erreur lors du rechargement:', refreshError);
+          logger.error('Erreur lors du rechargement:', refreshError);
         }
         
         // Rediriger vers le dashboard entreprise
@@ -105,7 +106,7 @@ function LoginContent() {
       // Aucune connexion n'a réussi - afficher un message clair
       setError("Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.");
     } catch (error) {
-      console.error('Erreur de connexion:', error);
+      logger.error('Erreur de connexion:', error);
       setError("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
     } finally {
       setIsLoading(false);

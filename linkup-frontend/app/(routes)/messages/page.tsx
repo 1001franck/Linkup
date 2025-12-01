@@ -7,7 +7,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
@@ -18,7 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BackButton } from "@/components/ui/back-button";
-import { useConversations, useMessagesWithUser } from "@/hooks/use-messages";
+// ✅ DÉSACTIVÉ : Les hooks d'API ne sont plus utilisés car la page est en développement
+// import { useConversations, useMessagesWithUser } from "@/hooks/use-messages";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   MessageCircle, 
@@ -47,24 +48,20 @@ function MessagesContent() {
   const { user: authUser } = useAuth();
   const currentUserId = authUser && 'id_user' in authUser ? authUser.id_user : 1; // Fallback à 1 si pas d'utilisateur
 
-  // Récupération des conversations depuis l'API
-  const { data: conversationsData, loading: conversationsLoading, error: conversationsError } = useConversations();
+  // ✅ DÉSACTIVATION DES APPELS API - Page en développement
+  // Ne pas faire d'appels serveur car la page est en développement
+  const conversationsLoading = false;
+  const conversationsError = null;
+  const messagesLoading = false;
+  const messagesError = null;
   
-  // Récupération des messages de la conversation sélectionnée
-  const { data: messagesData, loading: messagesLoading, error: messagesError } = useMessagesWithUser(selectedConversation);
+  // Données mockées pour les conversations (pas d'appels serveur)
+  const conversationsData: any = null;
+  
+  // Données mockées pour les messages (pas d'appels serveur)
+  const messagesData: any[] = [];
 
-  // Debug: Afficher les données reçues de l'API
-  useEffect(() => {
-    if (conversationsError) {
-      console.error('❌ Messages Page - Erreur API conversations:', conversationsError);
-    }
-  }, [conversationsError]);
-
-  useEffect(() => {
-    if (messagesError) {
-      console.error('❌ Messages Page - Erreur API messages:', messagesError);
-    }
-  }, [messagesError]);
+  // ✅ DÉSACTIVÉ : Plus d'appels API, donc plus besoin de debug
 
   // Transformer les données de l'API au format attendu par le frontend
   const transformConversations = (apiData: any[]) => {
@@ -117,7 +114,7 @@ function MessagesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/20">
+    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-primary/5">
       
       {/* Banner "En cours de développement" */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">

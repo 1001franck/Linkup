@@ -17,6 +17,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
+import logger from "@/lib/logger";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { 
   Settings, 
@@ -166,7 +167,7 @@ export default function CompanySettingsPage() {
         throw new Error(response.error || "Erreur lors de la mise à jour");
       }
     } catch (error: any) {
-      console.error("Erreur mise à jour mot de passe:", error);
+      logger.error("Erreur mise à jour mot de passe:", error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de mettre à jour le mot de passe",

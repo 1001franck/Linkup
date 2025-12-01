@@ -34,6 +34,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import logger from '@/lib/logger';
 
 /**
  * Types de rôles utilisateur supportés
@@ -86,7 +87,7 @@ export function useUserType() {
           setUserType(null);
         }
       } catch (error) {
-        console.error('Erreur lors de la détection du type d\'utilisateur:', error);
+        logger.error('Erreur lors de la détection du type d\'utilisateur:', error);
         setUserType(null);
       } finally {
         setIsLoading(false);

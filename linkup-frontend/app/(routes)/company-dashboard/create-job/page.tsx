@@ -23,6 +23,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import CompanyHeader from "@/components/layout/company-header";
+import logger from "@/lib/logger";
 import { Country, City } from "country-state-city";
 import { 
   ArrowLeft, 
@@ -395,12 +396,17 @@ export default function CreateJobPage() {
          id_company: (company as any).id_company
        };
 
-      console.log('Données envoyées à l\'API:', jobData);
+      logger.debug('Données envoyées à l\'API:', {
+        hasTitle: !!jobData.title,
+        hasDescription: !!jobData.description,
+        hasLocation: !!jobData.location,
+        contractType: jobData.contract_type
+      });
 
       // Appel API pour créer l'offre
       const response = await apiClient.createJob(jobData);
 
-      console.log('Réponse API:', response);
+      logger.debug('Réponse API:', { success: response.success, hasData: !!response.data });
 
       if (response.success && response.data) {
         toast({
@@ -418,10 +424,10 @@ export default function CreateJobPage() {
         throw new Error(response.error || 'Erreur lors de la création de l\'offre');
       }
     } catch (error) {
-      console.error('Erreur lors de la création de l\'offre:', error);
+      logger.error('Erreur lors de la création de l\'offre:', error);
       toast({
         title: "Erreur lors de la publication",
-        description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        description: "Une erreur inattendue s'est produite. Veuillez réessayer.",
         variant: "destructive",
         duration: 5000,
       });
@@ -447,8 +453,7 @@ export default function CreateJobPage() {
         const salaryValid = areSalariesValid();
         
         // Debug temporaire
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Validation étape 1:', {
+        logger.debug('Validation étape 1:', {
             title: titleValid,
             location: locationValid,
             contractType: contractTypeValid,

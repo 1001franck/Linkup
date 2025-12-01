@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import CompanyHeader from "@/components/layout/company-header";
 import { Country, City } from "country-state-city";
 import { 
@@ -111,7 +112,7 @@ export default function EditJobPage() {
           throw new Error("Offre introuvable");
         }
       } catch (error) {
-        console.error("Erreur lors du chargement de l'offre:", error);
+        logger.error("Erreur lors du chargement de l'offre:", error);
         toast({
           title: "Erreur",
           description: "Impossible de charger les données de l'offre.",
@@ -220,7 +221,7 @@ export default function EditJobPage() {
         throw new Error(response.error || "Erreur lors de la mise à jour");
       }
     } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'offre:", error);
+      logger.error("Erreur lors de la mise à jour de l'offre:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour l'offre. Veuillez réessayer.",

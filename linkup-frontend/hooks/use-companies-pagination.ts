@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useCompanies } from './use-api';
 import { Company, ApiCompany } from '@/types/company';
 import { transformApiCompanies, getTransformationStats } from '@/lib/company-transformer';
+import logger from '@/lib/logger';
 
 export interface CompaniesPaginationState {
   currentPage: number;
@@ -67,10 +68,8 @@ export function useCompaniesPagination(
     if (process.env.NODE_ENV === 'development') {
       const stats = getTransformationStats(companiesData, transformed); // ✅ CORRECTION
       if (stats.failed > 0 || stats.invalid > 0) {
-        // Log conditionnel - Next.js supprimera automatiquement en production
-        if (typeof window !== 'undefined') {
-          console.warn('📊 Statistiques de transformation des entreprises:', stats);
-        }
+        // Log conditionnel - logger ne log que si NODE_ENV !== 'production'
+        logger.debug('📊 Statistiques de transformation des entreprises:', stats);
       }
     }
     

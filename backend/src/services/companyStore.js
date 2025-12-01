@@ -17,6 +17,13 @@ async function findById(id_company) {
 			typeof id_company
 		);
 
+		// S'assurer que l'ID est un nombre
+		const numericId = typeof id_company === 'string' ? parseInt(id_company, 10) : id_company;
+		if (isNaN(numericId) || numericId < 1) {
+			logger.error('[findById Company] ID invalide:', id_company);
+			return null;
+		}
+
 		// Sélectionner uniquement les champs nécessaires (sans password)
 		// Note: updated_at n'existe pas dans la table company
 		const { data, error } = await supabase
@@ -24,7 +31,7 @@ async function findById(id_company) {
 			.select(
 				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at'
 			)
-			.eq('id_company', id_company)
+			.eq('id_company', numericId)
 			.single();
 
 		if (error) {
@@ -32,7 +39,7 @@ async function findById(id_company) {
 				// Pas d'entreprise trouvée - c'est normal
 				logger.debug({
 					msg: '[findById Company] Aucune entreprise trouvée',
-					id_company,
+					id_company: numericId,
 				});
 				return null;
 			}
@@ -42,9 +49,11 @@ async function findById(id_company) {
 				message: error.message,
 				details: error.details,
 				hint: error.hint,
-				id: id_company,
-				idType: typeof id_company,
+				id: numericId,
+				idType: typeof numericId,
+				originalId: id_company,
 			});
+			// Ne pas throw l'erreur, retourner null pour que la route puisse gérer
 			return null;
 		}
 
@@ -55,8 +64,14 @@ async function findById(id_company) {
 		});
 		return data || null;
 	} catch (error) {
-		logger.error('[findById Company] Exception:', error);
-		throw error;
+		logger.error('[findById Company] Exception:', {
+			message: error.message,
+			stack: error.stack,
+			id: id_company,
+			errorCode: error.code,
+		});
+		// Ne pas throw l'erreur, retourner null pour que la route puisse gérer
+		return null;
 	}
 }
 

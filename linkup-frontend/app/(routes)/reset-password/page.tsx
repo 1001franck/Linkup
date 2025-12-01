@@ -12,6 +12,7 @@ import { Typography } from "@/components/ui/typography";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import { 
   Lock, 
   Eye, 
@@ -95,8 +96,9 @@ function ResetPasswordPageContent() {
         throw new Error(response.error || "Erreur lors de la réinitialisation du mot de passe");
       }
     } catch (error) {
-      console.error("Erreur réinitialisation mot de passe:", error);
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue. Veuillez réessayer ou demander un nouveau lien.";
+      logger.error("Erreur réinitialisation mot de passe:", error);
+      // Ne pas exposer le message d'erreur exact à l'utilisateur
+      const errorMessage = "Une erreur est survenue. Veuillez réessayer ou demander un nouveau lien.";
       setError(errorMessage);
       toast({
         title: "Erreur",

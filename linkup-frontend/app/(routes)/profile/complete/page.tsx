@@ -25,6 +25,7 @@ import { useProfileCompletion } from "@/hooks/use-profile-completion";
 import { useUploadFile, useMutation } from "@/hooks/use-api";
 import { useProfilePictureContext } from "@/contexts/ProfilePictureContext";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import { 
   User, 
   MapPin, 
@@ -116,22 +117,22 @@ function CompleteProfileContent() {
 
   // Fonction pour gérer l'upload de photo
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('📸 handlePhotoUpload appelé', event.target.files);
+    logger.debug('📸 handlePhotoUpload appelé');
     const file = event.target.files?.[0];
     if (!file) {
-      console.log('❌ Aucun fichier sélectionné');
+      logger.debug('❌ Aucun fichier sélectionné');
       return;
     }
 
-    console.log('📁 Fichier sélectionné:', {
-      name: file.name,
+    logger.debug('📁 Fichier sélectionné:', {
+      hasName: !!file.name,
       type: file.type,
       size: file.size
     });
 
     // Vérifier le type de fichier
     if (!file.type.startsWith('image/')) {
-      console.log('❌ Type de fichier invalide:', file.type);
+      logger.debug('❌ Type de fichier invalide:', file.type);
       toast({
         title: "Type de fichier invalide",
         description: "Veuillez sélectionner une image (JPG, PNG, GIF)",
@@ -143,7 +144,7 @@ function CompleteProfileContent() {
 
     // Vérifier la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      console.log('❌ Fichier trop volumineux:', file.size);
+      logger.debug('❌ Fichier trop volumineux:', file.size);
       toast({
         title: "Fichier trop volumineux",
         description: "La taille maximale autorisée est de 5MB",
@@ -154,7 +155,7 @@ function CompleteProfileContent() {
     }
 
     try {
-      console.log('🚀 Début de l\'upload...');
+      logger.debug('🚀 Début de l\'upload...');
       toast({
         title: "Upload en cours...",
         description: "Votre photo est en cours d'upload",
@@ -166,11 +167,11 @@ function CompleteProfileContent() {
         fileType: 'photo' as 'pdf' | 'photo'
       });
 
-      console.log('✅ Upload réussi:', result);
+      logger.debug('✅ Upload réussi');
 
       const resultTyped = result as any;
       if (resultTyped?.data?.publicUrl) {
-        console.log('🖼️ URL publique:', resultTyped.data.publicUrl);
+        logger.debug('🖼️ URL publique récupérée');
         
         // Mettre à jour le contexte global immédiatement
         setProfilePicture(resultTyped.data.publicUrl);
@@ -191,10 +192,10 @@ function CompleteProfileContent() {
           duration: 3000,
         });
       } else {
-        console.log('⚠️ Pas d\'URL publique dans la réponse');
+        logger.debug('⚠️ Pas d\'URL publique dans la réponse');
       }
     } catch (error) {
-      console.error('❌ Erreur upload photo:', error);
+      logger.error('❌ Erreur upload photo:', error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible d'uploader la photo. Veuillez réessayer.",
@@ -234,7 +235,7 @@ function CompleteProfileContent() {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression de la photo:', error);
+      logger.error('Erreur lors de la suppression de la photo:', error);
       
       // Gérer spécifiquement le cas "Aucune photo de profil trouvée"
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -343,7 +344,7 @@ function CompleteProfileContent() {
         setCurrentStep(currentStep + 1);
       }
     } catch (error) {
-      console.error('❌ Erreur lors de la sauvegarde:', error);
+      logger.error('❌ Erreur lors de la sauvegarde:', error);
       toast({
         title: "Erreur de sauvegarde",
         description: "Impossible de sauvegarder votre profil. Veuillez réessayer.",

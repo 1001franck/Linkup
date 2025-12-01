@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { useAuth } from "@/contexts/AuthContext";
+import logger from "@/lib/logger";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { CompanyCard } from "@/components/ui/company-card";
 import { useCompanyPagination } from "@/hooks/use-company-pagination";
@@ -723,8 +724,8 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                   key={company.id}
                   company={company}
                   index={index}
-                  onFollow={(companyId) => console.log('Follow company:', companyId)}
-                  onViewOffers={(companyId) => console.log('View offers:', companyId)}
+                  onFollow={(companyId) => logger.debug('Follow company:', companyId)}
+                  onViewOffers={(companyId) => logger.debug('View offers:', companyId)}
                 />
               ))}
           </div>
@@ -1410,13 +1411,18 @@ export default function LinkUpHomePage() {
 
   // Si l'utilisateur est authentifié, rediriger vers le dashboard approprié
   useEffect(() => {
-    console.log('🔵 [HOME PAGE] useEffect déclenché:', { isLoading, isAuthenticated, hasUser: !!user, userEmail: user && ('email' in user ? user.email : user.recruiter_mail) });
+    logger.debug('🔵 [HOME PAGE] useEffect déclenché:', { 
+      isLoading, 
+      isAuthenticated, 
+      hasUser: !!user,
+      userType: user && ('id_company' in user || 'recruiter_mail' in user) ? 'company' : 'user'
+    });
     
     // ✅ CORRECTION : Ne pas rediriger si une déconnexion est en cours
     if (typeof window !== 'undefined') {
       const isLoggingOut = sessionStorage.getItem('linkup_logging_out');
       if (isLoggingOut === 'true') {
-        console.log('🔵 [HOME PAGE] Déconnexion en cours, pas de redirection');
+        logger.debug('🔵 [HOME PAGE] Déconnexion en cours, pas de redirection');
         return;
       }
     }
@@ -1432,11 +1438,11 @@ export default function LinkUpHomePage() {
         redirectPath = '/company-dashboard';
       }
       
-      console.log('🔵 [HOME PAGE] Redirection vers:', redirectPath);
+      logger.debug('🔵 [HOME PAGE] Redirection vers:', redirectPath);
       // Utiliser replace au lieu de push pour éviter l'historique
       router.replace(redirectPath);
     } else {
-      console.log('🔵 [HOME PAGE] Pas de redirection - affichage page marketing');
+      logger.debug('🔵 [HOME PAGE] Pas de redirection - affichage page marketing');
     }
   }, [isLoading, isAuthenticated, user, router]);
 

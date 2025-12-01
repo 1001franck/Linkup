@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiClient, ApiResponse } from '@/lib/api-client';
 import { useToast } from './use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import logger from '@/lib/logger';
 
 // Hook générique pour les requêtes API
 export function useApi<T>(
@@ -430,7 +431,7 @@ export function useCreateJob() {
       onSuccess: () => {
         // Rafraîchir automatiquement les statistiques après création
         // Note: Les hooks se rafraîchiront automatiquement au prochain rendu
-        console.log('Offre créée avec succès, les statistiques seront mises à jour');
+        logger.debug('Offre créée avec succès, les statistiques seront mises à jour');
       }
     }
   );

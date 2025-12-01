@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Ne pas vérifier plusieurs fois
     if (hasCheckedAuth) {
-      console.log('🟡 [AUTH CHECK] Déjà vérifié, skip');
+      logger.debug('🟡 [AUTH CHECK] Déjà vérifié, skip');
       return;
     }
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       const isLoggingOut = sessionStorage.getItem('linkup_logging_out');
       if (isLoggingOut === 'true') {
-        console.log('🔴 [AUTH CHECK] Déconnexion en cours, skip vérification');
+        logger.debug('🔴 [AUTH CHECK] Déconnexion en cours, skip vérification');
         setUser(null);
         setIsLoading(false);
         setHasCheckedAuth(true);
@@ -106,11 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    console.log('🟡 [AUTH CHECK] Début vérification authentification');
+    logger.debug('🟡 [AUTH CHECK] Début vérification authentification');
     
     const checkAuth = async () => {
       setHasCheckedAuth(true);
-      console.log('🟡 [AUTH CHECK] hasCheckedAuth = true');
+      logger.debug('🟡 [AUTH CHECK] hasCheckedAuth = true');
       
       // Timeout pour éviter que l'application reste bloquée si le backend ne répond pas
       const timeoutId = setTimeout(() => {
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = userResponse.data as User;
           const userRole = userData.role;
           
-          console.log('🟢 [AUTH CHECK] Utilisateur trouvé:', { email: userData.email, role: userRole });
+          logger.debug('🟢 [AUTH CHECK] Utilisateur trouvé:', sanitizeUserData(userData));
           
           if (userRole === 'admin') {
             const adminUser: User = { ...userData, role: 'admin' };
@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const companyResponse = await apiClient.getCurrentCompany();
               if (companyResponse.success && companyResponse.data) {
-                console.log('🟢 [AUTH CHECK] Données entreprise récupérées');
+                logger.debug('🟢 [AUTH CHECK] Données entreprise récupérées');
                 setUser(companyResponse.data as Company);
               } else {
                 // Fallback sur les données utilisateur si l'entreprise n'est pas disponible
@@ -164,18 +164,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const isUnauthorized = userResponse.error?.includes('401') || userResponse.error?.includes('Unauthorized');
           
           if (isUnauthorized) {
-            console.log('🔴 [AUTH CHECK] Token invalide/expiré (401), pas d\'appel à getCurrentCompany()');
+            logger.debug('🔴 [AUTH CHECK] Token invalide/expiré (401), pas d\'appel à getCurrentCompany()');
             setUser(null);
           } else {
-            console.log('🟡 [AUTH CHECK] Pas d\'utilisateur, essai avec entreprise...');
+            logger.debug('🟡 [AUTH CHECK] Pas d\'utilisateur, essai avec entreprise...');
             const companyResponse = await apiClient.getCurrentCompany();
             
             if (companyResponse.success && companyResponse.data) {
-              console.log('🟢 [AUTH CHECK] Entreprise trouvée:', { name: companyResponse.data.name });
+              logger.debug('🟢 [AUTH CHECK] Entreprise trouvée:', { 
+                id: (companyResponse.data as any)?.id_company,
+                hasName: !!(companyResponse.data as any)?.name 
+              });
               setUser(companyResponse.data as Company);
             } else {
               // Aucun utilisateur connecté
-              console.log('🔴 [AUTH CHECK] Aucun utilisateur connecté');
+              logger.debug('🔴 [AUTH CHECK] Aucun utilisateur connecté');
               setUser(null);
             }
           }
@@ -309,18 +312,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Détecte automatiquement le type d'utilisateur pour utiliser la bonne route
    */
   const logout = async () => {
-    console.log('🔴 [LOGOUT] Début déconnexion');
-    console.log('🔴 [LOGOUT] État avant:', { user: user?.email || user?.recruiter_mail, isAuthenticated: !!user });
+    logger.debug('🔴 [LOGOUT] Début déconnexion');
+    logger.debug('🔴 [LOGOUT] État avant:', { 
+      hasUser: !!user,
+      userType: user && ('id_company' in user || 'recruiter_mail' in user) ? 'company' : 'user',
+      isAuthenticated: !!user 
+    });
     
     // ✅ CORRECTION : Stocker le type d'utilisateur AVANT de nettoyer l'état
     const isCompany = user && ('id_company' in user || 'recruiter_mail' in user);
-    console.log('🔴 [LOGOUT] Type utilisateur détecté:', isCompany ? 'company' : 'user');
+    logger.debug('🔴 [LOGOUT] Type utilisateur détecté:', isCompany ? 'company' : 'user');
     
     // ✅ CORRECTION : Marquer qu'une déconnexion est en cours dans sessionStorage
     // Cela empêchera checkAuth() de réauthentifier après la redirection
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('linkup_logging_out', 'true');
-      console.log('🔴 [LOGOUT] Flag de déconnexion défini dans sessionStorage');
+      logger.debug('🔴 [LOGOUT] Flag de déconnexion défini dans sessionStorage');
     }
     
     // Nettoyer l'état immédiatement
@@ -328,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
     setHasCheckedAuth(true);
     
-    console.log('🔴 [LOGOUT] État nettoyé:', { user: null, isAuthenticated: false, hasCheckedAuth: true });
+    logger.debug('🔴 [LOGOUT] État nettoyé');
     
     // Nettoyer localStorage
     if (typeof window !== 'undefined') {
@@ -337,15 +344,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('userProfile');
         localStorage.removeItem('userSkills');
         localStorage.removeItem('profileCompleted');
-        console.log('🔴 [LOGOUT] localStorage nettoyé');
+        logger.debug('🔴 [LOGOUT] localStorage nettoyé');
       } catch (error) {
-        console.error('🔴 [LOGOUT] Erreur lors du nettoyage:', error);
+        logger.error('🔴 [LOGOUT] Erreur lors du nettoyage:', error);
       }
     }
     
     // Appeler l'API de déconnexion et attendre qu'elle se termine
     try {
-      console.log('🔴 [LOGOUT] Appel API logout, isCompany:', isCompany);
+      logger.debug('🔴 [LOGOUT] Appel API logout, isCompany:', isCompany);
       
       if (isCompany) {
         await apiClient.logoutCompany();
@@ -353,16 +360,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await apiClient.logout();
       }
       
-      console.log('🔴 [LOGOUT] API logout réussie');
+      logger.debug('🔴 [LOGOUT] API logout réussie');
       
       // Attendre un peu pour s'assurer que le cookie est bien supprimé côté serveur
       await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
-      console.error('🔴 [LOGOUT] Erreur logout API:', error);
+      logger.error('🔴 [LOGOUT] Erreur logout API:', error);
       // Continuer quand même la déconnexion même si l'API échoue
     }
     
-    console.log('🔴 [LOGOUT] Redirection vers /');
+    logger.debug('🔴 [LOGOUT] Redirection vers /');
     // Utiliser window.location.replace() au lieu de href pour éviter l'historique
     window.location.replace('/');
   };

@@ -22,6 +22,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Check, Building2 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/AuthContext";
+import logger from "@/lib/logger";
 import { Country, City } from "country-state-city";
 import { ProfessionAutocomplete } from "@/components/ui/profession-autocomplete";
 import PhoneInput from "react-phone-input-2";
@@ -193,7 +194,7 @@ export default function RegisterPage() {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de l\'inscription:', error);
+      logger.error('Erreur lors de l\'inscription:', error);
       toast({
         title: "Erreur d'inscription",
         description: "Une erreur est survenue lors de l'inscription",

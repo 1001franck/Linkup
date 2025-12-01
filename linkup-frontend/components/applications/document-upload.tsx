@@ -5,6 +5,7 @@ import { Typography } from '@/components/ui/typography';
 import { useToast } from '@/hooks/use-toast';
 import { useAddApplicationDocument } from '@/hooks/use-api';
 import { apiClient } from '@/lib/api-client';
+import logger from '@/lib/logger';
 import { 
   Upload, 
   FileText, 
@@ -93,23 +94,32 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     try {
       // Étape 1: Upload du fichier vers Supabase Storage
-      console.log('Début upload:', { fileName: selectedFile.name, fileType: selectedType, fileSize: selectedFile.size });
+      logger.debug('Début upload:', { 
+        hasFileName: !!selectedFile.name, 
+        fileType: selectedType, 
+        fileSize: selectedFile.size 
+      });
       
       const uploadResult = await apiClient.uploadFile(selectedFile, selectedType as 'pdf' | 'photo' | 'cv' | 'cover_letter');
-      console.log('Upload réussi - Structure complète:', JSON.stringify(uploadResult, null, 2));
+      logger.debug('Upload réussi');
       
       // Le backend retourne { data: { record: insertData, publicUrl } }
       // L'API client wrappe dans { success: true, data: response }
       const fileUrl = (uploadResult.data as any)?.data?.publicUrl || (uploadResult.data as any)?.publicUrl;
-      console.log('URL extraite:', fileUrl);
+      logger.debug('URL extraite:', { hasUrl: !!fileUrl });
       
       if (!fileUrl) {
-        console.error('Structure de réponse inattendue:', uploadResult);
+        logger.error('Structure de réponse inattendue - pas d\'URL');
         throw new Error('URL du fichier non retournée par le serveur');
       }
 
       // Étape 2: Ajouter le document à la candidature
-      console.log('Ajout du document à la candidature:', { jobId, documentType: selectedType, fileName: selectedFile.name, fileUrl });
+      logger.debug('Ajout du document à la candidature:', { 
+        jobId, 
+        documentType: selectedType, 
+        hasFileName: !!selectedFile.name, 
+        hasFileUrl: !!fileUrl 
+      });
       
       await addDocumentMutation.mutate({
         jobId,

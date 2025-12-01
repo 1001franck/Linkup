@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUser } from './use-api';
 import { useAuth } from '@/contexts/AuthContext';
+import logger from '@/lib/logger';
 
 export interface ProfileData {
   // Informations de base
@@ -113,7 +114,7 @@ export function useProfileCompletion() {
         
         setProfileData(initialProfile);
       } catch (error) {
-        console.error('Erreur lors du chargement du profil:', error);
+        logger.error('Erreur lors du chargement du profil:', error);
       }
     } else if (!isAuthenticated) {
       // Réinitialiser le profil si l'utilisateur n'est pas authentifié
@@ -246,10 +247,10 @@ export function useProfileCompletion() {
       });
       // MODIFICATION FRONTEND: Rafraîchir les données utilisateur après sauvegarde
       refreshUser().catch((error) => {
-        console.error('❌ Erreur lors du rafraîchissement:', error);
+        logger.error('❌ Erreur lors du rafraîchissement:', error);
       });
     } catch (error: any) {
-      console.error('❌ Erreur sauvegarde backend:', error);
+      logger.error('❌ Erreur sauvegarde backend:', error);
     }
   };
 
@@ -293,7 +294,7 @@ export function useProfileCompletion() {
         await refreshUser();
       }
     } catch (error) {
-      console.error('❌ Erreur lors du rafraîchissement:', error);
+      logger.error('❌ Erreur lors du rafraîchissement:', error);
     }
   };
 

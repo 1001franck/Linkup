@@ -16,6 +16,7 @@ import { useUploadFile, useUpdateUser, useMutation } from "@/hooks/use-api";
 import { useProfilePictureContext } from "@/contexts/ProfilePictureContext";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/AuthContext";
+import logger from "@/lib/logger";
 import { SettingsHeader } from "@/components/settings/settings-header";
 import { SettingsSidebar } from "@/components/settings/settings-sidebar";
 import { ProfileTab } from "@/components/settings/profile-tab";
@@ -96,7 +97,7 @@ export default function SettingsPage() {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression de la photo:', error);
+      logger.error('Erreur lors de la suppression de la photo:', error);
       
       // Gérer spécifiquement le cas "Aucune photo de profil trouvée"
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -172,7 +173,7 @@ export default function SettingsPage() {
         });
       }
     } catch (error) {
-      console.error('Erreur upload photo:', error);
+      logger.error('Erreur upload photo:', error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible d'uploader la photo. Veuillez réessayer.",
@@ -250,7 +251,7 @@ export default function SettingsPage() {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      logger.error('Erreur lors de la sauvegarde:', error);
       toast({
         title: "Erreur de sauvegarde",
         description: "Impossible de sauvegarder vos informations. Veuillez réessayer.",

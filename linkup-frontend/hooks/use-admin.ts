@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
+import logger from '@/lib/logger';
 
 // ========================================
 // TYPES ADMIN
@@ -100,8 +101,9 @@ export function useAdminStats() {
         throw new Error(response.error || 'Erreur lors du chargement des statistiques');
       }
     } catch (error) {
-      console.error('❌ useAdminStats - Erreur chargement stats admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('❌ useAdminStats - Erreur chargement stats admin:', error);
+      // Ne pas exposer le message d'erreur exact à l'utilisateur
+      const errorMessage = 'Erreur lors du chargement des statistiques';
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -148,8 +150,8 @@ export function useAdminActivity() {
         throw new Error(response.error || 'Erreur lors du chargement de l\'activité');
       }
     } catch (error) {
-      console.error('Erreur chargement activité admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('Erreur chargement activité admin:', error);
+      const errorMessage = 'Erreur lors du chargement de l\'activité';
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -199,8 +201,8 @@ export function useAdminUsers(params?: { page?: number; limit?: number; search?:
         throw new Error(response.error || 'Erreur lors du chargement des utilisateurs');
       }
     } catch (error) {
-      console.error('Erreur chargement utilisateurs admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('Erreur chargement utilisateurs admin:', error);
+      const errorMessage = 'Erreur lors du chargement des utilisateurs';
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -354,8 +356,8 @@ export function useAdminCompanies(params?: { page?: number; limit?: number; sear
         throw new Error(response.error || 'Erreur lors du chargement des entreprises');
       }
     } catch (error) {
-      console.error('Erreur chargement entreprises admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('Erreur chargement entreprises admin:', error);
+      const errorMessage = 'Erreur lors du chargement des entreprises';
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -484,8 +486,8 @@ export function useAdminJobs(params?: { page?: number; limit?: number; search?: 
         throw new Error(response.error || 'Erreur lors du chargement des offres');
       }
     } catch (error) {
-      console.error('Erreur chargement offres admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('Erreur chargement offres admin:', error);
+      const errorMessage = 'Erreur lors du chargement des offres';
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -611,12 +613,12 @@ export function useAdminApplications(params?: { page?: number; limit?: number; s
         setApplications(responseData?.data?.data || responseData?.data || []);
         setTotal(responseData?.data?.pagination?.total || responseData?.pagination?.total || 0);
       } else {
-        console.error('❌ useAdminApplications - Erreur dans la réponse:', response.error);
-        throw new Error(response.error || 'Erreur lors du chargement des candidatures');
+        logger.error('❌ useAdminApplications - Erreur dans la réponse:', response.error);
+        throw new Error('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      console.error('❌ useAdminApplications - Erreur chargement candidatures admin:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      logger.error('❌ useAdminApplications - Erreur chargement candidatures admin:', error);
+      const errorMessage = 'Erreur lors du chargement des candidatures';
       setError(errorMessage);
       toast({
         title: "Erreur",

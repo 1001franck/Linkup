@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/ui/back-button";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import logger from "@/lib/logger";
 import { 
   Building2,
   MapPin,
@@ -74,12 +75,13 @@ export default function CompanyDetailsPage() {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 [COMPANY DETAILS] Chargement entreprise ID:', companyId);
+        logger.debug('🔍 [COMPANY DETAILS] Chargement entreprise ID:', companyId);
         const response = await apiClient.getCompany(companyId);
-        console.log('🔍 [COMPANY DETAILS] Réponse API complète:', response);
-        console.log('🔍 [COMPANY DETAILS] response.success:', response.success);
-        console.log('🔍 [COMPANY DETAILS] response.data:', response.data);
-        console.log('🔍 [COMPANY DETAILS] response.error:', response.error);
+        logger.debug('🔍 [COMPANY DETAILS] Réponse API:', { 
+          success: response.success,
+          hasData: !!response.data,
+          error: response.error 
+        });
         
         if (response.success && response.data) {
           // Le backend retourne { data: company }
@@ -91,28 +93,34 @@ export default function CompanyDetailsPage() {
           if ((response.data as any).data) {
             // Format: { data: { data: company } }
             companyData = (response.data as any).data;
-            console.log('🔍 [COMPANY DETAILS] Format détecté: { data: { data: company } }');
+            logger.debug('🔍 [COMPANY DETAILS] Format détecté: { data: { data: company } }');
           } else if (response.data && typeof response.data === 'object' && 'id_company' in response.data) {
             // Format: { data: company } (direct)
             companyData = response.data as CompanyDetails;
-            console.log('🔍 [COMPANY DETAILS] Format détecté: { data: company } (direct)');
+            logger.debug('🔍 [COMPANY DETAILS] Format détecté: { data: company } (direct)');
           }
           
-          console.log('🔍 [COMPANY DETAILS] Données entreprise extraites:', companyData);
+          logger.debug('🔍 [COMPANY DETAILS] Données entreprise extraites:', {
+            id: companyData?.id_company,
+            hasName: !!companyData?.name,
+            hasDescription: !!companyData?.description
+          });
           
           if (companyData && companyData.id_company) {
             setCompany(companyData);
           } else {
-            console.error('❌ [COMPANY DETAILS] Format de données invalide:', companyData);
+            logger.error('❌ [COMPANY DETAILS] Format de données invalide');
             setError("Format de données invalide reçu du serveur");
           }
         } else {
-          console.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
-          setError(response.error || "Entreprise non trouvée");
+          logger.error('❌ [COMPANY DETAILS] Erreur API:', response.error);
+          // Ne pas exposer le message d'erreur exact à l'utilisateur
+          setError("Impossible de charger les informations de l'entreprise. Veuillez réessayer.");
         }
       } catch (err: any) {
-        console.error("❌ [COMPANY DETAILS] Exception lors du chargement:", err);
-        setError(err.message || "Erreur lors du chargement de l'entreprise");
+        logger.error("❌ [COMPANY DETAILS] Exception lors du chargement:", err);
+        // Ne pas exposer le message d'erreur exact à l'utilisateur
+        setError("Erreur lors du chargement de l'entreprise. Veuillez réessayer.");
         toast({
           title: "Erreur",
           description: "Impossible de charger les informations de l'entreprise",

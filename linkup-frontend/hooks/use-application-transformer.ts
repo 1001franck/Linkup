@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { Application, ApplicationDocuments, CompanyInfo, JobOfferInfo, ApplicationMetadata } from '@/types/application';
 import { apiClient } from '@/lib/api-client';
+import logger from '@/lib/logger';
 
 /**
  * Hook personnalisé pour transformer les données API en format Application
@@ -33,7 +34,7 @@ export function useApplicationTransformer(savedJobs?: Set<number>) {
         return companyName;
       }
     } catch (error) {
-      console.warn(`Erreur récupération entreprise ${companyId}:`, error);
+      logger.warn(`Erreur récupération entreprise ${companyId}:`, error);
     }
     return `Entreprise ${companyId}`;
   }, []);

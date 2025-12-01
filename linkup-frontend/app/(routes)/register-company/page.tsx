@@ -21,6 +21,7 @@ import { PhoneInputComponent } from "@/components/ui/phone-input";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import { useAuth } from "@/contexts/AuthContext";
 import { GuestRoute } from "@/components/auth/GuestRoute";
 import { PasswordStrength } from "@/components/ui/password-strength";
@@ -126,7 +127,7 @@ export default function RegisterCompanyPage() {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de l\'inscription entreprise:', error);
+      logger.error('Erreur lors de l\'inscription entreprise:', error);
       toast({
         title: "Erreur d'inscription",
         description: "Une erreur est survenue lors de l'inscription",

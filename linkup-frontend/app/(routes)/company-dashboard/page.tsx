@@ -19,6 +19,7 @@ import { useCompanyDashboardStats, useCompanyRecentApplications, useCompanyActiv
 import { useSearchParams } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import { CompanyDashboardHeader } from "@/components/company-dashboard/company-dashboard-header";
 import { CompanyDashboardStats } from "@/components/company-dashboard/company-dashboard-stats";
 import { RecentApplicationsSection } from "@/components/company-dashboard/recent-applications-section";
@@ -283,7 +284,7 @@ function CompanyDashboardPageContent() {
         duration: 3000,
       });
     } catch (error) {
-      console.error("Erreur lors de l'export:", error);
+      logger.error("Erreur lors de l'export:", error);
       toast({
         title: "Erreur d'export",
         description: "Impossible d'exporter les données. Veuillez réessayer.",

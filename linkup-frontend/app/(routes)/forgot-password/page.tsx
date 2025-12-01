@@ -11,6 +11,7 @@ import { Typography } from "@/components/ui/typography";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { apiClient } from "@/lib/api-client";
+import logger from "@/lib/logger";
 import { 
   Mail, 
   ArrowLeft, 
@@ -57,8 +58,9 @@ export default function ForgotPasswordPage() {
         throw new Error(response.error || "Erreur lors de l'envoi de l'email");
       }
     } catch (error) {
-      console.error("Erreur mot de passe oublié:", error);
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue. Veuillez réessayer.";
+      logger.error("Erreur mot de passe oublié:", error);
+      // Ne pas exposer le message d'erreur exact à l'utilisateur
+      const errorMessage = "Une erreur est survenue. Veuillez réessayer.";
       setError(errorMessage);
       toast({
         title: "Erreur",
@@ -88,8 +90,9 @@ export default function ForgotPasswordPage() {
         throw new Error(response.error || "Erreur lors du renvoi de l'email");
       }
     } catch (error) {
-      console.error("Erreur renvoi email:", error);
-      const errorMessage = error instanceof Error ? error.message : "Impossible de renvoyer l'email. Veuillez réessayer.";
+      logger.error("Erreur renvoi email:", error);
+      // Ne pas exposer le message d'erreur exact à l'utilisateur
+      const errorMessage = "Impossible de renvoyer l'email. Veuillez réessayer.";
       setError(errorMessage);
       toast({
         title: "Erreur",

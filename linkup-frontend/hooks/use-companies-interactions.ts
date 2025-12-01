@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { Company, ContactForm } from '@/types/company';
+import logger from '@/lib/logger';
 
 export interface CompaniesInteractionsState {
   selectedCompany: Company | null;
@@ -101,7 +102,7 @@ export function useCompaniesInteractions() {
           text: shareText,
           url: shareUrl
         }).catch((error) => {
-          console.warn('Erreur lors du partage:', error);
+          logger.warn('Erreur lors du partage:', error);
           // Fallback vers la copie
           navigator.clipboard.writeText(shareUrl).then(() => {
             toast({

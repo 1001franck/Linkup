@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from './use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSavedJobs, useSaveJob, useUnsaveJob, useApplyToJob, useMyApplications } from './use-api';
+import logger from '@/lib/logger';
 
 export interface JobInteractionsState {
   savedJobs: Set<number>;
@@ -86,7 +87,7 @@ export function useJobsInteractions() {
         
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
+      logger.error('Erreur lors du chargement des données:', error);
     }
   }, [savedJobsData, applicationsData]);
 
@@ -169,7 +170,7 @@ export function useJobsInteractions() {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      logger.error('Erreur lors de la sauvegarde:', error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder cette offre",
@@ -214,7 +215,7 @@ export function useJobsInteractions() {
         variant: "default"
       });
     } catch (error: any) {
-      console.error('Erreur lors de la candidature:', error);
+      logger.error('Erreur lors de la candidature:', error);
       
       // Toast d'erreur simple
       toast({

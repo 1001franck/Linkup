@@ -115,8 +115,23 @@ router.get('/:id', validateNumericId('id'), async (req, res) => {
 		}
 		res.json({ data: company });
 	} catch (error) {
-		logger.error('GET /companies/:id error:', error);
-		res.status(500).json({ error: 'Erreur serveur' });
+		logger.error('GET /companies/:id error:', {
+			error: error.message,
+			stack: error.stack,
+			id: req.params.id,
+			errorCode: error.code,
+			errorDetails: error.details,
+		});
+
+		// En développement, retourner plus de détails sur l'erreur
+		const isDevelopment = process.env.NODE_ENV !== 'production';
+		res.status(500).json({
+			error: 'Erreur serveur',
+			...(isDevelopment && {
+				details: error.message,
+				code: error.code,
+			}),
+		});
 	}
 });
 

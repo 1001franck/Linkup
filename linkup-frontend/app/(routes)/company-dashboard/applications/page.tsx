@@ -27,6 +27,7 @@ import { ApplicationsFilters } from "@/components/company-dashboard/applications
 import { ApplicationCard } from "@/components/company-dashboard/application-card";
 import { DocumentViewer } from "@/components/company-dashboard/document-viewer";
 import { ApplicationsEmptyState } from "@/components/company-dashboard/applications-empty-state";
+import logger from "@/lib/logger";
 import {
   formatPhoneForDisplay,
   getStatusColor,
@@ -247,7 +248,7 @@ function ApplicationsPageContent() {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
+      logger.error('Erreur lors de la mise à jour du statut:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut. Veuillez réessayer.",
@@ -307,7 +308,7 @@ function ApplicationsPageContent() {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Erreur lors de la programmation de l\'entretien:', error);
+      logger.error('Erreur lors de la programmation de l\'entretien:', error);
       toast({
         title: "Erreur",
         description: "Impossible de programmer l'entretien. Veuillez réessayer.",
