@@ -64,7 +64,7 @@ function LoginContent() {
     setError("");
 
     try {
-      // Essayer d'abord la connexion candidat
+      // Essayer d'abord la connexion candidat (sans afficher d'erreur si ça échoue)
       const userSuccess = await login(formData.email, formData.password);
       
       if (userSuccess) {
@@ -86,7 +86,7 @@ function LoginContent() {
         return;
       }
       
-      // Si échec candidat, essayer entreprise
+      // Si échec candidat, essayer entreprise (sans afficher d'erreur avant)
       const companySuccess = await loginCompany(formData.email, formData.password);
       
       if (companySuccess) {

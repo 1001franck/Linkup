@@ -232,22 +232,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         return true;
       } else {
-        // Connexion échouée - afficher le message d'erreur du backend
-        const errorMessage = response.error || 'Email ou mot de passe incorrect';
-        toast({
-          title: 'Erreur de connexion',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+        // Connexion échouée - ne pas afficher de toast ici, laisser la page de login gérer
+        logger.debug('🟡 [LOGIN] Connexion utilisateur échouée, peut-être une entreprise');
         return false;
       }
     } catch (error) {
       logger.error('Erreur lors de la connexion:', error);
-      toast({
-        title: 'Erreur de connexion',
-        description: 'Une erreur est survenue. Veuillez réessayer.',
-        variant: 'destructive',
-      });
+      // Ne pas afficher de toast ici, laisser la page de login gérer
       return false;
     } finally {
       setIsLoading(false);
@@ -287,22 +278,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         return true;
       } else {
-        // Connexion échouée - afficher le message d'erreur du backend
-        const errorMessage = response.error || 'Email ou mot de passe incorrect';
-        toast({
-          title: 'Erreur de connexion',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+        // Connexion échouée - ne pas afficher de toast ici, laisser la page de login gérer
+        logger.debug('🟡 [LOGIN COMPANY] Connexion entreprise échouée');
         return false;
       }
     } catch (error) {
       logger.error('Erreur lors de la connexion entreprise:', error);
-      toast({
-        title: 'Erreur de connexion',
-        description: 'Une erreur est survenue. Veuillez réessayer.',
-        variant: 'destructive',
-      });
+      // Ne pas afficher de toast ici, laisser la page de login gérer
       return false;
     } finally {
       setIsLoading(false);

@@ -77,7 +77,6 @@ export function ConfirmationModal({
 
   const handleConfirm = () => {
     onConfirm();
-    onClose();
   };
 
   const handleCancel = () => {

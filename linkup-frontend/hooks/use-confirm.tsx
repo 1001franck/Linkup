@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 interface ConfirmOptions {
@@ -21,33 +21,52 @@ export function useConfirm() {
   const [options, setOptions] = useState<ConfirmOptions>({
     description: "",
   });
-  const [resolvePromise, setResolvePromise] = useState<((value: boolean) => void) | null>(null);
+  const resolveRef = useRef<((value: boolean) => void) | null>(null);
+  const isProcessingRef = useRef(false);
+  const isOpenRef = useRef(false);
 
-  const confirm = (opts: ConfirmOptions): Promise<boolean> => {
+  const confirm = useCallback((opts: ConfirmOptions): Promise<boolean> => {
+    // Éviter les doubles appels
+    if (isProcessingRef.current || isOpenRef.current) {
+      return Promise.resolve(false);
+    }
+
     return new Promise((resolve) => {
+      // Si un modal est déjà ouvert, fermer l'ancien d'abord
+      if (resolveRef.current) {
+        resolveRef.current(false);
+        resolveRef.current = null;
+      }
+      
+      isProcessingRef.current = true;
+      isOpenRef.current = true;
+      resolveRef.current = resolve;
       setOptions(opts);
       setIsOpen(true);
-      setResolvePromise(() => resolve);
     });
-  };
+  }, []);
 
-  const handleConfirm = () => {
-    if (resolvePromise) {
-      resolvePromise(true);
-      setResolvePromise(null);
+  const handleConfirm = useCallback(() => {
+    if (resolveRef.current) {
+      resolveRef.current(true);
+      resolveRef.current = null;
     }
+    isProcessingRef.current = false;
+    isOpenRef.current = false;
     setIsOpen(false);
-  };
+  }, []);
 
-  const handleCancel = () => {
-    if (resolvePromise) {
-      resolvePromise(false);
-      setResolvePromise(null);
+  const handleCancel = useCallback(() => {
+    if (resolveRef.current) {
+      resolveRef.current(false);
+      resolveRef.current = null;
     }
+    isProcessingRef.current = false;
+    isOpenRef.current = false;
     setIsOpen(false);
-  };
+  }, []);
 
-  const ConfirmDialog = () => (
+  const ConfirmDialog = useCallback(() => (
     <ConfirmationModal
       isOpen={isOpen}
       onClose={handleCancel}
@@ -58,7 +77,7 @@ export function useConfirm() {
       cancelText={options.cancelText || "Annuler"}
       variant={options.variant || "warning"}
     />
-  );
+  ), [isOpen, options, handleCancel, handleConfirm]);
 
   return { confirm, ConfirmDialog };
 }
