@@ -243,6 +243,17 @@ app.use((req, res, next) => {
 // Health check (doit être avant les autres routes pour être accessible rapidement)
 app.use('/health', healthRoutes);
 
+// Route racine (pour éviter l'erreur "Route non trouvée")
+app.get('/', (req, res) => {
+	res.json({
+		message: 'API LinkUp',
+		version: '1.0.0',
+		status: 'running',
+		health: '/health',
+		docs: 'Voir la documentation API',
+	});
+});
+
 // Export Prometheus metrics (protégé par clé optionnelle)
 app.get('/metrics', metricsAuth, metricsHandler);
 

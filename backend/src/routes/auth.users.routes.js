@@ -79,17 +79,52 @@ router.post('/signup', authLimiter, async (req, res) => {
 			'Signup error'
 		);
 
-		// En développement, retourner plus de détails
-		const errorMessage =
-			process.env.NODE_ENV === 'production' ? 'Erreur serveur' : error.message || 'Erreur serveur';
+		// Gestion spécifique des erreurs Supabase
+		if (error.code) {
+			// Erreur Supabase avec code (ex: violation de contrainte unique)
+			const isProduction = process.env.NODE_ENV === 'production';
 
+			// Codes d'erreur Supabase courants
+			if (error.code === '23505') {
+				// Violation de contrainte unique (email déjà utilisé)
+				return res.status(409).json({
+					error: 'Email déjà utilisé',
+					details: ['Cet email est déjà associé à un compte'],
+				});
+			}
+
+			if (error.code === '23502') {
+				// Champ NOT NULL manquant
+				return res.status(400).json({
+					error: 'Données invalides',
+					details: [`Champ requis manquant: ${error.column || 'inconnu'}`],
+				});
+			}
+
+			// Autres erreurs Supabase
+			return res.status(500).json({
+				error: isProduction ? 'Erreur serveur' : error.message || 'Erreur serveur',
+				...(isProduction
+					? {}
+					: {
+							details: error.details,
+							hint: error.hint,
+							code: error.code,
+						}),
+			});
+		}
+
+		// Erreur générique
+		const isProduction = process.env.NODE_ENV === 'production';
 		return res.status(500).json({
-			error: errorMessage,
-			...(process.env.NODE_ENV !== 'production' && {
-				details: error.details,
-				hint: error.hint,
-				code: error.code,
-			}),
+			error: isProduction ? 'Erreur serveur' : error.message || 'Erreur serveur',
+			...(isProduction
+				? {}
+				: {
+						details: error.details,
+						hint: error.hint,
+						stack: error.stack,
+					}),
 		});
 	}
 });
