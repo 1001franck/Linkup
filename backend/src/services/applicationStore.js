@@ -356,11 +356,14 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 					});
 				}
 			} catch (enrichError) {
-				logger.error("[getApplicationsByCompany] Erreur lors de l'enrichissement", {
-					error: enrichError.message,
-					stack: enrichError.stack,
-					companyId: numericCompanyId,
-				});
+				logger.error("[getApplicationsByCompany] Erreur lors de l'enrichissement");
+				logger.error('Message:', enrichError.message);
+				logger.error('Nom:', enrichError.name);
+				logger.error('Code:', enrichError.code);
+				logger.error('Détails:', enrichError.details);
+				logger.error('Hint:', enrichError.hint);
+				logger.error('Stack:', enrichError.stack);
+				logger.error('CompanyId:', numericCompanyId);
 				// Ne pas throw, retourner les données même si l'enrichissement échoue
 			}
 		}
@@ -371,14 +374,29 @@ export async function getApplicationsByCompany(companyId, filters = {}) {
 
 		return data || [];
 	} catch (err) {
-		logger.error('[getApplicationsByCompany] Erreur complète', {
+		// Log détaillé de l'erreur
+		logger.error('[getApplicationsByCompany] Erreur complète');
+		logger.error('Message:', err.message);
+		logger.error('Nom:', err.name);
+		logger.error('Code:', err.code);
+		logger.error('Détails:', err.details);
+		logger.error('Hint:', err.hint);
+		logger.error('Stack:', err.stack);
+		logger.error('CompanyId:', companyId);
+		logger.error('Filters:', JSON.stringify(filters));
+
+		// Log aussi sous forme d'objet pour compatibilité
+		logger.error('[getApplicationsByCompany] Erreur complète (objet)', {
 			error: err.message,
 			stack: err.stack,
 			errorName: err.name,
 			errorCode: err.code,
+			errorDetails: err.details,
+			errorHint: err.hint,
 			companyId,
 			filters,
 		});
+
 		throw err;
 	}
 }

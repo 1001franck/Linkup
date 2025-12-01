@@ -33,6 +33,20 @@ export function errorHandler(err, req, res, next) {
 		userRole: req.user?.role,
 	});
 
+	// Log supplémentaire pour s'assurer que les détails sont visibles
+	if (err.code) {
+		logger.error(`Code d'erreur: ${err.code}`);
+	}
+	if (err.details) {
+		logger.error(`Détails: ${JSON.stringify(err.details)}`);
+	}
+	if (err.hint) {
+		logger.error(`Hint: ${err.hint}`);
+	}
+	if (err.stack) {
+		logger.error(`Stack trace: ${err.stack}`);
+	}
+
 	// Ne pas exposer les détails de l'erreur en production
 	const isProduction = process.env.NODE_ENV === 'production';
 

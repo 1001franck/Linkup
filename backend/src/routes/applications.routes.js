@@ -234,7 +234,21 @@ router.get('/company/:companyId', validateNumericId('companyId'), auth(), async 
 			filters,
 		});
 
-		const applications = await getApplicationsByCompany(requestedCompanyId, filters);
+		let applications;
+		try {
+			applications = await getApplicationsByCompany(requestedCompanyId, filters);
+		} catch (getApplicationsError) {
+			logger.error('[GET /applications/company/:companyId] Erreur dans getApplicationsByCompany', {
+				error: getApplicationsError.message,
+				stack: getApplicationsError.stack,
+				errorName: getApplicationsError.name,
+				errorCode: getApplicationsError.code,
+				errorDetails: getApplicationsError.details,
+				errorHint: getApplicationsError.hint,
+				companyId: requestedCompanyId,
+			});
+			throw getApplicationsError;
+		}
 
 		logger.debug('[GET /applications/company/:companyId] Candidatures récupérées', {
 			count: applications.length,
@@ -243,15 +257,17 @@ router.get('/company/:companyId', validateNumericId('companyId'), auth(), async 
 
 		res.json({ data: applications });
 	} catch (error) {
-		logger.error('[GET /applications/company/:companyId] Erreur serveur complète', {
-			error: error.message,
-			stack: error.stack,
-			errorName: error.name,
-			errorCode: error.code,
-			companyId: req.params.companyId,
-			userRole: req.user?.role,
-			userId: req.user?.sub,
-		});
+		// Log détaillé de l'erreur
+		logger.error('[GET /applications/company/:companyId] Erreur serveur complète');
+		logger.error('Message:', error.message);
+		logger.error('Nom:', error.name);
+		logger.error('Code:', error.code);
+		logger.error('Détails:', error.details);
+		logger.error('Hint:', error.hint);
+		logger.error('Stack:', error.stack);
+		logger.error('CompanyId:', req.params.companyId);
+		logger.error('UserRole:', req.user?.role);
+		logger.error('UserId:', req.user?.sub);
 
 		const isDevelopment = process.env.NODE_ENV !== 'production';
 		res.status(500).json({
