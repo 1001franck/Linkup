@@ -54,7 +54,10 @@ const nextConfig: NextConfig = {
                 "img-src 'self' data: https: blob:", // Autoriser images depuis HTTPS (Unsplash, Clearbit, etc.)
                 "font-src 'self' data:",
                 `connect-src 'self' ${apiUrl} https://logo.clearbit.com`, // API backend + Clearbit
-                "frame-ancestors 'none'",
+                isProduction 
+                  ? "frame-src 'self' https://vercel.live" // Autoriser Vercel Live pour le développement
+                  : "frame-src 'self'", // En dev, seulement self
+                "frame-ancestors 'none'", // Empêcher que notre site soit framé ailleurs
                 "base-uri 'self'",
                 "form-action 'self'",
               ];
