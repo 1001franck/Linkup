@@ -173,10 +173,11 @@ async function findByMailForAuth(recruiter_mail) {
 		const searchMail = String(recruiter_mail).trim().toLowerCase();
 
 		// Sélectionner uniquement les champs nécessaires pour l'authentification
+		// Utiliser .eq() pour une correspondance exacte (pas .ilike() qui est pour les patterns)
 		const { data, error } = await supabase
 			.from('company')
 			.select('id_company, name, recruiter_mail, password, role, created_at')
-			.ilike('recruiter_mail', searchMail)
+			.eq('recruiter_mail', searchMail)
 			.single();
 
 		if (error) {
@@ -212,12 +213,13 @@ async function findByMail(recruiter_mail) {
 		const searchMail = String(recruiter_mail).trim().toLowerCase();
 
 		// Sélectionner uniquement les champs nécessaires (sans password)
+		// Utiliser .eq() pour une correspondance exacte (pas .ilike() qui est pour les patterns)
 		const { data, error } = await supabase
 			.from('company')
 			.select(
 				'id_company, name, description, recruiter_mail, recruiter_firstname, recruiter_lastname, recruiter_phone, website, industry, employees_number, city, zip_code, country, founded_year, logo, created_at, updated_at'
 			)
-			.ilike('recruiter_mail', searchMail)
+			.eq('recruiter_mail', searchMail)
 			.single();
 
 		if (error) {
