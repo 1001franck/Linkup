@@ -15,13 +15,16 @@ async function findByEmailForAuth(email) {
 		.single();
 
 	if (error && error.code !== 'PGRST116') {
-		logger.error('[findByEmailForAuth] error:', {
-			code: error.code,
-			message: error.message,
-			details: error.details,
-			hint: error.hint,
-			email: normalizedEmail,
-		});
+		logger.error(
+			{
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				email: normalizedEmail,
+			},
+			'[findByEmailForAuth] error'
+		);
 		return null;
 	}
 
@@ -52,13 +55,16 @@ async function findByEmail(email) {
 		if (error.code === 'PGRST116') {
 			logger.debug('[findByEmail] Aucun utilisateur trouvé avec cet email');
 		} else {
-			logger.error('[findByEmail] error:', {
-				code: error.code,
-				message: error.message,
-				details: error.details,
-				hint: error.hint,
-				email: normalizedEmail,
-			});
+			logger.error(
+				{
+					code: error.code,
+					message: error.message,
+					details: error.details,
+					hint: error.hint,
+					email: normalizedEmail,
+				},
+				'[findByEmail] error'
+			);
 		}
 		return null;
 	}
@@ -143,13 +149,16 @@ async function createUser({
 	const { data, error } = await supabase.from('user_').insert(insertData).select().single();
 
 	if (error) {
-		logger.error('[createUser] Supabase error:', error);
-		logger.error('[createUser] Error details:', {
-			message: error.message,
-			code: error.code,
-			details: error.details,
-			hint: error.hint,
-		});
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+			},
+			'[createUser] Supabase error'
+		);
 		throw error;
 	}
 

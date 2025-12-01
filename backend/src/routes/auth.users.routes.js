@@ -58,14 +58,17 @@ router.post('/signup', authLimiter, async (req, res) => {
 			phone: user.phone,
 		});
 	} catch (error) {
-		logger.error('Signup error:', error);
-		logger.error('Signup error stack:', error.stack);
-		logger.error('Signup error details:', {
-			message: error.message,
-			code: error.code,
-			details: error.details,
-			hint: error.hint,
-		});
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				stack: error.stack,
+			},
+			'Signup error'
+		);
 
 		// En développement, retourner plus de détails
 		const errorMessage =
@@ -151,7 +154,17 @@ router.post('/login', authLimiter, async (req, res) => {
 			},
 		});
 	} catch (error) {
-		logger.error('Login error:', error);
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				stack: error.stack,
+			},
+			'Login error'
+		);
 		return res.status(500).json({ error: 'Erreur serveur' });
 	}
 });

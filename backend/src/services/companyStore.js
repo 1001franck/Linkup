@@ -187,13 +187,16 @@ async function findByMailForAuth(recruiter_mail) {
 			if (error.code === 'PGRST116') {
 				logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
 			} else {
-				logger.error('findByMailForAuth error:', {
-					code: error.code,
-					message: error.message,
-					details: error.details,
-					hint: error.hint,
-					recruiter_mail: searchMail,
-				});
+				logger.error(
+					{
+						code: error.code,
+						message: error.message,
+						details: error.details,
+						hint: error.hint,
+						recruiter_mail: searchMail,
+					},
+					'findByMailForAuth error'
+				);
 			}
 			return null;
 		}
@@ -205,14 +208,18 @@ async function findByMailForAuth(recruiter_mail) {
 			logger.debug('findByMailForAuth: Aucune entreprise trouvée avec cet email');
 			return null;
 		}
-		logger.error('findByMailForAuth error (catch):', {
-			code: error.code,
-			message: error.message,
-			details: error.details,
-			hint: error.hint,
-			recruiter_mail: searchMail,
-			stack: error.stack,
-		});
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				recruiter_mail: searchMail,
+				stack: error.stack,
+			},
+			'findByMailForAuth error (catch)'
+		);
 		throw error;
 	}
 }

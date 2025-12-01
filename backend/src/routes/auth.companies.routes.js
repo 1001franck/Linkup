@@ -35,7 +35,17 @@ router.post('/signup', authLimiter, async (req, res) => {
 
 		res.status(201).json({ data: company });
 	} catch (error) {
-		logger.error('Signup company error:', error);
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				stack: error.stack,
+			},
+			'Signup company error'
+		);
 
 		// Ne pas exposer les détails d'erreur en production
 		const errorMessage =
@@ -108,7 +118,17 @@ router.post('/login', authLimiter, async (req, res) => {
 			},
 		});
 	} catch (error) {
-		logger.error('Login company error:', error);
+		logger.error(
+			{
+				err: error,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint,
+				stack: error.stack,
+			},
+			'Login company error'
+		);
 		return res.status(500).json({ error: 'Erreur serveur' });
 	}
 });
