@@ -51,3 +51,4 @@ Après le déploiement, vérifiez les logs Render :
 3. Vérifier les logs de build pour voir où les dépendances sont installées
 
 
+
