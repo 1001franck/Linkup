@@ -44,7 +44,7 @@ export default function CompanyInterviewsPage() {
       candidateName: "Marie Dubois",
       candidateTitle: "Développeuse Frontend",
       jobTitle: "Développeur React Senior",
-      date: "18-01-2024",
+      date: "18-01-2025",
       time: "14:00",
       duration: "45 min",
       type: "Visioconférence",
@@ -57,7 +57,7 @@ export default function CompanyInterviewsPage() {
       candidateName: "Thomas Martin", 
       candidateTitle: "Product Manager",
       jobTitle: "Product Manager Senior",
-      date: "19-01-2024",
+      date: "19-01-2025",
       time: "10:30",
       duration: "60 min",
       type: "Présentiel",
@@ -70,7 +70,7 @@ export default function CompanyInterviewsPage() {
       candidateName: "Sarah Chen",
       candidateTitle: "UX Designer",
       jobTitle: "UX/UI Designer",
-      date: "20-01-2024",
+      date: "20-01-2025",
       time: "16:00",
       duration: "30 min",
       type: "Téléphone",
@@ -83,7 +83,7 @@ export default function CompanyInterviewsPage() {
       candidateName: "Pierre Durand",
       candidateTitle: "Data Scientist",
       jobTitle: "Data Scientist",
-      date: "17-01-2024",
+      date: "17-01-2025",
       time: "11:00",
       duration: "45 min",
       type: "Visioconférence",
@@ -122,7 +122,7 @@ export default function CompanyInterviewsPage() {
 
   const filteredInterviews = interviews.filter(interview => {
     if (selectedDate === "all") return true;
-    if (selectedDate === "today") return interview.date === "18-01-2024"; // Simulé
+    if (selectedDate === "today") return interview.date === "18-01-2025"; // Simulé
     if (selectedDate === "upcoming") return interview.status === "scheduled";
     if (selectedDate === "completed") return interview.status === "completed";
     return true;
@@ -223,7 +223,7 @@ export default function CompanyInterviewsPage() {
                         Aujourd'hui
                       </Typography>
                       <Typography variant="h2" className="text-3xl font-bold text-foreground">
-                        {interviews.filter(int => int.date === '18-01-2024').length}
+                        {interviews.filter(int => int.date === '18-01-2025').length}
                       </Typography>
                     </div>
                     <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">

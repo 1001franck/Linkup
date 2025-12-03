@@ -1359,8 +1359,8 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                   
                   {/* Author */}
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br ${testimonial.color} rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
-                      <testimonial.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                    <div className="flex items-center justify-center flex-shrink-0">
+                      <testimonial.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-foreground" />
                     </div>
                   <div className="min-w-0">
                       <div className="font-bold text-foreground text-sm sm:text-base md:text-lg truncate">{testimonial.author}</div>

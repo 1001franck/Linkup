@@ -278,7 +278,7 @@ export default function PhotographeDirecteurCreatifPage() {
                 <h3 className="text-xl font-bold text-foreground mb-2">Alexandre Chen</h3>
                 <p className="text-muted-foreground mb-3">
                   Directeur Créatif chez TechCorp, ancien photographe freelance. 
-                  Membre de la communauté LinkUp depuis 2021, il partage son expérience 
+                  Membre de la communauté LinkUp depuis 2025, il partage son expérience 
                   pour inspirer d'autres créatifs à évoluer dans leur carrière.
                 </p>
                 <div className="flex gap-2">

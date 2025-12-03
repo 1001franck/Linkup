@@ -65,7 +65,7 @@ function CalendarContent() {
       id: 1,
       title: "Entretien TechCorp",
       type: "interview",
-      date: new Date(2024, 11, 15, 14, 0), // 15 décembre 2024, 14h00
+      date: new Date(2025, 0, 15, 14, 0), // 15 janvier 2025, 14h00
       duration: 60,
       location: "Paris, France",
       attendees: ["Marie Dubois", "Jean Dupont"],
@@ -76,7 +76,7 @@ function CalendarContent() {
       id: 2,
       title: "Meetup Développeurs",
       type: "networking",
-      date: new Date(2024, 11, 20, 18, 30), // 20 décembre 2024, 18h30
+      date: new Date(2025, 0, 20, 18, 30), // 20 janvier 2025, 18h30
       duration: 120,
       location: "Lyon, France",
       attendees: ["Pierre Martin", "Sophie Chen"],
@@ -87,7 +87,7 @@ function CalendarContent() {
       id: 3,
       title: "Formation React",
       type: "training",
-      date: new Date(2024, 11, 25, 9, 0), // 25 décembre 2024, 9h00
+      date: new Date(2025, 0, 25, 9, 0), // 25 janvier 2025, 9h00
       duration: 480,
       location: "Online",
       attendees: ["Formateur Expert"],
@@ -98,7 +98,7 @@ function CalendarContent() {
       id: 4,
       title: "Appel de suivi StartupX",
       type: "call",
-      date: new Date(2024, 11, 18, 10, 0), // 18 décembre 2024, 10h00
+      date: new Date(2025, 0, 18, 10, 0), // 18 janvier 2025, 10h00
       duration: 30,
       location: "Online",
       attendees: ["Alexandre Rousseau"],

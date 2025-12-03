@@ -58,7 +58,7 @@ export default function ProfilePage() {
         title: "Développeur Frontend Senior",
         company: "TechCorp",
         location: "Paris, France",
-        startDate: "2022",
+        startDate: "2025",
         endDate: "Présent",
         current: true,
         description: "Développement d'applications React/TypeScript, mentoring d'équipe junior, architecture frontend."
@@ -68,8 +68,8 @@ export default function ProfilePage() {
         title: "Développeur Frontend",
         company: "StartupX",
         location: "Lyon, France",
-        startDate: "2020",
-        endDate: "2022",
+        startDate: "2023",
+        endDate: "2025",
         current: false,
         description: "Développement d'interfaces utilisateur, intégration d'APIs, optimisation des performances."
       },
@@ -112,13 +112,13 @@ export default function ProfilePage() {
         id: 1,
         name: "AWS Certified Developer",
         issuer: "Amazon Web Services",
-        date: "2023"
+        date: "2025"
       },
       {
         id: 2,
         name: "React Professional Certificate",
         issuer: "Meta",
-        date: "2022"
+        date: "2024"
       }
     ]
   };

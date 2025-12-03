@@ -327,7 +327,7 @@ export default function RegisterCompanyPage() {
                     </label>
                     <Input
                       type="number"
-                      placeholder="Ex: 2020"
+                      placeholder="Ex: 2025"
                       min="1800"
                       max={new Date().getFullYear()}
                       value={formData.foundedYear}

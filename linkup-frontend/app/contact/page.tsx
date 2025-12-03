@@ -35,8 +35,8 @@ export default function ContactPage() {
     {
       icon: MapPin,
       title: "Adresse",
-      details: "123 Avenue des Champs-Élysées",
-      description: "75008 Paris, France"
+      details: "40 boulevard la marquette",
+      description: "Toulouse, France"
     },
     {
       icon: Clock,
@@ -321,8 +321,8 @@ export default function ContactPage() {
                       answer: "Oui, nous offrons un essai gratuit de 14 jours sans engagement pour découvrir toutes nos fonctionnalités."
                     },
                     {
-                      question: "Quel est le délai de mise en place ?",
-                      answer: "La mise en place de votre compte LinkUp prend généralement 24-48h. Pour les intégrations complexes, comptez 1-2 semaines."
+                      question: "Comment créer mon compte ?",
+                      answer: "La création de votre compte LinkUp est automatique et instantanée. Il vous suffit de vous inscrire avec votre email et vous pouvez commencer à utiliser la plateforme immédiatement."
                     },
                     {
                       question: "Offrez-vous de la formation ?",
