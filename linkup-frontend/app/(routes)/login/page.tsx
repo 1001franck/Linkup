@@ -80,14 +80,14 @@ function LoginContent() {
     }
 
     try {
-      // Essayer d'abord la connexion candidat (sans afficher d'erreur si ça échoue)
-      const userSuccess = await login(formData.email, formData.password);
+      // Essayer d'abord la connexion candidat
+      const userResult = await login(formData.email, formData.password);
       
       if (isMobile) {
         logger.debug('[LOGIN] 📱 Cookies après login utilisateur:', document.cookie);
       }
       
-      if (userSuccess) {
+      if (userResult.success) {
         // Sur mobile, attendre plus longtemps pour la propagation du cookie
         const waitTime = isMobile ? 2000 : 1500;
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -108,14 +108,14 @@ function LoginContent() {
         return;
       }
       
-      // Si échec candidat, essayer entreprise (sans afficher d'erreur avant)
-      const companySuccess = await loginCompany(formData.email, formData.password);
+      // Si échec candidat, essayer entreprise
+      const companyResult = await loginCompany(formData.email, formData.password);
       
       if (isMobile) {
         logger.debug('[LOGIN] 📱 Cookies après login entreprise:', document.cookie);
       }
       
-      if (companySuccess) {
+      if (companyResult.success) {
         // Sur mobile, attendre plus longtemps pour la propagation du cookie
         const waitTime = isMobile ? 2000 : 1500;
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -135,14 +135,15 @@ function LoginContent() {
         return;
       }
       
-      // Aucune connexion n'a réussi - afficher un message clair
-      setError("Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.");
+      // Aucune connexion n'a réussi - afficher un message d'erreur simple et uniforme
+      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
     } catch (error) {
       logger.error('Erreur de connexion:', error);
       if (isMobile) {
         logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
       }
-      setError("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

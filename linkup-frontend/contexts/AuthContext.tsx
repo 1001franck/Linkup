@@ -53,9 +53,9 @@ interface AuthContextType {
   /** Indique si le chargement est en cours */
   isLoading: boolean;
   /** Fonction de connexion utilisateur */
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   /** Fonction de connexion entreprise */
-  loginCompany: (recruiter_mail: string, password: string) => Promise<boolean>;
+  loginCompany: (recruiter_mail: string, password: string) => Promise<{ success: boolean; error?: string }>;
   /** Fonction de déconnexion */
   logout: () => void;
   /** Fonction de mise à jour des données utilisateur */
@@ -206,9 +206,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 
    * @param email - Email de l'utilisateur
    * @param password - Mot de passe
-   * @returns Promise<boolean> - true si connexion réussie, false sinon
+   * @returns Promise<{ success: boolean, error?: string }> - résultat de la connexion avec message d'erreur éventuel
    */
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       
@@ -230,16 +230,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
         }
         
-        return true;
+        return { success: true };
       } else {
-        // Connexion échouée - ne pas afficher de toast ici, laisser la page de login gérer
-        logger.debug(' [LOGIN] Connexion utilisateur échouée, peut-être une entreprise');
-        return false;
+        // Connexion échouée - retourner le message d'erreur
+        const errorMessage = response.error || 'Identifiants invalides';
+        logger.debug(' [LOGIN] Connexion utilisateur échouée:', errorMessage);
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
       logger.error('Erreur lors de la connexion:', error);
-      // Ne pas afficher de toast ici, laisser la page de login gérer
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de la connexion';
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -252,9 +253,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 
    * @param recruiter_mail - Email du recruteur
    * @param password - Mot de passe
-   * @returns Promise<boolean> - true si connexion réussie, false sinon
+   * @returns Promise<{ success: boolean, error?: string }> - résultat de la connexion avec message d'erreur éventuel
    */
-  const loginCompany = async (recruiter_mail: string, password: string): Promise<boolean> => {
+  const loginCompany = async (recruiter_mail: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       
@@ -276,16 +277,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           logger.debug('Impossible de récupérer les infos immédiatement, le useEffect s\'en chargera');
         }
         
-        return true;
+        return { success: true };
       } else {
-        // Connexion échouée - ne pas afficher de toast ici, laisser la page de login gérer
-        logger.debug('[LOGIN COMPANY] Connexion entreprise échouée');
-        return false;
+        // Connexion échouée - retourner le message d'erreur
+        const errorMessage = response.error || 'Identifiants invalides';
+        logger.debug('[LOGIN COMPANY] Connexion entreprise échouée:', errorMessage);
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
       logger.error('Erreur lors de la connexion entreprise:', error);
-      // Ne pas afficher de toast ici, laisser la page de login gérer
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de la connexion';
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }

@@ -425,93 +425,99 @@ function MyApplicationsContent() {
                       className="relative bg-background/95 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden"
                       style={{ zIndex: paginatedApplications.length - index }}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         {/* Header de la candidature */}
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+                          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
                             <img
                               src={application.company.logo}
                               alt={`Logo entreprise ${application.company.id || 'unknown'}`}
-                              className="h-12 w-12 rounded-lg object-cover border border-border"
+                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover border border-border flex-shrink-0"
                             />
-                            <div>
-                              <Typography variant="h4" className="text-lg font-bold text-foreground">
+                            <div className="min-w-0 flex-1">
+                              <Typography variant="h4" className="text-base sm:text-lg font-bold text-foreground truncate">
                                 {application.jobOffer.title}
                               </Typography>
-                              <Typography variant="muted" className="text-sm text-muted-foreground">
+                              <Typography variant="muted" className="text-xs sm:text-sm text-muted-foreground truncate">
                                 {application.company.name} • {application.jobOffer.location}
                               </Typography>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge className={cn("flex items-center gap-1", getStatusColor(application.metadata.status))}>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <Badge className={cn("flex items-center gap-1 text-xs", getStatusColor(application.metadata.status))}>
                               {getStatusIcon(application.metadata.status)}
-                              {getStatusLabel(application.metadata.status)}
+                              <span className="hidden sm:inline">{getStatusLabel(application.metadata.status)}</span>
+                              <span className="sm:hidden">{getStatusLabel(application.metadata.status).substring(0, 3)}</span>
                             </Badge>
                             {application.jobOffer.urgency === "high" && (
-                              <Badge className="bg-red-100 text-red-800">
+                              <Badge className="bg-red-100 text-red-800 text-xs">
                                 <Zap className="h-3 w-3 mr-1" />
-                                Urgent
+                                <span className="hidden sm:inline">Urgent</span>
+                                <span className="sm:hidden">!</span>
                               </Badge>
                             )}
                           </div>
                         </div>
 
                         {/* Informations de base */}
-                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
-                          <div className="flex items-center">
-                            <Briefcase className="h-4 w-4 mr-2 text-cyan-500" />
-                            <span>{application.jobOffer.contractType}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                          <div className="flex items-center min-w-0">
+                            <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-cyan-500 flex-shrink-0" />
+                            <span className="truncate">{application.jobOffer.contractType}</span>
                           </div>
-                          <div className="flex items-center">
-                            <DollarSign className="h-4 w-4 mr-2 text-cyan-500" />
-                            <span>{application.jobOffer.salaryRange}</span>
+                          <div className="flex items-center min-w-0">
+                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-cyan-500 flex-shrink-0" />
+                            <span className="truncate">{application.jobOffer.salaryRange}</span>
                           </div>
                         </div>
 
                         {/* Date de postulation */}
-                        <div className="flex items-center text-sm text-muted-foreground mb-4">
-                          <Calendar className="h-4 w-4 mr-2 text-cyan-500" />
-                          <span>Postulé le {application.metadata.appliedDate}</span>
+                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-cyan-500 flex-shrink-0" />
+                          <span className="truncate">Postulé le {application.metadata.appliedDate}</span>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center space-x-2">
+                        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 sm:gap-0">
+                          <div className="flex items-center space-x-2 flex-wrap">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setExpandedApplication(
                                 expandedApplication === application.metadata.id ? null : application.metadata.id
                               )}
+                              className="text-xs sm:text-sm"
                             >
                               {expandedApplication === application.metadata.id ? (
-                                <ChevronUp className="h-4 w-4 mr-2" />
+                                <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                               ) : (
-                                <ChevronDown className="h-4 w-4 mr-2" />
+                                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                               )}
-                              {expandedApplication === application.metadata.id ? 'Masquer' : 'Détails'}
+                              <span className="hidden sm:inline">{expandedApplication === application.metadata.id ? 'Masquer' : 'Détails'}</span>
+                              <span className="sm:hidden">{expandedApplication === application.metadata.id ? 'Masquer' : 'Détails'}</span>
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => jobsInteractionsActions.toggleBookmark(parseInt((application.jobOffer as any).id))}
-                              className={application.metadata.isBookmarked ? "text-primary border-primary" : ""}
+                              className={`text-xs sm:text-sm ${application.metadata.isBookmarked ? "text-primary border-primary" : ""}`}
                             >
-                              <Bookmark className={`h-4 w-4 mr-2 ${application.metadata.isBookmarked ? "fill-current" : ""}`} />
-                              {application.metadata.isBookmarked ? 'Sauvegardée' : 'Sauvegarder'}
+                              <Bookmark className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${application.metadata.isBookmarked ? "fill-current" : ""}`} />
+                              <span className="hidden sm:inline">{application.metadata.isBookmarked ? 'Sauvegardée' : 'Sauvegarder'}</span>
+                              <span className="sm:hidden">{application.metadata.isBookmarked ? 'Sauv.' : 'Sauv.'}</span>
                             </Button>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 flex-wrap">
                             {application.metadata.status === "pending" && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => actions.withdrawApplication(application.metadata.id)}
-                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 text-xs sm:text-sm whitespace-nowrap"
                               >
-                                <CircleX className="h-4 w-4 mr-2" />
-                                Retirer ma candidature
+                                <CircleX className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                <span className="hidden sm:inline">Retirer ma candidature</span>
+                                <span className="sm:hidden">Retirer</span>
                               </Button>
                             )}
                             {application.metadata.status === "interview" && application.metadata.interviewDate && (
@@ -519,10 +525,11 @@ function MyApplicationsContent() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => actions.viewInterviewDetails(application.metadata.id)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs sm:text-sm whitespace-nowrap"
                               >
-                                <CalendarCheck className="h-4 w-4 mr-2" />
-                                Entretien programmé le {application.metadata.interviewDate}
+                                <CalendarCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                <span className="hidden sm:inline">Entretien programmé le {application.metadata.interviewDate}</span>
+                                <span className="sm:hidden">Entretien</span>
                               </Button>
                             )}
                             {application.metadata.status === "rejected" && (
@@ -530,10 +537,11 @@ function MyApplicationsContent() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => actions.requestFeedback(application.metadata.id)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs sm:text-sm whitespace-nowrap"
                               >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Demander un retour
+                                <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                <span className="hidden sm:inline">Demander un retour</span>
+                                <span className="sm:hidden">Retour</span>
                               </Button>
                             )}
                             <Button

@@ -114,38 +114,38 @@ export const SimpleFilters: React.FC<SimpleFiltersProps> = ({
     <div className="space-y-4">
       {/* Barre de recherche principale */}
       <Card className="backdrop-blur-sm border-0 shadow-lg">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             {/* Recherche */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
               <Input
                 placeholder="Rechercher un emploi..."
                 value={filters.searchTerm}
                 onChange={(e) => actions.setSearchTerm(e.target.value)}
-                className="pl-10 border-0 bg-muted/30 focus:bg-background transition-colors"
+                className="pl-8 sm:pl-10 text-sm sm:text-base border-0 bg-muted/30 focus:bg-background transition-colors h-9 sm:h-10"
               />
             </div>
 
             {/* Localisation - Input simple */}
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="relative flex-1 sm:flex-initial">
+              <MapPin className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
               <Input
-                placeholder="Localisation (ex: Paris, Remote)"
+                placeholder="Localisation"
                 value={filters.selectedLocation}
                 onChange={(e) => actions.setSelectedLocation(e.target.value)}
-                className="pl-10 w-48 border-0 bg-muted/30 focus:bg-background transition-colors"
+                className="pl-8 sm:pl-10 w-full sm:w-48 text-sm sm:text-base border-0 bg-muted/30 focus:bg-background transition-colors h-9 sm:h-10"
               />
             </div>
 
             {/* Type de contrat - Input simple */}
-            <div className="relative">
-              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="relative flex-1 sm:flex-initial">
+              <Briefcase className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
               <Input
-                placeholder="Type (ex: CDI, CDD, Freelance)"
+                placeholder="Type (CDI, CDD...)"
                 value={filters.selectedType}
                 onChange={(e) => actions.setSelectedType(e.target.value)}
-                className="pl-10 w-48 border-0 bg-muted/30 focus:bg-background transition-colors"
+                className="pl-8 sm:pl-10 w-full sm:w-48 text-sm sm:text-base border-0 bg-muted/30 focus:bg-background transition-colors h-9 sm:h-10"
               />
             </div>
           </div>
@@ -154,25 +154,26 @@ export const SimpleFilters: React.FC<SimpleFiltersProps> = ({
 
       {/* Filtres actifs */}
       {activeFilters.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Typography variant="small" className="text-muted-foreground">
-            Filtres actifs:
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <Filter className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+          <Typography variant="small" className="text-muted-foreground text-xs sm:text-sm">
+            <span className="hidden sm:inline">Filtres actifs:</span>
+            <span className="sm:hidden">Filtres:</span>
           </Typography>
           {activeFilters.map((filter) => (
             <div
               key={filter.key}
-              className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm border border-primary/20 hover:bg-primary/20 transition-colors"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-primary/10 text-primary px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm border border-primary/20 hover:bg-primary/20 transition-colors max-w-full"
             >
-              <span className="font-medium">{filter.label}:</span>
-              <span>{filter.value}</span>
+              <span className="font-medium truncate">{filter.label}:</span>
+              <span className="truncate">{filter.value}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={filter.onRemove}
-                className="h-4 w-4 p-0 hover:bg-primary/30"
+                className="h-3 w-3 sm:h-4 sm:w-4 p-0 hover:bg-primary/30 flex-shrink-0"
               >
-                <X className="h-3 w-3" />
+                <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </Button>
             </div>
           ))}
@@ -180,7 +181,7 @@ export const SimpleFilters: React.FC<SimpleFiltersProps> = ({
             variant="ghost"
             size="sm"
             onClick={actions.clearAllFilters}
-            className="text-muted-foreground hover:text-foreground text-sm"
+            className="text-muted-foreground hover:text-foreground text-xs sm:text-sm whitespace-nowrap"
           >
             Effacer tout
           </Button>
