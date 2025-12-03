@@ -71,124 +71,51 @@ function LoginContent() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // CRITIQUE: Empêcher le rechargement de la page - DOIT être la première instruction
+    // CRITIQUE: Empêcher le rechargement de la page
     e.preventDefault();
     e.stopPropagation();
     
-    // Empêcher toute soumission ultérieure
-    if (isLoading) {
-      logger.debug('[LOGIN] Tentative de soumission pendant le chargement, ignorée');
-      return;
-    }
+    if (isLoading) return;
     
-    // Vérifier que le formulaire est valide avant de continuer
     if (!isFormValid) {
       setError("Veuillez remplir tous les champs correctement.");
-      logger.debug('[LOGIN] Formulaire invalide');
       return;
     }
     
     setIsLoading(true);
     setError("");
-    errorRef.current = ""; // Réinitialiser la ref aussi
-
-    // Détecter si on est sur mobile
-    const isMobile = typeof window !== 'undefined' && (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-      (window.innerWidth <= 768)
-    );
-    
-    if (isMobile) {
-      logger.debug('[LOGIN] 📱 Connexion depuis appareil mobile');
-      logger.debug('[LOGIN] 📱 User-Agent:', navigator.userAgent);
-      logger.debug('[LOGIN] 📱 Cookies avant login:', document.cookie);
-    }
+    errorRef.current = "";
 
     try {
-      logger.debug('[LOGIN] Tentative de connexion utilisateur...');
       // Essayer d'abord la connexion candidat
       const userResult = await login(formData.email, formData.password);
       
-      logger.debug('[LOGIN] Résultat connexion utilisateur:', { success: userResult.success, error: userResult.error });
-      
-      if (isMobile) {
-        logger.debug('[LOGIN] 📱 Cookies après login utilisateur:', document.cookie);
-      }
-      
       if (userResult.success) {
-        logger.debug('[LOGIN] Connexion utilisateur réussie');
-        // Sur mobile, attendre plus longtemps pour la propagation du cookie
-        const waitTime = isMobile ? 2000 : 1500;
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        
-        // Recharger les infos utilisateur pour s'assurer que l'état est à jour
-        try {
-          await refreshUser();
-          // Attendre un peu plus pour que l'état soit bien propagé
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (refreshError) {
-          logger.error('Erreur lors du rechargement:', refreshError);
-          // Continuer quand même, le useEffect dans AuthContext récupérera les infos
-        }
-        
-        // Rediriger vers la page demandée ou le dashboard par défaut
-        const redirectTo = redirectPath || '/dashboard';
-        logger.debug('[LOGIN] Redirection vers:', redirectTo);
-        router.push(redirectTo);
+        await refreshUser();
+        router.push(redirectPath || '/dashboard');
         return;
       }
       
-      logger.debug('[LOGIN] Connexion utilisateur échouée, tentative entreprise...');
       // Si échec candidat, essayer entreprise
       const companyResult = await loginCompany(formData.email, formData.password);
       
-      logger.debug('[LOGIN] Résultat connexion entreprise:', { success: companyResult.success, error: companyResult.error });
-      
-      if (isMobile) {
-        logger.debug('[LOGIN] 📱 Cookies après login entreprise:', document.cookie);
-      }
-      
       if (companyResult.success) {
-        logger.debug('[LOGIN] Connexion entreprise réussie');
-        // Sur mobile, attendre plus longtemps pour la propagation du cookie
-        const waitTime = isMobile ? 2000 : 1500;
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        
-        // Recharger les infos entreprise pour s'assurer que l'état est à jour
-        try {
-          await refreshUser();
-          // Attendre un peu plus pour que l'état soit bien propagé
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (refreshError) {
-          logger.error('Erreur lors du rechargement:', refreshError);
-        }
-        
-        // Rediriger vers la page demandée ou le dashboard entreprise par défaut
-        const redirectTo = redirectPath || '/company-dashboard';
-        logger.debug('[LOGIN] Redirection vers:', redirectTo);
-        router.push(redirectTo);
+        await refreshUser();
+        router.push(redirectPath || '/company-dashboard');
         return;
       }
       
       // Aucune connexion n'a réussi - afficher un message d'erreur
-      const errorMessage = userResult.error || companyResult.error || "Email ou mot de passe incorrect. Veuillez réessayer.";
-      
-      // Stocker l'erreur dans la ref ET dans le state
+      const errorMessage = "Email ou mot de passe incorrect. Veuillez réessayer.";
       errorRef.current = errorMessage;
       setError(errorMessage);
+      
     } catch (error) {
-      logger.error('Erreur de connexion (catch):', error);
-      if (isMobile) {
-        logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
-      }
-      // Afficher un message d'erreur générique pour l'utilisateur
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
-      logger.debug('[LOGIN] Affichage erreur (catch):', errorMessage);
+      const errorMessage = "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
       errorRef.current = errorMessage;
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-      logger.debug('[LOGIN] Fin du traitement, isLoading = false');
     }
   };
 
@@ -233,15 +160,14 @@ function LoginContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {(error || errorRef.current) ? (
+              {(error || errorRef.current) && (
                 <div 
                   className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg" 
                   role="alert"
-                  aria-live="assertive"
                 >
                   <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error || errorRef.current}</p>
                 </div>
-              ) : null}
+              )}
               <form 
                 onSubmit={handleSubmit} 
                 className="space-y-6"
