@@ -80,12 +80,12 @@ export const CompanyCard = React.memo<CompanyCardProps>(({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className="backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group h-full flex flex-col min-h-[400px]">
-        <CardContent className="p-6 flex flex-col h-full">
+      <Card className="backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group h-full flex flex-col min-h-[350px] sm:min-h-[400px]">
+        <CardContent className="p-4 sm:p-6 flex flex-col h-full">
           {/* Header de la carte */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="h-12 w-12 rounded-lg bg-muted/20 flex items-center justify-center overflow-hidden">
+          <div className="flex items-start justify-between mb-4 gap-2">
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-muted/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {isImageUrl ? (
                   <img
                     src={company.logo}
@@ -111,37 +111,37 @@ export const CompanyCard = React.memo<CompanyCardProps>(({
                   </div>
                 )}
               </div>
-              <div>
-                <Typography variant="h4" className="font-semibold">
+              <div className="min-w-0 flex-1">
+                <Typography variant="h4" className="font-semibold truncate text-base sm:text-lg">
                   {company.name}
                 </Typography>
-                <Typography variant="muted" className="text-sm">
+                <Typography variant="muted" className="text-xs sm:text-sm truncate">
                   {company.industry}
                 </Typography>
               </div>
             </div>
-            <div className="text-right">
-              <Badge variant="outline" className="text-xs">
+            <div className="text-right flex-shrink-0">
+              <Badge variant="outline" className="text-xs whitespace-nowrap">
                 {company.jobsAvailable} offres
               </Badge>
             </div>
           </div>
           
           {/* Informations de base */}
-          <div className="space-y-3 mb-4">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-2" />
-              {company.location}
+          <div className="space-y-2 sm:space-y-3 mb-4">
+            <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">{company.location}</span>
             </div>
             
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Users className="h-4 w-4 mr-2" />
-              {company.size}
+            <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">{company.size}</span>
             </div>
             
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4 mr-2" />
-              Fondée en {company.founded}
+            <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">Fondée en {company.founded}</span>
             </div>
           </div>
           
@@ -173,58 +173,63 @@ export const CompanyCard = React.memo<CompanyCardProps>(({
           
           {/* Actions */}
           <div className="pt-4 border-t border-border mt-auto">
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               
               {/* Actions principales */}
               <div className="flex gap-2">
                 {company.jobsAvailable > 0 ? (
                   <Button 
                     onClick={handleViewOffers}
-                    className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white"
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs sm:text-sm"
                     size="sm"
                   >
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    {company.jobsAvailable > 1 ? 'Voir les offres' : 'Voir l\'offre'}
+                    <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">{company.jobsAvailable > 1 ? 'Voir les offres' : 'Voir l\'offre'}</span>
+                    <span className="sm:hidden">Offres</span>
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleContact}
-                    className="flex-1 bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed"
+                    className="flex-1 bg-gray-400 hover:bg-gray-500 text-white cursor-not-allowed text-xs sm:text-sm"
                     size="sm"
                     disabled
                   >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Aucune offre disponible
+                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Aucune offre disponible</span>
+                    <span className="sm:hidden">Aucune</span>
                   </Button>
                 )}
               </div>
               
               {/* Actions secondaires */}
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 <Button 
                   onClick={handleViewDetails}
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                 >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Découvrir
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Découvrir</span>
+                  <span className="sm:hidden">Voir</span>
                 </Button>
                 
                 <Button 
                   onClick={handleContact}
                   variant="outline"
                   size="sm"
+                  className="px-2 sm:px-3"
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Button 
                   onClick={handleShare}
                   variant="outline"
                   size="sm"
+                  className="px-2 sm:px-3"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>

@@ -33,7 +33,7 @@ export function DashboardStats({
   trendsError,
 }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
       {/* Indicateur de chargement des tendances */}
       {trendsLoading && (
         <div className="col-span-2">
@@ -67,37 +67,37 @@ export function DashboardStats({
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
           <Card className="backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Typography variant="muted" className="text-sm mb-1">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Typography variant="muted" className="text-xs sm:text-sm mb-1 truncate">
                     {stat.title}
                   </Typography>
-                  <Typography variant="h3" className="text-2xl font-bold mb-2">
+                  <Typography variant="h3" className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">
                     {stat.loading ? (
                       <div className="flex items-center">
-                        <RefreshCw className="h-5 w-5 animate-spin mr-2" />
-                        Chargement...
+                        <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-1 sm:mr-2" />
+                        <span className="text-sm sm:text-base">Chargement...</span>
                       </div>
                     ) : stat.error ? (
-                      <span className="text-red-500">Erreur</span>
+                      <span className="text-red-500 text-base sm:text-lg">Erreur</span>
                     ) : (
-                      stat.value
+                      <span className="truncate">{stat.value}</span>
                     )}
                   </Typography>
                   <div className="flex items-center">
                     {stat.loading ? (
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs sm:text-sm text-muted-foreground">
                         Calcul en cours...
                       </span>
                     ) : stat.error ? (
-                      <span className="text-sm text-red-500">
+                      <span className="text-xs sm:text-sm text-red-500">
                         Données indisponibles
                       </span>
                     ) : (
                       <>
-                        <TrendingUp className={`h-4 w-4 mr-1 ${stat.color}`} />
-                        <span className={`text-sm font-medium ${stat.color}`}>
+                        <TrendingUp className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${stat.color} flex-shrink-0`} />
+                        <span className={`text-xs sm:text-sm font-medium ${stat.color} truncate`}>
                           {stat.change}
                         </span>
                       </>
@@ -105,12 +105,12 @@ export function DashboardStats({
                   </div>
                 </div>
                 <div
-                  className={`h-12 w-12 rounded-xl bg-gradient-to-r from-cyan-500/10 to-teal-600/10 flex items-center justify-center`}
+                  className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-r from-cyan-500/10 to-teal-600/10 flex items-center justify-center flex-shrink-0`}
                 >
                   {stat.loading ? (
-                    <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-muted-foreground" />
                   ) : (
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                    <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
                   )}
                 </div>
               </div>

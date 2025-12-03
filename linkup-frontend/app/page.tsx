@@ -580,10 +580,10 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-medium mb-8"
+              className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs sm:text-sm font-medium mb-4 sm:mb-8"
             >
-              <span className="w-2 h-2 bg-cyan-600 rounded-full mr-2 animate-pulse"></span>
-              Nouvelle plateforme de recrutement
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cyan-600 rounded-full mr-1.5 sm:mr-2 animate-pulse"></span>
+              <span className="whitespace-nowrap">Nouvelle plateforme de recrutement</span>
             </motion.div>
 
             {/* Main Title */}
@@ -639,9 +639,9 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-              className="bg-background/98 backdrop-blur-sm border border-border/40 rounded-2xl p-4 sm:p-6 shadow-2xl max-w-5xl mx-auto"
+              className="bg-background/98 backdrop-blur-sm border border-border/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl max-w-5xl mx-auto"
             >
-              <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+              <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4">
                 <AutocompleteInput
                   type="title"
                   placeholder="Métier, intitulé de poste, mots-clés"
@@ -658,10 +658,10 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                 />
                 <Button 
                   onClick={handleSearch}
-                  className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white h-12 sm:h-14 px-6 sm:px-10 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 text-sm sm:text-base cursor-pointer"
+                  className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white h-11 sm:h-12 md:h-14 px-4 sm:px-6 md:px-10 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 text-xs sm:text-sm md:text-base cursor-pointer w-full lg:w-auto"
                 >
-                  <Search className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Rechercher
+                  <Search className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="whitespace-nowrap">Rechercher</span>
               </Button>
             </div>
             </motion.div>
@@ -671,31 +671,31 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
       </section>
 
       {/* Explorez les entreprises Section */}
-      <section className="py-24 bg-gradient-to-br from-muted/30 via-background to-muted/50 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-muted/30 via-background to-muted/50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-small-foreground/[0.02] [mask-image:linear-gradient(to_b,white,transparent)]"></div>
         
         <Container className="relative z-10">
-          <div className="text-center max-w-5xl mx-auto mb-20">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2 animate-pulse"></span>
-              Entreprises partenaires
+          <div className="text-center max-w-5xl mx-auto mb-8 sm:mb-12 md:mb-16 lg:mb-20 px-4">
+            <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium mb-4 sm:mb-6">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cyan-500 rounded-full mr-1.5 sm:mr-2 animate-pulse"></span>
+              <span className="whitespace-nowrap">Entreprises partenaires</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-cyan-600 via-cyan-700 to-teal-800 dark:from-cyan-500 dark:via-cyan-600 dark:to-teal-600 bg-clip-text text-transparent mb-8 leading-normal tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-cyan-600 via-cyan-700 to-teal-800 dark:from-cyan-500 dark:via-cyan-600 dark:to-teal-600 bg-clip-text text-transparent mb-4 sm:mb-6 md:mb-8 leading-tight sm:leading-normal tracking-tight px-2">
               Explorez les entreprises
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-2">
               Découvrez leur histoire, rencontrez leurs équipes, comprenez leur culture d'entreprise unique.
             </p>
           </div>
           
           {/* Navigation Tabs - Redesign */}
-          <div className="flex flex-wrap justify-center gap-2 mb-16">
+          <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-8 sm:mb-12 md:mb-16 px-4">
             {filters.map((filter) => (
               <button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                 className={`px-6 py-3 text-sm font-semibold transition-all duration-300 rounded-full cursor-pointer ${
+                 className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 text-xs sm:text-sm font-semibold transition-all duration-300 rounded-full cursor-pointer whitespace-nowrap ${
                   activeFilter === filter.id
                     ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/25 transform scale-105"
                     : "bg-background text-muted-foreground hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/50"
@@ -718,7 +718,7 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
             />
 
             {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 px-4">
               {currentItems.map((company, index) => (
                 <CompanyCard
                   key={company.id}
@@ -732,9 +732,9 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
           </div>
 
           {/* CTA Section */}
-          <div className="text-center mt-16">
+          <div className="text-center mt-8 sm:mt-12 md:mt-16 px-4">
             <Link href="/entreprises" className="cursor-pointer">
-              <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-4 px-8 rounded-full shadow-lg shadow-cyan-600/25 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg shadow-cyan-600/25 transition-all duration-300 transform hover:scale-105 cursor-pointer w-full sm:w-auto">
                 Explorer toutes les entreprises
               </Button>
                 </Link>
@@ -848,24 +848,24 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
       </section>
 
       {/* Section "Entrez dans les coulisses" */}
-      <section className="py-16 bg-background">
+      <section className="py-8 sm:py-12 md:py-16 bg-background">
         <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center px-4">
             {/* Contenu visuel moderne et élégant */}
             <div className="relative">
               {/* Background décoratif */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 rounded-3xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 rounded-2xl sm:rounded-3xl"></div>
               
               {/* Interface moderne de recherche d'emploi */}
-              <div className="relative bg-background/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-border/20">
+              <div className="relative bg-background/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-border/20">
                 {/* Header avec stats */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-muted-foreground">Recherche active</span>
+                <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-cyan-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Recherche active</span>
               </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">2,847</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-primary">2,847</div>
                     <div className="text-xs text-muted-foreground">offres trouvées</div>
                   </div>
                 </div>
@@ -981,16 +981,16 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
             </div>
 
             {/* Contenu texte */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               <div>
-                <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
                   Entrez dans les coulisses
                 </h2>
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
                   Arrêtez de scroller sans fin sur des offres impersonnelles. Consultez seulement celles qui répondent à vos besoins grâce à nos filtres. Entrez dans les coulisses des entreprises, découvrez leurs valeurs et rencontrez votre future équipe.
                 </p>
               </div>
-              <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-4 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer w-full sm:w-auto">
                 Trouver un job
               </Button>
             </div>
@@ -1001,24 +1001,24 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
 
 
       {/* Section "Gagnez en efficacité" */}
-      <section className="py-24 bg-gradient-to-br from-muted/30 via-background to-muted/50">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-muted/30 via-background to-muted/50">
         <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center px-4">
             {/* Contenu texte */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               <div>
-                <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
                   Gagnez en efficacité
                 </h2>
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
                   Laisser votre job préféré vous passer sous le nez ? Plus jamais ! Dans votre espace personnel, gérez votre recherche et centralisez toutes vos candidatures. Grâce à nos alertes personnalisées, soyez le premier ou la première à postuler.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-4 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer w-full sm:w-auto">
                   Suivre mes candidatures
               </Button>
-                <Button size="lg" variant="outline" className="border-border text-muted-foreground font-semibold py-4 px-8 rounded-full cursor-pointer">
+                <Button size="lg" variant="outline" className="border-border text-muted-foreground font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full cursor-pointer w-full sm:w-auto">
                   En savoir plus
                       </Button>
                     </div>
@@ -1059,27 +1059,27 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
       </section>
 
       {/* Section Média et Ressources */}
-      <section className="py-24 bg-background">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-background">
         <Container>
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
                 Repensez le monde du travail grâce à nos <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">articles</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
                 Articles et conseils : découvrez tous nos contenus pour vous épanouir au quotidien.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 px-4">
             {/* Article Card */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-              className="group relative bg-background rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+              className="group relative bg-background rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
             >
               {/* Header avec vraie image */}
-              <div className="relative h-40 overflow-hidden">
+              <div className="relative h-32 sm:h-40 overflow-hidden">
                 <img 
                   src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1000&h=400&fit=crop&crop=center" 
                   alt="Entretien vidéo professionnel" 
@@ -1101,22 +1101,22 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                 </div>
             </div>
             
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors line-clamp-2">
                   10 conseils pour réussir votre entretien vidéo
                 </h3>
-                <p className="text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 leading-relaxed line-clamp-3">
                   Découvrez les meilleures pratiques pour briller lors de vos entretiens à distance et impressionner vos recruteurs.
                 </p>
                 
                 {/* Auteur */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">M</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs sm:text-sm font-bold">M</span>
               </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Marie Dubois</div>
-                    <div className="text-xs text-muted-foreground">Career Coach</div>
+                  <div className="min-w-0">
+                    <div className="text-xs sm:text-sm font-medium text-foreground truncate">Marie Dubois</div>
+                    <div className="text-xs text-muted-foreground truncate">Career Coach</div>
                   </div>
             </div>
             
@@ -1124,7 +1124,7 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                   href="/articles/entretien-video-conseils" 
                     className="block w-full cursor-pointer"
                 >
-                  <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                  <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-2.5 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                     Lire l'article
                   </Button>
                 </a>
@@ -1136,10 +1136,10 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-              className="group relative bg-background rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+              className="group relative bg-background rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
             >
                {/* Header avec vraie image */}
-              <div className="relative h-40 overflow-hidden">
+              <div className="relative h-32 sm:h-40 overflow-hidden">
                 <img 
                    src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1000&h=400&fit=crop&crop=center" 
                   alt="Négociation salaire professionnel" 
@@ -1161,27 +1161,27 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                 </div>
               </div>
 
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors line-clamp-2">
                   Comment négocier son salaire en 2025
                 </h3>
-                <p className="text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 leading-relaxed line-clamp-3">
                   Les stratégies gagnantes pour obtenir la rémunération que vous méritez et faire valoir votre expertise.
                 </p>
                 
                 {/* Auteur */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">A</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs sm:text-sm font-bold">A</span>
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Agathe Collinet</div>
-                    <div className="text-xs text-muted-foreground">Consultante RH</div>
+                  <div className="min-w-0">
+                    <div className="text-xs sm:text-sm font-medium text-foreground truncate">Agathe Collinet</div>
+                    <div className="text-xs text-muted-foreground truncate">Consultante RH</div>
                   </div>
                 </div>
             
                   <a href="/articles/negociation-salaire-2025" className="block w-full cursor-pointer">
-                    <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                    <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-2.5 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                       Lire l'article
                   </Button>
                 </a>
@@ -1193,10 +1193,10 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-              className="group relative bg-background rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+              className="group relative bg-background rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
             >
                {/* Header avec vraie image */}
-               <div className="relative h-40 overflow-hidden">
+               <div className="relative h-32 sm:h-40 overflow-hidden">
                  <img 
                    src="/assets/graphiste_testimonials.jpg" 
                    alt="CTO professionnelle" 
@@ -1218,27 +1218,27 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                 </div>
               </div>
 
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors line-clamp-2">
                    Témoignage : De photographe freelance à directeur créatif
                 </h3>
-                <p className="text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 leading-relaxed line-clamp-3">
                    Alexandre nous raconte comment LinkUp l'a aidé à transformer sa carrière de photographe freelance en poste de direction créative.
                 </p>
                 
                 {/* Auteur */}
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">A</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs sm:text-sm font-bold">A</span>
                   </div>
-                  <div>
-                     <div className="text-sm font-medium text-foreground">Alexandre Chen</div>
-                     <div className="text-xs text-muted-foreground">Directeur Créatif</div>
+                  <div className="min-w-0">
+                     <div className="text-xs sm:text-sm font-medium text-foreground truncate">Alexandre Chen</div>
+                     <div className="text-xs text-muted-foreground truncate">Directeur Créatif</div>
                   </div>
                 </div>
 
                 <a href="/articles/photographe-directeur-creatif" className="block w-full cursor-pointer">
-                  <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                  <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-teal-800 text-white font-semibold py-2.5 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                   Lire le témoignage
                 </Button>
                 </a>
@@ -1249,30 +1249,30 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
       </section>
 
       {/* Section Témoignages Ultra-Moderne */}
-      <section className="py-20 bg-background relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-background relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/3 via-transparent to-slate-500/3"></div>
-        <div className="absolute top-20 right-20 w-96 h-96 bg-cyan-400/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-slate-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-10 sm:top-20 right-10 sm:right-20 w-48 sm:w-96 h-48 sm:h-96 bg-cyan-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 sm:bottom-20 left-10 sm:left-20 w-40 sm:w-80 h-40 sm:h-80 bg-slate-400/5 rounded-full blur-3xl"></div>
         <Container>
           {/* Header Ultra-Élégant */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="inline-flex items-center gap-3 bg-background/80 backdrop-blur-sm border border-primary/50 text-primary px-6 py-3 rounded-full text-sm font-semibold mb-8 shadow-lg"
+              className="inline-flex items-center gap-2 sm:gap-3 bg-background/80 backdrop-blur-sm border border-primary/50 text-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 md:mb-8 shadow-lg"
             >
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span>Témoignages clients</span>
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="whitespace-nowrap">Témoignages clients</span>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-pulse"></div>
             </motion.div>
             
             <motion.h2 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-8 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-4 sm:mb-6 md:mb-8 leading-tight"
             >
               Ils nous font{" "}
               <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -1284,7 +1284,7 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2"
             >
               Plus de <span className="font-semibold text-primary">50 000 professionnels</span> nous font confiance pour leur recherche d'emploi et leur recrutement
             </motion.p>
@@ -1292,7 +1292,7 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
           
           
           {/* Témoignages Ultra-Élégants */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 px-4">
             {[
               {
                 quote: "En une semaine j'ai trouvé trois entretiens pertinents. La plateforme est vraiment efficace pour les développeurs comme moi.",
@@ -1326,24 +1326,24 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                 transition={{ duration: 0.8, delay: 0.5 + testimonial.delay, ease: "easeOut" }}
                 className="group relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-muted/50 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative bg-background/90 backdrop-blur-sm rounded-3xl p-8 border border-border/50 shadow-xl group-hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-muted/50 rounded-2xl sm:rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="relative bg-background/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-border/50 shadow-xl group-hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-2">
                   {/* Quote Icon */}
-                  <div className="absolute top-6 right-6 w-8 h-8 bg-gradient-to-br from-muted to-muted/80 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-muted to-muted/80 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V8a1 1 0 112 0v2.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </div>
                   
                   {/* Stars */}
-                  <div className="flex items-center gap-1 mb-6">
+                  <div className="flex items-center gap-0.5 sm:gap-1 mb-4 sm:mb-6">
                     {[...Array(5)].map((_, i) => (
                       <motion.svg 
                         key={i}
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3, delay: 0.7 + testimonial.delay + i * 0.1 }}
-                        className="w-5 h-5 text-primary" 
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-primary" 
                         fill="currentColor" 
                         viewBox="0 0 20 20"
                       >
@@ -1353,18 +1353,18 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
                   </div>
                   
                   {/* Quote */}
-                  <blockquote className="text-muted-foreground mb-8 text-lg leading-relaxed italic">
+                  <blockquote className="text-sm sm:text-base md:text-lg text-muted-foreground mb-4 sm:mb-6 md:mb-8 leading-relaxed italic">
                     "{testimonial.quote}"
                   </blockquote>
                   
                   {/* Author */}
-                  <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 bg-gradient-to-br ${testimonial.color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <testimonial.icon className="w-7 h-7" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br ${testimonial.color} rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                      <testimonial.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                     </div>
-                  <div>
-                      <div className="font-bold text-foreground text-lg">{testimonial.author}</div>
-                      <div className="text-muted-foreground font-medium">{testimonial.role}</div>
+                  <div className="min-w-0">
+                      <div className="font-bold text-foreground text-sm sm:text-base md:text-lg truncate">{testimonial.author}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{testimonial.role}</div>
                   </div>
                   </div>
                 </div>
@@ -1375,24 +1375,24 @@ function MarketingHomePageContent({ activeFilter, setActiveFilter }: {
       </section>
 
       {/* Section CTA Finale */}
-      <section className="py-24 bg-gradient-to-br from-cyan-600 via-teal-700 to-cyan-800 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-cyan-600 via-teal-700 to-cyan-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <Container className="relative z-10">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <div className="text-center px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
               Prêt à accélérer votre carrière ?
             </h2>
-            <p className="text-xl text-cyan-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-cyan-100 mb-6 sm:mb-8 max-w-2xl mx-auto">
               Rejoignez des milliers de professionnels qui ont trouvé leur job idéal sur LinkUp
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register" className="cursor-pointer">
-                <Button size="lg" className="bg-white hover:bg-slate-100 text-cyan-700 font-semibold py-4 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <Link href="/register" className="cursor-pointer w-full sm:w-auto">
+                <Button size="lg" className="bg-white hover:bg-slate-100 text-cyan-700 font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer w-full sm:w-auto">
                   Créer mon profil gratuitement
                 </Button>
               </Link>
-              <Link href="/register-company" className="cursor-pointer">
-                <Button size="lg" variant="outline" className="border-white text-white dark:text-white hover:bg-white hover:text-cyan-700 font-semibold py-4 px-8 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer">
+              <Link href="/register-company" className="cursor-pointer w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="border-white text-white dark:text-white hover:bg-white hover:text-cyan-700 font-semibold py-3 sm:py-4 px-6 sm:px-8 text-sm sm:text-base rounded-full bg-white/10 backdrop-blur-sm cursor-pointer w-full sm:w-auto">
                   Poster une offre
                 </Button>
               </Link>

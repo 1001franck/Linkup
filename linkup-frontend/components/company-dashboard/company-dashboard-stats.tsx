@@ -61,7 +61,7 @@ export function CompanyDashboardStats({ stats, isLoading }: CompanyDashboardStat
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.title}
@@ -70,32 +70,32 @@ export function CompanyDashboardStats({ stats, isLoading }: CompanyDashboardStat
           transition={{ duration: 0.5, delay: stat.delay }}
         >
           <Card className="backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Typography variant="muted" className="text-sm font-medium">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Typography variant="muted" className="text-xs sm:text-sm font-medium truncate">
                     {stat.title}
                   </Typography>
                   {isLoading ? (
                     <div className="animate-pulse">
-                      <div className="h-8 bg-muted rounded w-16 mb-2"></div>
-                      <div className="h-4 bg-muted rounded w-20"></div>
+                      <div className="h-6 sm:h-8 bg-muted rounded w-12 sm:w-16 mb-2"></div>
+                      <div className="h-3 sm:h-4 bg-muted rounded w-16 sm:w-20"></div>
                     </div>
                   ) : (
                     <>
-                      <Typography variant="h2" className="text-3xl font-bold text-foreground">
+                      <Typography variant="h2" className="text-2xl sm:text-3xl font-bold text-foreground">
                         {stat.value ?? 0}
                       </Typography>
-                      <Typography variant="muted" className="text-sm">
+                      <Typography variant="muted" className="text-xs sm:text-sm truncate">
                         {stat.subtitle}
                       </Typography>
                     </>
                   )}
                 </div>
                 <div
-                  className={`h-12 w-12 bg-gradient-to-br ${stat.gradient} rounded-xl flex items-center justify-center`}
+                  className={`h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br ${stat.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}
                 >
-                  <stat.icon className="h-6 w-6 text-white" />
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
               </div>
             </CardContent>

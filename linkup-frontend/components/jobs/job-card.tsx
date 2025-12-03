@@ -91,9 +91,9 @@ export const JobCard = memo<JobCardProps>(({
   return (
     <Card className="backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+        <div className="flex items-start justify-between gap-2 sm:gap-4">
+          <div className="flex items-start space-x-2 sm:space-x-4 flex-1 min-w-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
               {job.companyLogo && (job.companyLogo.startsWith('http://') || job.companyLogo.startsWith('https://')) ? (
                 <img
                   src={job.companyLogo}
@@ -111,39 +111,42 @@ export const JobCard = memo<JobCardProps>(({
                 <Building className="h-6 w-6 text-muted-foreground" />
               </div>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <CardTitle className="text-lg">{job.title}</CardTitle>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center flex-wrap gap-1 sm:gap-2 mb-1">
+                <CardTitle className="text-base sm:text-lg truncate">{job.title}</CardTitle>
                 {canApply && !isApplied && !isWithdrawn && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                    <Plus className="h-3 w-3 mr-1" />
-                    Disponible
+                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap flex-shrink-0">
+                    <Plus className="h-3 w-3 mr-0.5 sm:mr-1" />
+                    <span className="hidden sm:inline">Disponible</span>
+                    <span className="sm:hidden">+</span>
                   </span>
                 )}
               </div>
-              <CardDescription className="text-base">
+              <CardDescription className="text-sm sm:text-base truncate">
                 {job.company} • {job.location}
               </CardDescription>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <Button 
               variant="outline"
               size="sm"
               onClick={handleToggleBookmark}
               disabled={isSaving}
-              className={isSaved ? "text-primary border-primary" : ""}
+              className={`${isSaved ? "text-primary border-primary" : ""} px-2 sm:px-3`}
             >
-              <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
-              {isSaving ? 'Sauvegarde...' : (isSaved ? 'Sauvegardée' : 'Sauvegarder')}
+              <Bookmark className={`h-4 w-4 ${isSaving || isSaved ? "mr-1 sm:mr-2" : "mr-1 sm:mr-2"} ${isSaved ? "fill-current" : ""}`} />
+              <span className="hidden sm:inline">{isSaving ? 'Sauvegarde...' : (isSaved ? 'Sauvegardée' : 'Sauvegarder')}</span>
+              <span className="sm:hidden">{isSaving ? '...' : (isSaved ? '✓' : '')}</span>
             </Button>
             <Button 
               variant="outline"
               size="sm"
               onClick={handleShareJob}
+              className="px-2 sm:px-3"
             >
-              <Share2 className="h-4 w-4 mr-2" />
-              Partager
+              <Share2 className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Partager</span>
             </Button>
           </div>
         </div>
@@ -170,22 +173,22 @@ export const JobCard = memo<JobCardProps>(({
             )}
           </div>
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center flex-wrap gap-2 sm:gap-4">
               <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4" />
-                <span>{job.type}</span>
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="truncate">{job.type}</span>
               </div>
               {job.remote && (
                 <div className="flex items-center space-x-1">
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Remote</span>
                 </div>
               )}
               {job.salary && job.salary.min && job.salary.max && (
                 <div className="flex items-center space-x-1">
-                  <DollarSign className="h-4 w-4" />
-                  <span>
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="truncate">
                     {job.salary.min > 0 && job.salary.max > 0 
                       ? `${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()} ${job.salary.currency}`
                       : job.salary.min > 0 
@@ -196,58 +199,64 @@ export const JobCard = memo<JobCardProps>(({
                 </div>
               )}
             </div>
-            <span>{job.postedAt}</span>
+            <span className="text-xs sm:text-sm whitespace-nowrap">{job.postedAt}</span>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t gap-3 sm:gap-2">
+            <div className="flex items-center flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center space-x-1">
-                <Users className="h-4 w-4" />
-                <span>50-200 employés</span>
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">50-200 employés</span>
+                <span className="sm:hidden">50-200</span>
               </div>
               <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4" />
-                <span>{job.timeAgo || job.postedAt}</span>
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="truncate">{job.timeAgo || job.postedAt}</span>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button 
                 onClick={handleApplyToJob}
                 variant="outline"
                 size="sm"
                 disabled={!canApply}
-                className={
+                className={`w-full sm:w-auto ${
                   isApplied 
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" 
                     : isWithdrawn 
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" 
                     : "bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600"
-                }
+                }`}
               >
                 {isApplied ? (
                   <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Déjà postulé
+                    <Check className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Déjà postulé</span>
+                    <span className="sm:hidden">Postulé</span>
                   </>
                 ) : isWithdrawn ? (
                   <>
-                    <Users className="h-4 w-4 mr-2" />
-                    Candidature retirée
+                    <Users className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Candidature retirée</span>
+                    <span className="sm:hidden">Retirée</span>
                   </>
                 ) : (
                   <>
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    Postuler maintenant
+                    <Briefcase className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Postuler maintenant</span>
+                    <span className="sm:hidden">Postuler</span>
                   </>
                 )}
               </Button>
               <Button 
                 onClick={handleViewJobDetails}
-                className="flex-1"
+                className="w-full sm:flex-1"
                 variant="outline"
+                size="sm"
               >
-                <Briefcase className="h-4 w-4 mr-2" />
-                Voir l'offre
+                <Briefcase className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Voir l'offre</span>
+                <span className="sm:hidden">Voir</span>
               </Button>
             </div>
           </div>
