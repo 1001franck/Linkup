@@ -55,6 +55,13 @@ function LoginContent() {
   const redirectPath = searchParams.get('redirect');
   const message = searchParams.get('message');
 
+  // Debug: Afficher l'état de l'erreur dans la console
+  useEffect(() => {
+    if (error) {
+      console.log('[LOGIN] État erreur mis à jour:', error);
+    }
+  }, [error]);
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -64,8 +71,10 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     // CRITIQUE: Empêcher le rechargement de la page - DOIT être la première instruction
+    console.log('[LOGIN] handleSubmit appelé');
     e.preventDefault();
     e.stopPropagation();
+    console.log('[LOGIN] preventDefault appelé');
     
     // Empêcher toute soumission ultérieure
     if (isLoading) {
@@ -164,8 +173,12 @@ function LoginContent() {
       // Aucune connexion n'a réussi - afficher un message d'erreur
       // Utiliser le message d'erreur du résultat si disponible, sinon message par défaut
       const errorMessage = userResult.error || companyResult.error || "Email ou mot de passe incorrect. Veuillez réessayer.";
+      console.log('[LOGIN] Échec de connexion - Affichage erreur:', errorMessage);
+      console.log('[LOGIN] userResult:', userResult);
+      console.log('[LOGIN] companyResult:', companyResult);
       logger.debug('[LOGIN] Échec de connexion - Affichage erreur:', errorMessage);
       setError(errorMessage);
+      console.log('[LOGIN] setError appelé avec:', errorMessage);
     } catch (error) {
       logger.error('Erreur de connexion (catch):', error);
       if (isMobile) {
@@ -222,17 +235,15 @@ function LoginContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              {error ? (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg" role="alert">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
                 </div>
-              )}
+              ) : null}
               <form 
                 onSubmit={handleSubmit} 
                 className="space-y-6"
                 noValidate
-                action="#"
-                method="post"
                 onKeyDown={(e) => {
                   // Empêcher la soumission du formulaire avec Enter si le formulaire n'est pas valide
                   if (e.key === 'Enter' && (!isFormValid || isLoading)) {
