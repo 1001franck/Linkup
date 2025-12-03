@@ -8,7 +8,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const errorRef = useRef<string>(""); // Référence pour persister l'erreur
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -57,8 +58,18 @@ function LoginContent() {
 
   // Debug: Afficher l'état de l'erreur dans la console
   useEffect(() => {
+    console.log('[LOGIN] useEffect error - error state:', error);
+    console.log('[LOGIN] useEffect error - errorRef.current:', errorRef.current);
     if (error) {
       console.log('[LOGIN] État erreur mis à jour:', error);
+      // S'assurer que l'erreur persiste même après un re-render
+      if (errorRef.current !== error) {
+        errorRef.current = error;
+      }
+    } else if (errorRef.current) {
+      // Si l'erreur est perdue mais qu'elle existe dans la ref, la restaurer
+      console.log('[LOGIN] Erreur perdue dans le state, restauration depuis ref:', errorRef.current);
+      setError(errorRef.current);
     }
   }, [error]);
 
@@ -91,6 +102,7 @@ function LoginContent() {
     
     setIsLoading(true);
     setError("");
+    errorRef.current = ""; // Réinitialiser la ref aussi
 
     // Détecter si on est sur mobile
     const isMobile = typeof window !== 'undefined' && (
@@ -177,8 +189,21 @@ function LoginContent() {
       console.log('[LOGIN] userResult:', userResult);
       console.log('[LOGIN] companyResult:', companyResult);
       logger.debug('[LOGIN] Échec de connexion - Affichage erreur:', errorMessage);
+      
+      // S'assurer que l'erreur est bien définie et persiste
+      errorRef.current = errorMessage; // Stocker dans la ref aussi
       setError(errorMessage);
       console.log('[LOGIN] setError appelé avec:', errorMessage);
+      console.log('[LOGIN] errorRef.current:', errorRef.current);
+      
+      // Forcer un re-render pour s'assurer que l'erreur s'affiche
+      // Utiliser requestAnimationFrame pour s'assurer que le state est mis à jour
+      requestAnimationFrame(() => {
+        if (errorRef.current && !error) {
+          console.log('[LOGIN] Erreur perdue, restauration depuis ref:', errorRef.current);
+          setError(errorRef.current);
+        }
+      });
     } catch (error) {
       logger.error('Erreur de connexion (catch):', error);
       if (isMobile) {
@@ -235,9 +260,13 @@ function LoginContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {error ? (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg" role="alert">
-                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
+              {(error || errorRef.current) ? (
+                <div 
+                  className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg" 
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error || errorRef.current}</p>
                 </div>
               ) : null}
               <form 
