@@ -63,9 +63,14 @@ function LoginContent() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // CRITIQUE: Empêcher le rechargement de la page
+    // CRITIQUE: Empêcher le rechargement de la page - DOIT être la première instruction
     e.preventDefault();
     e.stopPropagation();
+    
+    // Empêcher toute soumission ultérieure
+    if (isLoading) {
+      return;
+    }
     
     // Vérifier que le formulaire est valide avant de continuer
     if (!isFormValid) {
@@ -144,15 +149,19 @@ function LoginContent() {
         return;
       }
       
-      // Aucune connexion n'a réussi - afficher un message d'erreur simple et uniforme
-      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
+      // Aucune connexion n'a réussi - afficher un message d'erreur
+      // Utiliser le message d'erreur du résultat si disponible, sinon message par défaut
+      const errorMessage = userResult.error || companyResult.error || "Email ou mot de passe incorrect. Veuillez réessayer.";
+      setError(errorMessage);
+      logger.debug('[LOGIN] Échec de connexion:', { userError: userResult.error, companyError: companyResult.error });
     } catch (error) {
       logger.error('Erreur de connexion:', error);
       if (isMobile) {
         logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
       }
       // Afficher un message d'erreur générique pour l'utilisateur
-      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
