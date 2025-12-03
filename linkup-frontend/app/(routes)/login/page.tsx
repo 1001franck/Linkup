@@ -69,12 +69,14 @@ function LoginContent() {
     
     // Empêcher toute soumission ultérieure
     if (isLoading) {
+      logger.debug('[LOGIN] Tentative de soumission pendant le chargement, ignorée');
       return;
     }
     
     // Vérifier que le formulaire est valide avant de continuer
     if (!isFormValid) {
       setError("Veuillez remplir tous les champs correctement.");
+      logger.debug('[LOGIN] Formulaire invalide');
       return;
     }
     
@@ -94,14 +96,18 @@ function LoginContent() {
     }
 
     try {
+      logger.debug('[LOGIN] Tentative de connexion utilisateur...');
       // Essayer d'abord la connexion candidat
       const userResult = await login(formData.email, formData.password);
+      
+      logger.debug('[LOGIN] Résultat connexion utilisateur:', { success: userResult.success, error: userResult.error });
       
       if (isMobile) {
         logger.debug('[LOGIN] 📱 Cookies après login utilisateur:', document.cookie);
       }
       
       if (userResult.success) {
+        logger.debug('[LOGIN] Connexion utilisateur réussie');
         // Sur mobile, attendre plus longtemps pour la propagation du cookie
         const waitTime = isMobile ? 2000 : 1500;
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -118,18 +124,23 @@ function LoginContent() {
         
         // Rediriger vers la page demandée ou le dashboard par défaut
         const redirectTo = redirectPath || '/dashboard';
+        logger.debug('[LOGIN] Redirection vers:', redirectTo);
         router.push(redirectTo);
         return;
       }
       
+      logger.debug('[LOGIN] Connexion utilisateur échouée, tentative entreprise...');
       // Si échec candidat, essayer entreprise
       const companyResult = await loginCompany(formData.email, formData.password);
+      
+      logger.debug('[LOGIN] Résultat connexion entreprise:', { success: companyResult.success, error: companyResult.error });
       
       if (isMobile) {
         logger.debug('[LOGIN] 📱 Cookies après login entreprise:', document.cookie);
       }
       
       if (companyResult.success) {
+        logger.debug('[LOGIN] Connexion entreprise réussie');
         // Sur mobile, attendre plus longtemps pour la propagation du cookie
         const waitTime = isMobile ? 2000 : 1500;
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -145,6 +156,7 @@ function LoginContent() {
         
         // Rediriger vers la page demandée ou le dashboard entreprise par défaut
         const redirectTo = redirectPath || '/company-dashboard';
+        logger.debug('[LOGIN] Redirection vers:', redirectTo);
         router.push(redirectTo);
         return;
       }
@@ -152,18 +164,20 @@ function LoginContent() {
       // Aucune connexion n'a réussi - afficher un message d'erreur
       // Utiliser le message d'erreur du résultat si disponible, sinon message par défaut
       const errorMessage = userResult.error || companyResult.error || "Email ou mot de passe incorrect. Veuillez réessayer.";
+      logger.debug('[LOGIN] Échec de connexion - Affichage erreur:', errorMessage);
       setError(errorMessage);
-      logger.debug('[LOGIN] Échec de connexion:', { userError: userResult.error, companyError: companyResult.error });
     } catch (error) {
-      logger.error('Erreur de connexion:', error);
+      logger.error('Erreur de connexion (catch):', error);
       if (isMobile) {
         logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
       }
       // Afficher un message d'erreur générique pour l'utilisateur
       const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
+      logger.debug('[LOGIN] Affichage erreur (catch):', errorMessage);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
+      logger.debug('[LOGIN] Fin du traitement, isLoading = false');
     }
   };
 
@@ -217,10 +231,13 @@ function LoginContent() {
                 onSubmit={handleSubmit} 
                 className="space-y-6"
                 noValidate
+                action="#"
+                method="post"
                 onKeyDown={(e) => {
                   // Empêcher la soumission du formulaire avec Enter si le formulaire n'est pas valide
                   if (e.key === 'Enter' && (!isFormValid || isLoading)) {
                     e.preventDefault();
+                    e.stopPropagation();
                   }
                 }}
               >
@@ -312,6 +329,13 @@ function LoginContent() {
                   className="w-full" 
                   size="lg"
                   disabled={!isFormValid || isLoading}
+                  onClick={(e) => {
+                    // Protection supplémentaire : empêcher toute soumission si le formulaire n'est pas valide
+                    if (!isFormValid || isLoading) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
