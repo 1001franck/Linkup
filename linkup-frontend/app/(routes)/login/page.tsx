@@ -62,8 +62,17 @@ function LoginContent() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // CRITIQUE: Empêcher le rechargement de la page
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Vérifier que le formulaire est valide avant de continuer
+    if (!isFormValid) {
+      setError("Veuillez remplir tous les champs correctement.");
+      return;
+    }
+    
     setIsLoading(true);
     setError("");
 
@@ -142,8 +151,8 @@ function LoginContent() {
       if (isMobile) {
         logger.error('[LOGIN] 📱 Erreur sur mobile - Cookies:', document.cookie);
       }
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
-      setError(errorMessage);
+      // Afficher un message d'erreur générique pour l'utilisateur
+      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }
@@ -195,7 +204,17 @@ function LoginContent() {
                   <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form 
+                onSubmit={handleSubmit} 
+                className="space-y-6"
+                noValidate
+                onKeyDown={(e) => {
+                  // Empêcher la soumission du formulaire avec Enter si le formulaire n'est pas valide
+                  if (e.key === 'Enter' && (!isFormValid || isLoading)) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
