@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logger.warn('Timeout lors de la vérification de l\'authentification - backend non accessible');
         setUser(null);
         setIsLoading(false);
-      }, 10000); // 10 secondes de timeout
+      }, 3000); // 3 secondes de timeout (réduit de 10s pour améliorer l'UX)
 
       try {
         // Essayer d'abord avec getCurrentUser() pour éviter les appels inutiles
@@ -217,9 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (response.success) {
         // Connexion réussie - le cookie est défini par le backend
-        // Essayer de récupérer les infos utilisateur immédiatement
+        // Le cookie httpOnly est propagé immédiatement par le navigateur, pas besoin de délai
+        // Récupérer les infos utilisateur immédiatement (sans délai artificiel)
         try {
-          await new Promise(resolve => setTimeout(resolve, 500)); // Attendre que le cookie soit propagé
           const userResponse = await apiClient.getCurrentUser();
           if (userResponse.success && userResponse.data) {
             setUser(userResponse.data as User);
@@ -264,9 +264,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (response.success) {
         // Connexion réussie - le cookie est défini par le backend
-        // Essayer de récupérer les infos entreprise immédiatement
+        // Le cookie httpOnly est propagé immédiatement par le navigateur, pas besoin de délai
+        // Récupérer les infos entreprise immédiatement (sans délai artificiel)
         try {
-          await new Promise(resolve => setTimeout(resolve, 500)); // Attendre que le cookie soit propagé
           const companyResponse = await apiClient.getCurrentCompany();
           if (companyResponse.success && companyResponse.data) {
             setUser(companyResponse.data as Company);
@@ -353,8 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       logger.debug(' [LOGOUT] API logout réussie');
       
-      // Attendre un peu pour s'assurer que le cookie est bien supprimé côté serveur
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Le cookie est supprimé immédiatement par le backend, pas besoin de délai
     } catch (error) {
       logger.error(' [LOGOUT] Erreur logout API:', error);
       // Continuer quand même la déconnexion même si l'API échoue

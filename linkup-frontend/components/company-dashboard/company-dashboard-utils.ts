@@ -51,3 +51,5 @@ export function truncateCompanyName(name: string, maxLength: number = 20): strin
 
 
 
+
+

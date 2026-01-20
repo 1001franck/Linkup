@@ -6,7 +6,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api-client';
 import logger from '@/lib/logger';
 
 export function useDashboardRedirect() {
@@ -52,48 +51,10 @@ export function useDashboardRedirect() {
         redirectPath = '/dashboard';
         logger.debug('👤 Redirection utilisateur vers:', redirectPath);
       } else {
-        // Fallback: essayer de récupérer les infos utilisateur depuis l'API
-        // Le cookie httpOnly sera automatiquement envoyé
-        // Timeout pour éviter que l'application reste bloquée
-        try {
-          // Créer une fonction avec timeout
-          const fetchWithTimeout = async (promise: Promise<any>, timeoutMs: number) => {
-            const timeout = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), timeoutMs)
-            );
-            return Promise.race([promise, timeout]);
-          };
-          
-          const userResponse = await fetchWithTimeout(
-            apiClient.getCurrentUser(),
-            5000
-          ) as any;
-          
-          if (userResponse && userResponse.success && userResponse.data) {
-            const userData = userResponse.data as any;
-            const userRoleFromApi = userData.role;
-            if (userRoleFromApi === 'admin') {
-              redirectPath = '/admin-dashboard';
-            } else if (userRoleFromApi === 'company') {
-              redirectPath = '/company-dashboard';
-            } else {
-              redirectPath = '/dashboard';
-            }
-          } else {
-            // Essayer entreprise si pas utilisateur
-            const companyResponse = await fetchWithTimeout(
-              apiClient.getCurrentCompany(),
-              5000
-            ) as any;
-            
-            if (companyResponse && companyResponse.success && companyResponse.data) {
-              redirectPath = '/company-dashboard';
-            }
-          }
-        } catch (error) {
-          logger.debug('Impossible de déterminer le type d\'utilisateur, utilisation du dashboard par défaut');
-          redirectPath = '/dashboard'; // Fallback par défaut
-        }
+        // Fallback: utiliser le dashboard par défaut si le type n'est pas déterminable
+        // AuthContext a déjà récupéré les données, pas besoin de refaire des appels API
+        logger.debug('Type d\'utilisateur non déterminable depuis les données, utilisation du dashboard par défaut');
+        redirectPath = '/dashboard'; // Fallback par défaut
       }
       
       router.push(redirectPath);
